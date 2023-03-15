@@ -11,6 +11,8 @@ deformado = cv2.warpPerspective(foto, matrix, (164, 474))
 
 print(matrix)
 
+#Hola Arotu!
+
 cv2.imshow('prueba', foto)
 cv2.imshow('deformado', deformado)
 cv2.waitKey(0)
