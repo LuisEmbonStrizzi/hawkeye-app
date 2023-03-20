@@ -1,9 +1,11 @@
 {
-  "name": "Next.JS Progressive Web App",
-  "short_name": "Next PWA",
-  "theme_color": "#ffffff",
-  "background_color": "#004740",
-  "display": "fullscreen",
+  "name": "Hawkeye",
+  "short_name": "Hawkeye",
+  "description": "Hawkeye is a unique tool for tennis players of all levels. With just your phone camera, you'll get accurate data about your points, including point maps and heat maps. Plus, you can request live hawk-eye for any doubtful points. With Hawkeye, you'll improve your tennis game and be able to compete at a higher level. Download the app today and discover all you can achieve on the court!",
+  "categories": ["sports","productivity"],
+  "theme_color": "#F3F6FB",
+  "background_color": "#0C0E1F",
+  "display": "standalone",
   "orientation": "portrait",
   "scope": "/",
   "start_url": "/",
@@ -49,5 +51,6 @@
       "type": "image/png"
     }
   ],
+  "screenshots": [{},{},{},{}],
   "splash_pages": null
 }
