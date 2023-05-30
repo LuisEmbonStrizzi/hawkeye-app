@@ -197,7 +197,7 @@ def pica (count):
         elif not abajoA and not b and count >= 5:
             return True
 
-
+# Define todos los contornos que no se mueven, es decir, que no pueden ser la pelota
 def contornosQuietos(cnts, todosContornos, contornosIgnorar):
     centrosCerca = False
 	#print("Length Contornos", len(cnts))
@@ -246,6 +246,7 @@ def contornosQuietos(cnts, todosContornos, contornosIgnorar):
     #print("Todos los Contornos", todosContornos)
     #print("Contornos a Ignorar", contornosIgnorar)
 
+# Ignora los contornos quietos encontrados en la función anterior
 def ignorarContornosQuietos(cnts, contornosIgnorar):
     new_cnts = []
     Ignorar = False
@@ -312,7 +313,7 @@ def velocidadGolpe(punto1, punto2, tiempo):
 
     return int(np.rint(distancia / tiempo * 3.6))
 
-def todo(frame, numeroGlob):
+def main(frame, numeroGlob):
     global radius
     global x
     global y
@@ -816,9 +817,9 @@ pique2_pers = deque(maxlen=4)
 pique3_norm = deque(maxlen=3)
 pique3_pers = deque(maxlen=3)
 
-resizer_glob = deque(maxlen=2)
-resizer_glob.append(3)
-resizer_glob.append(15)
+# Se establece el resizer, sirve para agrandar la imagen y realizar un análisis más profundo, a cambio de más tiempo de procesamiento
+# El primer valor corresponde al video original y el segundo a la perspectiva
+resizer_glob = [3, 15]
 
 altoOG = 0
 anchoOG = 0
@@ -874,9 +875,9 @@ while True:
     result = cv2.warpPerspective(frame, matrix, (164, 474))
 
     numeroGlob = 0
-    todo(frame, numeroGlob)
+    main(frame, numeroGlob)
     numeroGlob = 1
-    todo(result, numeroGlob)
+    main(result, numeroGlob)
 
     # Terminar la ejecución si se presiona la "q"
     key = cv2.waitKey(1) & 0xFF
