@@ -4,7 +4,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { api } from "~/utils/api";
 
-const Home: NextPage = () => {
+const Launch: NextPage = () => {
   const hello = api.example.hello.useQuery({ text: "from tRPC" });
 
   return (
@@ -55,7 +55,7 @@ const Home: NextPage = () => {
   );
 };
 
-export default Home;
+export default Launch;
 
 const AuthShowcase: React.FC = () => {
   const { data: sessionData } = useSession();
