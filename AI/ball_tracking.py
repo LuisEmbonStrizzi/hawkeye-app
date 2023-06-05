@@ -35,7 +35,7 @@ def tp_fix(contornos, pre_centro, count):
         return cualEstaMasCerca(pre_centro, cnts_pts)
     else: print("No se encontró la pelota")
 
-# Define qué candidato a pelota es el punto más cercano al anterior
+# Define qué candidato a pelota es el punto más cercano al anterior. Toma los puntos de tp_fix y analiza cual está mas cerca al pre_centro (centro anterior).
 def cualEstaMasCerca(punto, lista):
     suma = []
     suma2 = []
@@ -200,12 +200,10 @@ def pica (count):
 # Define todos los contornos que no se mueven, es decir, que no pueden ser la pelota
 def contornosQuietos(cnts, todosContornos, contornosIgnorar):
     centrosCerca = False
-	#print("Length Contornos", len(cnts))
     for i in cnts:
         count = 0
         (x, y), radius = cv2.minEnclosingCircle(i)
         x, y, radius = int(x), int(y), int(radius)
-        #print("Contornos en el frame", (x, y, radius))
         for l in todosContornos:
             for j in l:
                 if x - j[0][0] >= -10 and x - j[0][0] <= 10 and y - j[0][1] >= -10 and y - j[0][1] <= 10:
@@ -214,13 +212,10 @@ def contornosQuietos(cnts, todosContornos, contornosIgnorar):
                     centrosCerca = False
                     break
             if centrosCerca:
-                #print("Estoy Cerca, Todos contornos Count:", todosContornos[count])
                 todosContornos[count].append([(x, y, radius)])
-                #print("Después de apendearme, estoy así", todosContornos[count])
                 break
             count += 1
-        if not centrosCerca:
-            #print("Estoy Lejos")
+        if centrosCerca == False:
             todosContornos.append([[(x, y, radius)]])
     
     for l in todosContornos:
@@ -236,7 +231,6 @@ def contornosQuietos(cnts, todosContornos, contornosIgnorar):
             promedioIgnorarX, promedioIgnorarY = int(np.rint(promedioIgnorarX)), int(np.rint(promedioIgnorarY))
             if (len(contornosIgnorar) == 0): contornosIgnorar.append((promedioIgnorarX, promedioIgnorarY))
             for h in contornosIgnorar:
-                #cv2.circle(frame, (h[0], h[1]), 20, (255, 255, 255), -1)
                 if (h[0] == promedioIgnorarX and h[1] == promedioIgnorarY):
                     existe = True
             if not existe:
