@@ -5,11 +5,13 @@ import {
   protectedProcedure,
 } from "~/server/api/trpc";
 
-import { BlobServiceClient } from "@azure/storage-blob";
 import { v1 as uuidv1 } from "uuid";
+import { BlobServiceClient } from "@azure/storage-blob";
+
+// El Router recibe el video - Se sube al Blob Storage - Devuelve una URL - Se manda a analizar - Se muestra mientras tanto - Devuelve el resto de la data - Muestra el resto
 
 export const videoRouter = createTRPCRouter({
-    hello: publicProcedure
+    uploadVideo: protectedProcedure
       .input(z.object({ text: z.string() }))
       .query(({ input }) => {
         return {
