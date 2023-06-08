@@ -261,10 +261,14 @@ def coordenadaPorMatriz(centro):
     pts2 = np.float32([[0, 0], [164, 0], [0, 474], [164, 474]])
 
     matrix = cv2.getPerspectiveTransform(pts1, pts2)
+    perspectiva = cv2.warpPerspective(frame, matrix, (164, 474))
 
     cords_pelota = np.array([[centro[0][0]], [centro[0][1]], [1]])
     cords_pelota_pers = np.dot(matrix, cords_pelota)
     cords_pelota_pers = (int(cords_pelota_pers[0]/cords_pelota_pers[2]), int(cords_pelota_pers[1]/cords_pelota_pers[2]))
+
+    perspectiva = cv2.circle(perspectiva, (cords_pelota_pers[0], cords_pelota_pers[1] - 200), 3, (0, 0, 255), -1)
+    cv2.imshow("Perspectiva", perspectiva)
 
     return cords_pelota_pers
 
