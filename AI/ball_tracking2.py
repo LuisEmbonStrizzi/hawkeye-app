@@ -23,15 +23,14 @@ def main(frame):
     global posiblePique
     global ult_posible_pique
     global TiempoDifVelocidad
-    global Gerard
+    global es_pique
     global velocidad
     global afterVelocidad
     global radio
+    global diferente
     # global x
     # global y
-    # global esGerard
-    # global punto1Velocidad
-    # global diferente
+    global punto1Velocidad  
     # global velocidadFinal
     # global topLeftX, topLeftY, topRightX, topRightY, bottomLeftX, bottomLeftY, bottomRightX, bottomRightY
     # global estaCercaX
@@ -40,8 +39,10 @@ def main(frame):
     anchoOG = frame.shape[1]
     altoOG = frame.shape[0]
     
+    ############ VER DE BORRAR ESTO
     estaCercaX = anchoOG * 10/100
     estaCercaY = altoOG * 10/100
+    #################
 
     frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
 
@@ -112,7 +113,7 @@ def main(frame):
                 cv2.circle(frame, (int(x), int(y)), int(radio), (0, 255, 255), 2)
                 cv2.circle(frame, (centro[0][0], centro[0][1]), 5, (0, 0, 255), -1)
             
-            if centro is not None and preCentro[1] < puntoMaximoAbajoCancha * resizer and preCentro[1] > puntoMaximoArribaCancha * resizer and preCentro[0] < puntoMaximoDerechaCancha * resizer and preCentro[0] > puntoMaximoIzquierdaCancha * resizer:
+            if centro is not None and preCentro[0][1] < puntoMaximoAbajoCancha * resizer and preCentro[0][1] > puntoMaximoArribaCancha * resizer and preCentro[0][0] < puntoMaximoDerechaCancha * resizer and preCentro[0][0] > puntoMaximoIzquierdaCancha * resizer:
                 pelotaEstaEnPerspectiva = True
             elif centro is not None: 
                 pelotaEstaEnPerspectiva = False
@@ -170,11 +171,13 @@ def main(frame):
     # Entra a este if cuando se determina que hay un posiblePique, es decir, que se detectó algo que no se puede determinar si es un pique o un golpe
     if posiblePique:
         centro_pers = coordenadaPorMatriz(centro)
+        #print(centro_pers)
         if (len(pique2) >= 2):
+            #print(centro, "ARY TROL")
             # Entra a este if cuanda la pelota no esté en la cancha. Al no estar en la cancha, solo puedo determinar si está por encima o por debajo de la red para luego determinar si un posiblePique es pique o golpe.
-            if (preCentro[1] > puntoMaximoAbajoCancha * resizer or preCentro[1] < puntoMaximoArribaCancha * resizer or preCentro[0] > puntoMaximoDerechaCancha * resizer or preCentro[0] < puntoMaximoIzquierdaCancha * resizer):
+            if (preCentro[0][1] > puntoMaximoAbajoCancha * resizer or preCentro[0][1] < puntoMaximoArribaCancha * resizer or preCentro[0][0] > puntoMaximoDerechaCancha * resizer or preCentro[0][0] < puntoMaximoIzquierdaCancha * resizer):
                 mitadDeCancha = (puntoMaximoAbajoCancha - puntoMaximoArribaCancha) / 2
-                if preCentro[1] <= mitadDeCancha: abajo = False
+                if preCentro[0][1] <= mitadDeCancha: abajo = False
                 else: abajo = True
 
                 # Creo que esta parte está mal y se debería apendear preCentro[1] en vez de [0] para que se apendee la coordenada en Y.
@@ -182,18 +185,23 @@ def main(frame):
                     posiblesPiques.appendleft((abajo, preCentro[0], numeroFrame))
                     ult_posible_pique = preCentro[0]
                 elif preCentro[0] != ult_posible_pique:
+                    #print("ENTREEE")
                     posiblesPiques.appendleft((abajo, preCentro[0], numeroFrame))
                     ult_posible_pique = preCentro[0]
                 
                 if len(posiblesPiques) >= 2:
-                    Gerard = pica(TiempoDifPiques)
-                    if Gerard and type(posiblesPiques[1][0]) is not bool:
+                    es_pique = pica(TiempoDifPiques)
+                    #print("PASO 1", es_pique, type(posiblesPiques[1][0]), posiblesPiques[1][0])
+                    if es_pique and type(posiblesPiques[1][0]) is not bool:
+                        #print("TRUE", es_pique)
                         pts_piques_finales.append([centro_pers, float("{:.2f}".format(posiblesPiques[1][1] / fps))])
-                    elif Gerard == False and type(posiblesPiques[1][0]) is not bool:
+                    elif es_pique == False and type(posiblesPiques[1][0]) is not bool:
+                        #print("FALSE", es_pique)
                         pts_golpes_finales.append([centro_pers, float("{:.2f}".format(posiblesPiques[1][1] / fps))])
             
             # Entra a este if cuando la pelota está en la perspectiva. Creo que está demás lo de preguntar cosas para que entre al if, fijarse si no está todo ya dado por sentado antes.
             elif posiblePique and preCentro is not None and centro is not None:
+                #print("ENTRE POSTA")
                 if posiblesPiques == []:
                     posiblesPiques.appendleft((preCentro, numeroFrame))
                     ult_posible_pique = preCentro[0]
@@ -205,14 +213,15 @@ def main(frame):
                 punto1Velocidad = preCentro
                 TiempoDifVelocidad += 1/fps
                 if len(posiblesPiques) >= 2:
-                    Gerard = pica(TiempoDifPiques)
-                    if Gerard and type(posiblesPiques[1][0]) is not bool:
+                    es_pique = pica(TiempoDifPiques)
+                    #print("PASO 1", es_pique)
+                    if es_pique and type(posiblesPiques[1][0]) is not bool:
                         pts_piques_finales.append([centro_pers, float("{:.2f}".format(posiblesPiques[1][1] / fps))])
-                    if Gerard == False and type(posiblesPiques[1][0]) is not bool:
+                    if es_pique == False and type(posiblesPiques[1][0]) is not bool:
                         pts_golpes_finales.append([centro_pers, float("{:.2f}".format(posiblesPiques[1][1] / fps))])
     
-    if Gerard or Gerard == False:
-        Gerard = None
+    if es_pique is not None:
+        es_pique = None
     
     if velocidad and pelotaEstaEnPerspectiva and punto1Velocidad is not None:
         if punto1Velocidad[0] != centro[0] or punto1Velocidad[0][1] != centro[0][1]:
@@ -553,11 +562,10 @@ preCentro = None
 primeraVez = True
 centro = None
 
-# Fps del video y duración del video en segundos
+# Fps, frames totales y duración del video en segundos
 fps = int(vs.get(cv2.CAP_PROP_FPS))
 frame_count = int(vs.get(cv2.CAP_PROP_FRAME_COUNT))
 duracion = frame_count / fps
-print(duracion)
 
 time.sleep(2.0)
 
@@ -587,8 +595,7 @@ resizer= 3
 altoOG = 0
 anchoOG = 0
 
-Gerard = None
-esGerard = None
+es_pique = None
 posiblePique = False
 posiblesPiques = deque()
 
@@ -612,47 +619,36 @@ pelotaEstaEnPerspectiva = None
 start_time = time.time()
 previous_time = start_time
 
-with tqdm(total=float('inf'), unit='frame') as pbar:
-    while True:
-        numeroFrame += 1
-        #print("Numero de Frame: ", numeroFrame)
+for _ in range(frame_count):
+    numeroFrame += 1
+    #print("Numero de Frame: ", numeroFrame)
 
-        TiempoSegundosEmpezoVideo += 1/fps
+    TiempoSegundosEmpezoVideo += 1/fps
 
-        frame = vs.read()
-        frame = frame[1] if args.get("video", False) else frame
+    frame = vs.read()
+    frame = frame[1] if args.get("video", False) else frame
 
-        if frame is None:
-            break
+    if frame is None:
+        break
 
-        pts1 = np.float32([[topLeftX, topLeftY],       [topRightX, topRightY],
-                            [bottomLeftX, bottomLeftY], [bottomRightX, bottomRightY]])
-        pts2 = np.float32([[0, 0], [164, 0], [0, 474], [164, 474]])
+    pts1 = np.float32([[topLeftX, topLeftY],       [topRightX, topRightY],
+                        [bottomLeftX, bottomLeftY], [bottomRightX, bottomRightY]])
+    pts2 = np.float32([[0, 0], [164, 0], [0, 474], [164, 474]])
 
-        matrix = cv2.getPerspectiveTransform(pts1, pts2)
-        result = cv2.warpPerspective(frame, matrix, (164, 474))
+    matrix = cv2.getPerspectiveTransform(pts1, pts2)
+    result = cv2.warpPerspective(frame, matrix, (164, 474))
 
-        main(frame)
+    main(frame)
 
-        pbar.update(1)
+    print(pts_piques_finales)
 
-        # Calcular el tiempo transcurrido
-        current_time = time.time()
-        elapsed_time = current_time - start_time
+    # Terminar la ejecución si se presiona la "q"
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord("q"):
+        break
 
-        # Calcular el tiempo restante estimado
-        remaining_time = duracion - elapsed_time
-
-        # Actualizar la descripción de la barra de progreso con el tiempo restante estimado
-        pbar.set_postfix({'ETA': f'{remaining_time:.1f} s'})
-
-        # Terminar la ejecución si se presiona la "q"
-        key = cv2.waitKey(1) & 0xFF
-        if key == ord("q"):
-            break
-
-        if key == ord('p'):
-            cv2.waitKey(-1)
+    if key == ord('p'):
+        cv2.waitKey(-1)
 
 if not args.get("video", False):
     vs.stop()
