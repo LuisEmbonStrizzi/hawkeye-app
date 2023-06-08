@@ -4,97 +4,84 @@ import argparse
 import cv2
 import imutils
 import time
+from tqdm import tqdm
 
 # Argumentos del programa
 ap = argparse.ArgumentParser()
-ap.add_argument("-v", "--video", # Dirección del video a analizar
-	help="path to the (optional) video file")
-ap.add_argument("-b", "--buffer", type=int, default=64, # Longitud del trazado de la trayectoria
-	help="max buffer size")
+ap.add_argument("-v", "--video",  # Dirección del video a analizar
+                help="path to the (optional) video file")
+ap.add_argument("-b", "--buffer", type=int, default=64,  # Longitud del trazado de la trayectoria
+                help="max buffer size")
 args = vars(ap.parse_args())
 
-def main(frame, numeroGlob):
+
+def main(frame):
     global TiempoDeteccionUltimaPelota
     global primeraVez
     global preCentro
     global TiempoTresCentrosConsecutivos
-    # global radius
+    global TiempoDifPiques
+    global posiblePique
+    global ult_posible_pique
+    global TiempoDifVelocidad
+    global es_pique
+    global velocidad
+    global afterVelocidad
+    global radio
+    global diferente
     # global x
     # global y
-    # global Gerard
-    # global esGerard
-    # global posiblePique
-    # global countDifPiques
-    # global countDifVelocidad
-    # global punto1Velocidad
-    # global diferente
-    # global velocidad
+    global punto1Velocidad
     # global velocidadFinal
-    # global afterVelocidad
     # global topLeftX, topLeftY, topRightX, topRightY, bottomLeftX, bottomLeftY, bottomRightX, bottomRightY
     # global estaCercaX
     # global estaCercaY
-    # global ult_posible_pique
 
     anchoOG = frame.shape[1]
     altoOG = frame.shape[0]
-    
+
+    # VER DE BORRAR ESTO
     estaCercaX = anchoOG * 10/100
     estaCercaY = altoOG * 10/100
+    #################
 
     frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
 
     # Cámara lenta para mayor análisis
-    #cv2.waitKey(100)
-    
+    # cv2.waitKey(100)
+
     blurred = cv2.GaussianBlur(frame, (11, 11), 0)
     #blurred = cv2.dilate(frame, None, iterations=2)
     hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
-    
+
     # Filtra los tonos verdes de la imagen
     mascara = cv2.inRange(hsv, greenLower, greenUpper)
     mascara = cv2.erode(mascara, None, iterations=2)
     mascara = cv2.dilate(mascara, None, iterations=2)
-    
+
     # Toma todos los contornos de la imagen
-    contornos = cv2.findContours(mascara.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contornos = cv2.findContours(
+        mascara.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contornos = imutils.grab_contours(contornos)
-    
+
     centro = None
-    
+
     if (TiempoSegundosEmpezoVideo % 5 == 0):
         eliminarContornosInservibles(todosContornos)
-        #if numeroGlob == 0:
-            #eliminarContornosInservibles(todosContornos)
-        #else:
-            #eliminarContornosInservibles(todosContornos)
-    
+
     if len(contornos) > 0:
         # Busca el contorno más grande y encuentra su posición (x, y)
-        # if numeroGlob == 0:
-        #     contornosQuietos(cnts, todosContornos_norm, contornosIgnorar_norm)
-        #     #if len(ultimosCentros_norm) == 5 and TiempoDeteccionUltimaPelota[numeroGlob] >= 0.3 and not seEstaMoviendo(ultimosCentros_norm):
-        #     if len(ultimosCentros_norm) == 5 and TiempoDeteccionUltimaPelota[numeroGlob] >= 0.3 and not seEstaMoviendo(ultimosCentros_norm):
-        #         cnts = ignorarContornosQuietos(cnts, contornosIgnorar_norm)
-        
-        # else:
-        #     contornosQuietos(cnts, todosContornos_pers, contornosIgnorar_pers)
-        #     if len(ultimosCentros_pers) == 5 and TiempoDeteccionUltimaPelota[numeroGlob] >= 0.3 and not seEstaMoviendo(ultimosCentros_pers):
-        #         #print("Count", TiempoDeteccionUltimaPelota[numeroGlob])
-        #         #print("Ultimos Centros", ultimosCentros_pers)
-        #         cnts = ignorarContornosQuietos(cnts, contornosIgnorar_pers)
-
         contornosQuietos(contornos, todosContornos, contornosIgnorar)
         if len(ultimosCentros) == 5 and TiempoDeteccionUltimaPelota >= 0.3 and seEstaMoviendo(ultimosCentros) == False:
             contornos = ignorarContornosQuietos(contornos, contornosIgnorar)
-                
+
         if len(contornos) > 0:
             if primeraVez:
                 casiCentro = max(contornos, key=cv2.contourArea)
                 ((x, y), radio) = cv2.minEnclosingCircle(casiCentro)
                 M = cv2.moments(casiCentro)
-                centro = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), int(radio)
-
+                centro = (int(M["m10"] / M["m00"]),
+                          int(M["m01"] / M["m00"])), int(radio)
                 primeraVez = False
                 preCentro = centro
                 TiempoDeteccionUltimaPelota = 0
@@ -102,49 +89,52 @@ def main(frame, numeroGlob):
 
                 pique3.appendleft(centro[0][1])
                 ultimosCentros.appendleft(centro)
-            
+
             else:
-                c = tp_fix(contornos, preCentro, TiempoDeteccionUltimaPelota[numeroGlob])
-                
-                if c is not None:
-                    ((x, y), radio) = cv2.minEnclosingCircle(c)
-                    M = cv2.moments(c)
-                    centro = [int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])], int(radio)
+                casiCentro = tp_fix(contornos, preCentro,
+                                    TiempoDeteccionUltimaPelota)
+
+                if casiCentro is not None:
+                    ((x, y), radio) = cv2.minEnclosingCircle(casiCentro)
+                    M = cv2.moments(casiCentro)
+                    centro = [int(M["m10"] / M["m00"]),
+                              int(M["m01"] / M["m00"])], int(radio)
                     preCentro = centro
-                    TiempoTresCentrosConsecutivos += TiempoDeteccionUltimaPelota[numeroGlob]
-                    TiempoDeteccionUltimaPelota[numeroGlob] = 0
-                    # if numeroGlob == 0:
-                    #     pique3_norm.appendleft(center_glob[numeroGlob][0][1])
-                    #     ultimosCentros_norm.appendleft(center_glob[numeroGlob])
-                    # else:
-                    #     pique3_pers.appendleft(center_glob[numeroGlob][0][1])
-                    #     ultimosCentros_pers.appendleft(center_glob[numeroGlob])
-                    #if len(pique3) == 3 and count2 <= 0.1:
-                        #pica(pique3[2], pique3[1], pique3[0])
-                        #count2 = 0
+                    TiempoTresCentrosConsecutivos += TiempoDeteccionUltimaPelota
+                    TiempoDeteccionUltimaPelota = 0
                     pique3.appendleft(centro[0][1])
                     ultimosCentros.appendleft(centro)
-                
+
                 else:
                     if TiempoDeteccionUltimaPelota >= 0.3:
                         primeraVez = True
                         preCentro = None
                     TiempoDeteccionUltimaPelota += 1/fps
                     TiempoTresCentrosConsecutivos = 0
-                
+
             # Sigue si el contorno tiene cierto tamaño
-            if c is not None:
+            if radio > 0 and casiCentro is not None:
                 # Dibuja el círculo en la pelota
-                cv2.circle(frame, (int(x), int(y)), int(radio), (0, 255, 255), 2)
-                cv2.circle(frame, (centro[0][0], centro[0][1]), 5, (0, 0, 255), -1)
-    
+                cv2.circle(frame, (int(x), int(y)),
+                           int(radio), (0, 255, 255), 2)
+                cv2.circle(
+                    frame, (centro[0][0], centro[0][1]), 5, (0, 0, 255), -1)
+
+            if centro is not None and preCentro[0][1] < puntoMaximoAbajoCancha * resizer and preCentro[0][1] > puntoMaximoArribaCancha * resizer and preCentro[0][0] < puntoMaximoDerechaCancha * resizer and preCentro[0][0] > puntoMaximoIzquierdaCancha * resizer:
+                pelotaEstaEnPerspectiva = True
+            elif centro is not None:
+                pelotaEstaEnPerspectiva = False
+            else:
+                pelotaEstaEnPerspectiva = None
+
     else:
         if TiempoDeteccionUltimaPelota >= 0.3:
             primeraVez = True
             preCentro = None
         TiempoDeteccionUltimaPelota += 1/fps
         TiempoTresCentrosConsecutivos = 0
-    
+        pelotaEstaEnPerspectiva = None
+
     # Actualiza los puntos para trazar la trayectoria
     pts_pelota_norm.appendleft(centro)
     pts_pelota_pers.appendleft(centro)
@@ -153,229 +143,154 @@ def main(frame, numeroGlob):
         # Ignora los puntos de trayectoria inexistentes
         if pts_pelota_norm[i - 1] is None or pts_pelota_norm[i] is None:
             continue
-        
+
         # Traza la trayectoria
         thickness = int(np.sqrt(args["buffer"] / float(i + 1)) * 2.5)
-        cv2.line(frame, pts_pelota_norm[i - 1][0], pts_pelota_norm[i][0], (0, 0, 255), thickness)
-    
+        cv2.line(frame, pts_pelota_norm[i - 1][0],
+                 pts_pelota_norm[i][0], (0, 0, 255), thickness)
+
     for i in range(1, len(pts_pelota_pers)):
         # Ignora los puntos de trayectoria inexistentes
         if pts_pelota_pers[i - 1] is None or pts_pelota_pers[i] is None:
             continue
-        
+
         # Traza la trayectoria
         thickness = int(np.sqrt(args["buffer"] / float(i + 1)) * 2.5)
-        cv2.line(frame, pts_pelota_pers[i - 1][0], pts_pelota_pers[i][0], (0, 0, 255), thickness)
-    
+        cv2.line(frame, pts_pelota_pers[i - 1][0],
+                 pts_pelota_pers[i][0], (0, 0, 255), thickness)
+
     bajando = False
-    
-    if (center_glob[numeroGlob] is not None):
-        #print("Centro", center_glob[numeroGlob][0][1])
-        
-        if numeroGlob == 0:
-            pique_norm.appendleft(center_glob[numeroGlob][0][1])
-            if (len(pique_norm) >= 2):
-                if (pique_norm[0] - pique_norm[1] > 0):
-                    bajando = True
-                if (pique_norm[0] - pique_norm[1] != 0):
-                    pique2_norm.appendleft((bajando, numeroFrame))
-                else: bajando = "Indeterminación"
-            print("Bajando", bajando)
-        
-        else:
-            pique_pers.appendleft(center_glob[numeroGlob][0][1])
-            if (len(pique_pers) >= 2):
-                if (pique_pers[0] - pique_pers[1] > 0):
-                    bajando = True
-                if (pique_pers[0] - pique_pers[1] != 0):
-                    pique2_pers.appendleft((bajando, numeroFrame))
-                else: bajando = "Indeterminación"
-            print("Bajando", bajando)
-    
-    #velocidad = False
-    
-    if numeroGlob == 0:
-        countDifPiques += 1/fps
-        posiblePique = False
-        if (len(pique2_norm) >= 2):
-            if pique2_norm[0][0] == False and pique2_norm[1][0] == True and preCentro_glob[numeroGlob] is not None and pique2_norm[0][1] - pique2_norm[1][1] <= fps/6 and center_glob[numeroGlob] is not None:
-                #print("Pique 2", pique2_norm)
-                print("Gerard")
-                posiblePique = True
-                posiblesPiques_norm.appendleft(preCentro_glob[numeroGlob])
-                if len(posiblesPiques_norm) == 1: countDifPiques = 0
-                #frame = cv2.putText(frame, 'Gerard', (preCentro_glob[numeroGlob][0][0], preCentro_glob[numeroGlob][0][1]), cv2.FONT_HERSHEY_COMPLEX, 3, (0, 0, 255), 0, 2)
-    
-    else:
-        if (len(pique2_norm) >= 2):
-            puntoMaximoArribaCancha = min(topLeftY, topRightY)
-            puntoMaximoAbajoCancha = max(bottomLeftY, bottomRightY)
-            puntoMaximoIzquierdaCancha = min(topLeftX, bottomLeftX)
-            puntoMaximoDerechaCancha = max(topRightX, bottomRightX)
-            if posiblePique and preCentro_glob[0] is not None and center_glob[0] is not None and (preCentro_glob[0][0][1] > puntoMaximoAbajoCancha * resizer_glob[0] or preCentro_glob[0][0][1] < puntoMaximoArribaCancha * resizer_glob[0] or preCentro_glob[0][0][0] > puntoMaximoDerechaCancha * resizer_glob[0] or preCentro_glob[0][0][0] < puntoMaximoIzquierdaCancha * resizer_glob[0]):
-                #Gerard = False
-                mitadDeCancha = (puntoMaximoAbajoCancha - puntoMaximoArribaCancha) / 2
-                print("Center y Mitad de Cancha", preCentro_glob[0], mitadDeCancha)
-                if preCentro_glob[0][0][1] <= mitadDeCancha: abajo = False
-                else: abajo = True
 
-                if posiblesPiques_pers == []:
-                    posiblesPiques_pers.appendleft((abajo, preCentro_glob[0][0], numeroFrame))
-                    ult_posible_pique = preCentro_glob[0][0]
-                elif preCentro_glob[0][0] != ult_posible_pique:
-                    posiblesPiques_pers.appendleft((abajo, preCentro_glob[0][0], numeroFrame))
-                    ult_posible_pique = preCentro_glob[0][0]
-                
-                if len(posiblesPiques_pers) >= 2:
-                    Gerard = pica(countDifPiques)
-                    print("Gerard", Gerard)
-                    if Gerard and type(posiblesPiques_pers[1][0]) is not bool:
-                        #if pique2_pers[0][0] == False and pique2_pers[1][0] == True and preCentro_glob[numeroGlob] is not None and pique2_pers[0][1] - pique2_pers[1][1] <= fps/6:
-                        #pts_piques_finales.append([[preCentro_glob[numeroGlob][0][0], preCentro_glob[numeroGlob][0][1]], float("{:.2f}".format(numeroFrame / fps))])
-                        # pts_piques_finales.append([posiblesPiques_pers[1][0], float("{:.2f}".format(numeroFrame / fps))])
-                        pts_piques_finales.append([posiblesPiques_pers[1][0][0], float("{:.2f}".format(posiblesPiques_pers[1][1] / fps))])
+    if centro is not None:
+        pique.appendleft(centro[0][1])
+        if (len(pique) >= 2):
+            if (pique[0] - pique[1] > 0):
+                bajando = True
+            if (pique[0] - pique[1] != 0):
+                pique2.appendleft((bajando, numeroFrame))
+            else:
+                bajando = "Indeterminación"
 
-                    elif not Gerard and type(posiblesPiques_pers[1][0]) is not bool:
-                        #pts_golpes_finales.append([[preCentro_glob[numeroGlob][0][0], preCentro_glob[numeroGlob][0][1]], float("{:.2f}".format(numeroFrame / fps))])
-                        pts_golpes_finales.append([posiblesPiques_pers[1][0][0], float("{:.2f}".format(posiblesPiques_pers[1][1] / fps))])
-            
-            elif posiblePique and preCentro_glob[numeroGlob] is not None and center_glob[numeroGlob] is not None:
-                #print("Pique 2", pique2_pers)
-                print("Gerard")
-                if posiblesPiques_pers == []:
-                    posiblesPiques_pers.appendleft((preCentro_glob[numeroGlob], numeroFrame))
-                    ult_posible_pique = preCentro_glob[numeroGlob][0]
-                elif ult_posible_pique != preCentro_glob[numeroGlob][0]:
-                    posiblesPiques_pers.appendleft((preCentro_glob[numeroGlob], numeroFrame))
-                    ult_posible_pique = preCentro_glob[numeroGlob][0]
-                #print("Posibles Piques", posiblesPiques_pers)
-                countDifPiques = 0
-                #frame = cv2.putText(frame, 'Gerard', (preCentro_glob[numeroGlob][0][0], preCentro_glob[numeroGlob][0][1]), cv2.FONT_HERSHEY_COMPLEX, 3, (0, 0, 255), 0, 2)
-                pts_pique.append([[preCentro_glob[numeroGlob][0][0], preCentro_glob[numeroGlob][0][1]], float("{:.2f}".format(numeroFrame / fps))])
-                print("ES ESTE", pts_pique)
+    TiempoDifPiques += 1/fps
+    posiblePique = False
+    if (len(pique2) >= 2):
+        if pique2[0][0] == False and pique2[1][0] == True and preCentro is not None and pique2[0][1] - pique2[1][1] <= fps/6 and centro is not None:
+            posiblePique = True
+            TiempoDifPiques = 0
+
+    # Entra a este if cuando se determina que hay un posiblePique, es decir, que se detectó algo que no se puede determinar si es un pique o un golpe
+    if posiblePique:
+        centro_pers = coordenadaPorMatriz(centro)
+        # print(centro_pers)
+        if (len(pique2) >= 2):
+            #print(centro, "ARY TROL")
+            # Entra a este if cuanda la pelota no esté en la cancha. Al no estar en la cancha, solo puedo determinar si está por encima o por debajo de la red para luego determinar si un posiblePique es pique o golpe.
+            if (preCentro[0][1] > puntoMaximoAbajoCancha * resizer or preCentro[0][1] < puntoMaximoArribaCancha * resizer or preCentro[0][0] > puntoMaximoDerechaCancha * resizer or preCentro[0][0] < puntoMaximoIzquierdaCancha * resizer):
+                mitadDeCancha = (puntoMaximoAbajoCancha -
+                                 puntoMaximoArribaCancha) / 2
+                if preCentro[0][1] <= mitadDeCancha:
+                    abajo = False
+                else:
+                    abajo = True
+
+                # Creo que esta parte está mal y se debería apendear preCentro[1] en vez de [0] para que se apendee la coordenada en Y.
+                if posiblesPiques == []:
+                    posiblesPiques.appendleft(
+                        (abajo, preCentro[0], numeroFrame))
+                    ult_posible_pique = preCentro[0]
+                elif preCentro[0] != ult_posible_pique:
+                    # print("ENTREEE")
+                    posiblesPiques.appendleft(
+                        (abajo, preCentro[0], numeroFrame))
+                    ult_posible_pique = preCentro[0]
+
+                if len(posiblesPiques) >= 2:
+                    es_pique = pica(TiempoDifPiques)
+                    #print("PASO 1", es_pique, type(posiblesPiques[1][0]), posiblesPiques[1][0])
+                    if es_pique and type(posiblesPiques[1][0]) is not bool:
+                        #print("TRUE", es_pique)
+                        pts_piques_finales.append(
+                            [centro_pers, float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                    elif es_pique == False and type(posiblesPiques[1][0]) is not bool:
+                        #print("FALSE", es_pique)
+                        pts_golpes_finales.append(
+                            [centro_pers, float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+
+            # Entra a este if cuando la pelota está en la perspectiva. Creo que está demás lo de preguntar cosas para que entre al if, fijarse si no está todo ya dado por sentado antes.
+            elif posiblePique and preCentro is not None and centro is not None:
+                #print("ENTRE POSTA")
+                if posiblesPiques == []:
+                    posiblesPiques.appendleft((preCentro, numeroFrame))
+                    ult_posible_pique = preCentro[0]
+                elif ult_posible_pique != preCentro[0]:
+                    posiblesPiques.appendleft((preCentro, numeroFrame))
+                    ult_posible_pique = preCentro[0]
+                TiempoDifPiques = 0
                 velocidad = True
-                punto1Velocidad = preCentro_glob[numeroGlob]
-                countDifVelocidad += 1/fps
-                if len(posiblesPiques_pers) >= 2:
-                    Gerard = pica(countDifPiques)
-                    print("Gerard", Gerard)
-                    if Gerard and type(posiblesPiques_pers[1][0]) is not bool:
-                        #pts_piques_finales.append([[preCentro_glob[numeroGlob][0][0], preCentro_glob[numeroGlob][0][1]], float("{:.2f}".format(numeroFrame / fps))])
-                        pts_piques_finales.append([posiblesPiques_pers[1][0][0], float("{:.2f}".format(posiblesPiques_pers[1][1] / fps))])
-                    if Gerard is False and type(posiblesPiques_pers[1][0]) is not bool:
-                        #pts_golpes_finales.append([[preCentro_glob[numeroGlob][0][0], preCentro_glob[numeroGlob][0][1]], float("{:.2f}".format(numeroFrame / fps))])
-                        pts_golpes_finales.append([posiblesPiques_pers[1][0][0], float("{:.2f}".format(posiblesPiques_pers[1][1] / fps))])
-    
-    if numeroGlob == 0 and Gerard:
-        Gerard = None
-        #frame = cv2.putText(frame, 'Gerard', (pts_piques_finales[0][0]), cv2.FONT_HERSHEY_COMPLEX, 3, (0, 0, 255), 0, 2)
-    elif numeroGlob == 0 and Gerard == False:
-        Gerard = None
-        #frame = cv2.putText(frame, 'Heatmap', (pts_golpes_finales[0][0]), cv2.FONT_HERSHEY_COMPLEX, 3, (0, 0, 255), 0, 2)
-    
-    if velocidad and center_glob[numeroGlob] is not None and punto1Velocidad is not None and numeroGlob == 1:
-        print("Punto1", punto1Velocidad)
-        print("Center", center_glob[numeroGlob])
-        if punto1Velocidad[0][0] != center_glob[numeroGlob][0][0] or punto1Velocidad[0][1] != center_glob[numeroGlob][0][1]:
+                punto1Velocidad = preCentro
+                TiempoDifVelocidad += 1/fps
+                if len(posiblesPiques) >= 2:
+                    es_pique = pica(TiempoDifPiques)
+                    #print("PASO 1", es_pique)
+                    if es_pique and type(posiblesPiques[1][0]) is not bool:
+                        pts_piques_finales.append(
+                            [centro_pers, float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                    if es_pique == False and type(posiblesPiques[1][0]) is not bool:
+                        pts_golpes_finales.append(
+                            [centro_pers, float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+
+    if es_pique is not None:
+        es_pique = None
+
+    if velocidad and pelotaEstaEnPerspectiva and punto1Velocidad is not None:
+        if punto1Velocidad[0] != centro[0] or punto1Velocidad[0][1] != centro[0][1]:
             diferente = True
-    
-    if velocidad and center_glob[numeroGlob] is not None and numeroGlob == 1 and diferente:
-        #print("PreCentro", preCentro_glob[numeroGlob])
-        #print("Centro", center_glob[numeroGlob])
-        print("Punto1", punto1Velocidad)
-        print("Punto2", center_glob[numeroGlob])
-        print("Tiempo", countDifVelocidad)
-        velocidadFinal = velocidadGolpe(punto1Velocidad, center_glob[numeroGlob], countDifVelocidad)
-        print("Velocidad Final", velocidadFinal, "Kilometros por Hora")
-        #cv2.circle(frame, (int(punto1Velocidad[0][0]), int(punto1Velocidad[0][1])), 50, (255, 255, 255), -1)
-        #cv2.circle(frame, (int(center_glob[numeroGlob][0][0]), int(center_glob[numeroGlob][0][1])), 50, (255, 255, 255), -1)
+
+    if velocidad and pelotaEstaEnPerspectiva and diferente:
+        velocidadFinal = velocidadPelota(
+            punto1Velocidad, centro, TiempoDifVelocidad)
         velocidad = False
         punto1Velocidad = None
-        countDifVelocidad = 0
+        TiempoDifVelocidad = 0
         diferente = False
         afterVelocidad = True
 
-    elif velocidad and numeroGlob == 1:
-        countDifVelocidad += 1/fps
+    elif velocidad:
+        TiempoDifVelocidad += 1/fps
 
-    elif countDifVelocidad >= 0.5 and numeroGlob == 1:
-        countDifVelocidad = 0
+    elif TiempoDifVelocidad >= 0.5:
+        TiempoDifVelocidad = 0
         velocidad = False
         punto1Velocidad = None
         diferente = False
 
-    if afterVelocidad and numeroGlob == 0 and center_glob[numeroGlob] is not None:
-        #frame = cv2.putText(frame, str(velocidadFinal), (center_glob[numeroGlob][0][0], center_glob[numeroGlob][0][1]), cv2.FONT_HERSHEY_COMPLEX, 3, (0, 0, 255), 0, 2)
+    if afterVelocidad and centro is not None:
         afterVelocidad = False
-    
-    #cv2.circle(frame, (100 * resizer_glob[numeroGlob], 194 * resizer_glob[numeroGlob]), 50, (255, 255, 0), -1)
-    #cv2.circle(frame, (88 * resizer_glob[numeroGlob], 164 * resizer_glob), 25, (255, 255, 0), -1)
 
-    # if numeroGlob == 0:
-    #     if center_glob[numeroGlob] is not None:
-    #         pique3_norm.appendleft(center_glob[numeroGlob][1])
-    #     if len(pique3_norm) == 3 and TiempoTresCentrosConsecutivos[numeroGlob] <= 0.1:
-    #         pica(pique3_norm[2], pique3_norm[1], pique3_norm[0])
-    #         TiempoTresCentrosConsecutivos[numeroGlob] = 0
-    # else:
-    #     if center_glob[numeroGlob] is not None:
-    #         pique3_pers.appendleft(center_glob[numeroGlob][1])
-    #     if len(pique3_pers) == 3 and TiempoTresCentrosConsecutivos[numeroGlob] <= 0.1:
-    #         pica(pique3_pers[2], pique3_pers[1], pique3_pers[0])
-    #         TiempoTresCentrosConsecutivos[numeroGlob] = 0
-
-    # if numeroGlob == 0:
-    #     Gerard = False
-    #     if center_glob[numeroGlob] is not None:
-    #         pique3_norm.appendleft(center_glob[numeroGlob])
-    #     if (len(pique2_norm) >= 2):
-    #         if pique2_norm[0] == False and pique2_norm[1] == True:
-    #             frame = cv2.putText(frame, 'Posible Gerard', pique3_norm[1], cv2.FONT_HERSHEY_COMPLEX, 3, (0, 0, 255), 0, 2)
-    #             Gerard = True
-    #             if esGerard:
-    #                 print("Picoooooooooooooooooooooooooooooooooo")
-    #                 frame = cv2.putText(frame, 'Gerard', pique3_norm[2], cv2.FONT_HERSHEY_COMPLEX, 3, (0, 0, 255), 0, 2)
-    #     esGerard = None
-
-    # else:
-    #     if center_glob[numeroGlob] is not None:
-    #         pique3_pers.appendleft(center_glob[numeroGlob])
-    #     if (len(pique2_pers) >= 2):
-    #         if Gerard:
-    #             print("Count2: ", TiempoTresCentrosConsecutivos[numeroGlob], "Center", center_glob[numeroGlob])
-    #             #if len(pique3_pers) == 3 and TiempoTresCentrosConsecutivos[numeroGlob] <= 0.2 and TiempoTresCentrosConsecutivos[numeroGlob] > 0 and center_glob[numeroGlob] is not None:
-    #             if len(pique3_pers) == 3 and TiempoTresCentrosConsecutivos[numeroGlob] <= 0.3 and center_glob[numeroGlob] is not None:
-    #                 esGerard = pica(pique3_pers[2][1], pique3_pers[1][1], pique3_pers[0][1])
-    #                 #pica(pique3_pers[2][1], pique3_pers[1][1], pique3_pers[0][1])
-    #                 TiempoTresCentrosConsecutivos[numeroGlob] = 0
-    #             if esGerard:
-    #                 print("Picoooooooooooooooooooooooooooooooooo")
-    #                 frame = cv2.putText(frame, 'Gerard', pique3_pers[1], cv2.FONT_HERSHEY_COMPLEX, 3, (0, 0, 255), 0, 2)
-    
     # Resizea y Muestra el Frame
-    if numeroGlob == 0:
+    frame = imutils.resize(frame, anchoOG, altoOG)
+    frame = imutils.resize(frame, height=768)
+    mascara = imutils.resize(mascara, anchoOG, altoOG)
+    mascara = imutils.resize(mascara, height=768)
 
-        frame = imutils.resize(frame, anchoOG, altoOG)
-        frame = imutils.resize(frame, height= 768)
-        mask = imutils.resize(mask, anchoOG, altoOG)
-        mask = imutils.resize(mask, height= 768)
+    cv2.imshow("Mascara Normal", mascara)
+    cv2.imshow("Normal", frame)
 
-        cv2.imshow("Mask Normal", mask)
-        cv2.imshow("Normal", frame)
 
-    else:
+def coordenadaPorMatriz(centro):
+    pts1 = np.float32([[topLeftX, topLeftY], [topRightX, topRightY], [
+                      bottomLeftX, bottomLeftY], [bottomRightX, bottomRightY]])
+    pts2 = np.float32([[0, 0], [164, 0], [0, 474], [164, 474]])
 
-        frame = imutils.resize(frame, anchoOG, altoOG)
-        mask = imutils.resize(mask, anchoOG, altoOG)
+    matrix = cv2.getPerspectiveTransform(pts1, pts2)
 
-        cv2.imshow("Mask Perspectiva", mask)
-        cv2.imshow("Perspective", frame)
+    cords_pelota = np.array([[centro[0][0]], [centro[0][1]], [1]])
+    cords_pelota_pers = np.dot(matrix, cords_pelota)
+    cords_pelota_pers = (int(
+        cords_pelota_pers[0]/cords_pelota_pers[2]), int(cords_pelota_pers[1]/cords_pelota_pers[2]))
 
-    print("Centro al terminar la iteración", center_glob[numeroGlob])
-    print("Numero Global", numeroGlob)
-    print("Puntos Piques Pers", list(posiblesPiques_pers))
-    print("Puntos Piques Finales", pts_piques_finales)
-    print("Puntos Golpes Finales", pts_golpes_finales)
+    return cords_pelota_pers
+
 
 def eliminarContornosInservibles(todosContornos):
     count = 0
@@ -384,22 +299,25 @@ def eliminarContornosInservibles(todosContornos):
         if (len(i) <= 5):
             aBorrar.append(count)
         count += 1
-    
+
     n = 0
     for i in aBorrar:
         todosContornos.pop(i - n)
         n += 1
 
 # Define todos los contornos que no se mueven, es decir, que no pueden ser la pelota
+
+
 def contornosQuietos(cnts, todosContornos, contornosIgnorar):
     centrosCerca = False
-    for i in cnts:
+    for contorno in cnts:
         count = 0
-        (x, y), radius = cv2.minEnclosingCircle(i)
+        # Círculo del contorno
+        (x, y), radius = cv2.minEnclosingCircle(contorno)
         x, y, radius = int(x), int(y), int(radius)
-        for l in todosContornos:
-            for j in l:
-                if x - j[0][0] >= -10 and x - j[0][0] <= 10 and y - j[0][1] >= -10 and y - j[0][1] <= 10:
+        for circulos_cercanos in todosContornos:
+            for circulo in circulos_cercanos:
+                if x - circulo[0][0] >= -10 and x - circulo[0][0] <= 10 and y - circulo[0][1] >= -10 and y - circulo[0][1] <= 10:
                     centrosCerca = True
                 else:
                     centrosCerca = False
@@ -410,48 +328,47 @@ def contornosQuietos(cnts, todosContornos, contornosIgnorar):
             count += 1
         if centrosCerca == False:
             todosContornos.append([[(x, y, radius)]])
-    
-    for l in todosContornos:
-        existe = False
-        if (len(l) >= 10):
+
+    for circulos_cercanos in todosContornos:
+        ContornoExiste = False
+        if (len(circulos_cercanos) >= 10):
             promedioIgnorarX = 0
             promedioIgnorarY = 0
-            for j in l:
-                promedioIgnorarX += j[0][0]
-                promedioIgnorarY += j[0][1]
-            promedioIgnorarX /= len(l)
-            promedioIgnorarY /= len(l)
-            promedioIgnorarX, promedioIgnorarY = int(np.rint(promedioIgnorarX)), int(np.rint(promedioIgnorarY))
-            if (len(contornosIgnorar) == 0): contornosIgnorar.append((promedioIgnorarX, promedioIgnorarY))
-            for h in contornosIgnorar:
-                if (h[0] == promedioIgnorarX and h[1] == promedioIgnorarY):
-                    existe = True
-            if not existe:
+            for circulo in circulos_cercanos:
+                promedioIgnorarX += circulo[0][0]
+                promedioIgnorarY += circulo[0][1]
+            promedioIgnorarX /= len(circulos_cercanos)
+            promedioIgnorarY /= len(circulos_cercanos)
+            promedioIgnorarX, promedioIgnorarY = int(
+                np.rint(promedioIgnorarX)), int(np.rint(promedioIgnorarY))
+            if (len(contornosIgnorar) == 0):
                 contornosIgnorar.append((promedioIgnorarX, promedioIgnorarY))
-                #print("Encontré un contorno que tengo que ignorar")
-    
-    #print("Todos los Contornos", todosContornos)
-    #print("Contornos a Ignorar", contornosIgnorar)
+            for contorno in contornosIgnorar:
+                if (contorno[0] == promedioIgnorarX and contorno[1] == promedioIgnorarY):
+                    ContornoExiste = True
+            if ContornoExiste == False:
+                contornosIgnorar.append((promedioIgnorarX, promedioIgnorarY))
 
 # Ignora los contornos quietos encontrados en la función anterior
+
+
 def ignorarContornosQuietos(cnts, contornosIgnorar):
     new_cnts = []
     Ignorar = False
     for cnt in cnts:
-        (x, y), radius = cv2.minEnclosingCircle(cnt)
-        print("Circulo Posible", (int(x), int(y), int(radius)))
+        (x, y), _ = cv2.minEnclosingCircle(cnt)
         for i in contornosIgnorar:
             if x - i[0] >= -20 and x - i[0] <= 20 and y - i[1] >= -20 and y - i[1] <= 20:
                 Ignorar = True
                 break
             else:
                 Ignorar = False
-        
-        if Ignorar == False: new_cnts.append(cnt)
-    
-    for i in new_cnts:
-        print("Nueva lista", cv2.minEnclosingCircle(i))
+
+        if Ignorar == False:
+            new_cnts.append(cnt)
+
     return new_cnts
+
 
 def seEstaMoviendo(ultCentros):
     movimiento = False
@@ -465,55 +382,195 @@ def seEstaMoviendo(ultCentros):
         else:
             movimiento = False
             break
-    
-    if movimiento: 
+
+    if movimiento:
         return True
     return False
 
 # Función que arregla el problema de "la zapatilla verde"
+
+
 def tp_fix(contornos, pre_centro, count):
     cnts_pts = []
-    if numeroGlob == 0:
-        medidorX = 100
-        medidorY = 103
-        #medidorX = estaCercaX
-        #medidorY = estaCercaY
-    else:
-        medidorX = 70
-        medidorY = 151
-    print("Pre Centro", preCentro_glob[numeroGlob])
+    medidorX = 100
+    medidorY = 103
+    #medidorX = estaCercaX
+    #medidorY = estaCercaY
+
     for contorno in contornos:
-        ((x, y), radius) = cv2.minEnclosingCircle(contorno)
-        print("Círculo", (x, y, radius))
-        if x - pre_centro[0][0] > medidorX * resizer_glob[numeroGlob] or pre_centro[0][0] - x > medidorX * resizer_glob[numeroGlob] or y - pre_centro[0][1] > medidorY * resizer_glob[numeroGlob] or pre_centro[0][1] - y > medidorY * resizer_glob[numeroGlob] and count <= 0.5:
+        ((x, y), _) = cv2.minEnclosingCircle(contorno)
+        if x - pre_centro[0][0] > medidorX * resizer or pre_centro[0][0] - x > medidorX * resizer or y - pre_centro[0][1] > medidorY * resizer or pre_centro[0][1] - y > medidorY * resizer and count <= 0.5:
             continue
         cnts_pts.append(contorno)
     if cnts_pts != []:
         return cualEstaMasCerca(pre_centro, cnts_pts)
-    else: print("No se encontró la pelota")
 
 # Define qué candidato a pelota es el punto más cercano al anterior. Toma los puntos de tp_fix y analiza cual está mas cerca al pre_centro (centro anterior).
+
+
 def cualEstaMasCerca(punto, lista):
     suma = []
     suma2 = []
     for i in lista:
         (xCenter, yCenter), radius = cv2.minEnclosingCircle(i)
-        difEnX = int(xCenter) - int(punto[0][0])
-        difEnY = int(yCenter) - int(punto[0][1])
-        difRadio = int(radius) - int(punto[1])
-        
-        if difEnX < 0:
-            difEnX *= -1
-        
-        if difEnY < 0:
-            difEnY *= -1 
-        
-        if difRadio < 0:
-            difRadio *= -1
-        
+        difEnX = abs(int(xCenter) - int(punto[0][0]))
+        difEnY = abs(int(yCenter) - int(punto[0][1]))
+        difRadio = abs(int(radius) - int(punto[1]))
+
         suma.append(difEnX + difEnY + difRadio * 3)
         suma2.append(i)
     return suma2[suma.index(min(suma))]
+
+# Función que determina si es un pique o un golpe
+
+
+def pica(count):
+    # Tengo que descubrir si la variable "b" es un pique o un golpe
+    # Si es un pique, se devuelve True, de lo contrario se devuelve False
+
+    if type(posiblesPiques[0][0]) is not bool and type(posiblesPiques[1][0]) is not bool:
+        abajoA = False
+        abajoB = False
+        a = posiblesPiques[0][0][0][1] / resizer
+        b = posiblesPiques[1][0][0][1] / resizer
+        #cv2.circle(frame, posiblesPiques[0][0], 40, (255, 255, 255), -1)
+        #cv2.circle(frame, posiblesPiques[1][0], 40, (255, 255, 255), -1)
+        if a >= 474 / 2:
+            abajoA = True
+        if b >= 474 / 2:
+            abajoB = True
+        if abajoB and abajoA and a > b and count <= 1:
+            return True
+        elif abajoB and abajoA and a > b and count >= 1:
+            return True
+        elif abajoB and abajoA and a < b and count >= 2.5:
+            return True
+        elif abajoB and abajoA and a < b and count <= 2.5:
+            return False
+        elif abajoB and not abajoA and a < b and count <= 1.2:
+            return True
+        elif abajoB and not abajoA and a < b and count <= 2.5:
+            return False
+        elif abajoB and not abajoA and a < b and count >= 2.5:
+            return True
+        elif not abajoB and abajoA and a > b and count >= 1:
+            return True
+        elif not abajoB and abajoA and a > b and count <= 1:
+            return False
+        elif not abajoB and not abajoA and a > b and count <= 2:
+            return False
+        elif not abajoB and not abajoA and a > b and count >= 2:
+            return True
+        elif not abajoB and not abajoA and a < b and count >= 2:
+            return False
+        elif not abajoB and not abajoA and a < b and count <= 1.5:
+            return True
+        elif not abajoB and not abajoA and a < b and count <= 2:
+            return False
+
+    elif type(posiblesPiques[0][0]) is bool and type(posiblesPiques[1][0]) is bool:
+        a = posiblesPiques[0][0]
+        b = posiblesPiques[1][0]
+        a2 = posiblesPiques[0][1]
+        b2 = posiblesPiques[1][1]
+
+        if a and b and a2 > b2 and count <= 2:
+            return True
+        elif a and b and a2 > b2 and count >= 2:
+            return False
+        elif a and b and a2 < b2 and count <= 6.5:
+            return False
+        elif a and b and a2 < b2 and count >= 6.5:
+            return True
+        elif a and not b and a2 > b2 and count <= 4:
+            return False
+        elif a and not b and a2 > b2 and count >= 4:
+            return True
+        elif not a and b and a2 < b2 and count <= 4:
+            return False
+        elif not a and b and a2 < b2 and count >= 4:
+            return False
+        elif not a and not b and a2 > b2 and count <= 6.5:
+            return False
+        elif not a and not b and a2 > b2 and count >= 6.5:
+            return True
+        elif not a and not b and a2 < b2 and count <= 2:
+            return True
+        elif not a and not b and a2 < b2 and count >= 2:
+            return False
+
+    elif type(posiblesPiques[0][0]) is bool:
+        abajoB = False
+        b = posiblesPiques[1][0][0][1] / resizer
+        if b >= 474 / 2:
+            abajoB = True
+
+        a = posiblesPiques[0][0]
+
+        if a and abajoB and count <= 2:
+            return True
+        elif a and abajoB and count >= 2:
+            return True
+        elif a and not abajoB and count <= 2.25:
+            return False
+        elif a and abajoB and count >= 2.25:
+            return True
+        elif not a and abajoB and count <= 1.5:
+            return True
+        elif not a and abajoB and count >= 1.5:
+            return True
+        elif not a and not abajoB and count <= 2:
+            return True
+        elif not a and not abajoB and count >= 2:
+            return False
+
+    elif type(posiblesPiques[1][0]) is bool:
+        abajoA = False
+        a = posiblesPiques[0][0][0][1] / resizer
+        if a >= 474 / 2:
+            abajoA = True
+
+        b = posiblesPiques[1][0]
+
+        if abajoA and b and count <= 5:
+            return False
+        elif abajoA and b and count >= 5:
+            return True
+        elif abajoA and not b and count <= 5:
+            return False
+        elif abajoA and not b and count >= 5:
+            return True
+        elif not abajoA and b and count <= 2.5:
+            return False
+        elif not abajoA and b and count >= 2.5:
+            return True
+        elif not abajoA and not b and count <= 5:
+            return False
+        elif not abajoA and not b and count >= 5:
+            return True
+
+
+def velocidadPelota(punto1, punto2, tiempo):
+    punto1X = punto1[0][0] / (resizer * 20)
+    punto1Y = punto1[0][1] / (resizer * 20)
+    punto2X = punto2[0][0] / (resizer * 20)
+    punto2Y = punto2[0][1] / (resizer * 20)
+
+    if punto1X >= punto2X:
+        movimientoX = punto1X - punto2X
+    elif punto1X <= punto2X:
+        movimientoX = punto2X - punto1X
+
+    if punto1Y >= punto2Y:
+        movimientoY = punto1Y - punto2Y
+    elif punto1Y <= punto2Y:
+        movimientoY = punto2Y - punto1Y
+
+    distancia = np.sqrt(movimientoX * movimientoX + movimientoY * movimientoY)
+    #distancia *= 1.5
+
+    return int(np.rint(distancia / tiempo * 3.6))
+
 
 # Toma la cámara si no recibe video
 if not args.get("video", False):
@@ -536,7 +593,10 @@ bottomLeftY = 797
 bottomRightX = 1518
 bottomRightY = 785
 
-pts_pique = []
+puntoMaximoArribaCancha = min(topLeftY, topRightY)
+puntoMaximoAbajoCancha = max(bottomLeftY, bottomRightY)
+puntoMaximoIzquierdaCancha = min(topLeftX, bottomLeftX)
+puntoMaximoDerechaCancha = max(topRightX, bottomRightX)
 
 pts_piques_finales = []
 pts_golpes_finales = []
@@ -550,19 +610,21 @@ preCentro = None
 primeraVez = True
 centro = None
 
-# Fps del video
+# Fps, frames totales y duración del video en segundos
 fps = int(vs.get(cv2.CAP_PROP_FPS))
+frame_count = int(vs.get(cv2.CAP_PROP_FRAME_COUNT))
+duracion = frame_count / fps
 
 time.sleep(2.0)
 
 # Indica el tiempo que pasó desde que se detectó la última pelota
 TiempoDeteccionUltimaPelota = 0
 
-# Indica cuanto tiempo pasa entre tres centros consecutivos. 
+# Indica cuanto tiempo pasa entre tres centros consecutivos.
 # Esto para saber si detectó la pelota correctamente a la hora de determinar el pique
 TiempoTresCentrosConsecutivos = 0
 
-# TiempoSegundosEmpezoVideo cuenta cuanto tiempo pasó en segundos desde que empezó el video 
+# TiempoSegundosEmpezoVideo cuenta cuanto tiempo pasó en segundos desde que empezó el video
 TiempoSegundosEmpezoVideo = 0
 
 ultimosCentros = deque(maxlen=5)
@@ -576,20 +638,19 @@ pique3 = deque(maxlen=3)
 
 # Se establece el resizer, sirve para agrandar la imagen y realizar un análisis más profundo, a cambio de más tiempo de procesamiento
 # El primer valor corresponde al video original y el segundo a la perspectiva
-resizer= [3, 15]
+resizer = 3
 
 altoOG = 0
 anchoOG = 0
 
-Gerard = None
-esGerard = None
+es_pique = None
 posiblePique = False
-posiblesPiques = []
+posiblesPiques = deque()
 
-# CountDifVelocidad cuenta cuento tiempo en segundos pasa desde que se encontraron los dos puntos para usar en la velocidad
+# TiempoDifVelocidad cuenta cuento tiempo en segundos pasa desde que se encontraron los dos puntos para usar en la velocidad
 TiempoDifVelocidad = 0
 
-# CountDifPiques cuenta cuanto tiempo pasa desde que se encontró un pique hasta que se encuentra el siguiente
+# TiempoDifPiques cuenta cuanto tiempo pasa desde que se encontró un pique hasta que se encuentra el siguiente
 TiempoDifPiques = 0
 
 # El número del Frame del video
@@ -601,9 +662,14 @@ diferente = False
 velocidadFinal = None
 afterVelocidad = False
 
-while True:
+pelotaEstaEnPerspectiva = None
+
+start_time = time.time()
+previous_time = start_time
+
+for _ in range(frame_count):
     numeroFrame += 1
-    print("Numero de Frame: ", numeroFrame)
+    #print("Numero de Frame: ", numeroFrame)
 
     TiempoSegundosEmpezoVideo += 1/fps
 
@@ -614,13 +680,15 @@ while True:
         break
 
     pts1 = np.float32([[topLeftX, topLeftY],       [topRightX, topRightY],
-                         [bottomLeftX, bottomLeftY], [bottomRightX, bottomRightY]])
+                       [bottomLeftX, bottomLeftY], [bottomRightX, bottomRightY]])
     pts2 = np.float32([[0, 0], [164, 0], [0, 474], [164, 474]])
 
     matrix = cv2.getPerspectiveTransform(pts1, pts2)
     result = cv2.warpPerspective(frame, matrix, (164, 474))
 
-    main()
+    main(frame)
+
+    print(pts_piques_finales)
 
     # Terminar la ejecución si se presiona la "q"
     key = cv2.waitKey(1) & 0xFF
@@ -629,14 +697,10 @@ while True:
 
     if key == ord('p'):
         cv2.waitKey(-1)
-    
-    #print("Centro al terminar la iteración", center)
-    print("Pasé de frame")
 
 if not args.get("video", False):
     vs.stop()
 
 else:
     vs.release()
-print("Arotu")
 cv2.destroyAllWindows()
