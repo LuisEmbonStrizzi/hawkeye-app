@@ -2,3 +2,5 @@ numpy
 opencv-contrib-python
 fastapi
 uvicorn
+opencv-python
+imutils
