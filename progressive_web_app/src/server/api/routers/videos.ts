@@ -6,38 +6,35 @@ import {
 } from "~/server/api/trpc";
 
 import { BlobServiceClient } from "@azure/storage-blob";
-import { DefaultAzureCredential } from "@azure/identity"
 import { v1 as uuidv1 } from "uuid";
-//importarDotenv
-
-// El Router recibe el video - Se sube al Blob Storage - Devuelve una URL - Se manda a analizar - Se muestra mientras tanto - Devuelve el resto de la data - Muestra el resto
+import { env } from "~/env.mjs";
 
 export const videoRouter = createTRPCRouter({
-    uploadVideo: protectedProcedure
+    uploadVideo: publicProcedure
       .input(z.object({ url: z.string() }))
-      .query(({ input }) => {
+      .mutation(({ input }) => {
         async function main() {
           try {
             
             //Conectarse con el servicio
-            const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING;
+            //const AZURE_STORAGE_CONNECTION_STRING = env.AZURE_STORAGE_CONNECTION_STRING;
 
-            if (!AZURE_STORAGE_CONNECTION_STRING) {
+            if (!env.AZURE_STORAGE_CONNECTION_STRING) {
             throw Error('Azure Storage Connection string not found');
           }
 
-            const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
+            const blobServiceClient = BlobServiceClient.fromConnectionString(env.AZURE_STORAGE_CONNECTION_STRING);
 
-            //Crear Container
-            const containerName = 'urlVideos' + uuidv1();
-            const containerClient = blobServiceClient.getContainerClient(containerName);
-            const createContainerResponse = await containerClient.create();
+            //Crear Container o elegir container preexistente
+            //const containerName = 'urlVideos' + uuidv1();
+            const containerClient = blobServiceClient.getContainerClient("pruebavideos");
+            /*const createContainerResponse = await containerClient.create();
             console.log(
               `Container was created successfully.\n\trequestId:${createContainerResponse.requestId}\n\tURL: ${containerClient.url}`
-            );
+            );*/
 
             //Crear Blob
-            const blobName = 'urlVideo' + uuidv1() + '.txt';
+            const blobName = 'urlVideo' + uuidv1() + '.mp4';
             const blockBlobClient = containerClient.getBlockBlobClient(blobName);
             console.log(
               `\nUploading to Azure storage as blob\n\tname: ${blobName}:\n\tURL: ${blockBlobClient.url}`
@@ -45,7 +42,7 @@ export const videoRouter = createTRPCRouter({
 
             //Upload Data
             const data = input.url;
-            const uploadBlobResponse = await blockBlobClient.upload(data, data.length);
+            const uploadBlobResponse = await blockBlobClient.upload(data, Buffer.byteLength(data));
             console.log(
               `Blob was uploaded successfully. requestId: ${uploadBlobResponse.requestId}`
             );

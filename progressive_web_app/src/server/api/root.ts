@@ -9,7 +9,7 @@ import { createTRPCRouter } from "~/server/api/trpc";
  */
 export const appRouter = createTRPCRouter({
   example: exampleRouter,
-  video: videoRouter,
+  videos: videoRouter,
 });
 
 // export type definition of API
