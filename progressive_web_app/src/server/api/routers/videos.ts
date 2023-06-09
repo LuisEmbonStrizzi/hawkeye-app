@@ -10,8 +10,10 @@ import { DefaultAzureCredential } from "@azure/identity"
 import { v1 as uuidv1 } from "uuid";
 //importarDotenv
 
+// El Router recibe el video - Se sube al Blob Storage - Devuelve una URL - Se manda a analizar - Se muestra mientras tanto - Devuelve el resto de la data - Muestra el resto
+
 export const videoRouter = createTRPCRouter({
-    uploadVideo: publicProcedure
+    uploadVideo: protectedProcedure
       .input(z.object({ url: z.string() }))
       .query(({ input }) => {
         async function main() {
