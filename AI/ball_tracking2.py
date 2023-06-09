@@ -160,50 +160,57 @@ def main(frame):
         if pique2[0][0] == False and pique2[1][0] == True and preCentro is not None and pique2[0][1] - pique2[1][1] <= fps/6 and centro is not None:
             posiblePique = True
             TiempoDifPiques = 0
+
+    #print("Centro", centro)
+    #print("PreCentro", preCentro)
     
     # Entra a este if cuando se determina que hay un posiblePique, es decir, que se detectó algo que no se puede determinar si es un pique o un golpe
     if posiblePique:
         centro_pers = coordenadaPorMatriz(centro)
         if (len(pique2) >= 2):
             # Entra a este if cuanda la pelota no esté en la cancha. Al no estar en la cancha, solo puedo determinar si está por encima o por debajo de la red para luego determinar si un posiblePique es pique o golpe.
-            pre_esta_en_cancha = estaEnCancha(preCentro)
-            print(pre_esta_en_cancha)
+            pre_esta_en_cancha = estaEnCancha(preCentro, False)
             if not pre_esta_en_cancha:
-                print("estamo atroden")
                 mitadDeCancha = (puntoMaximoAbajoCancha - puntoMaximoArribaCancha) / 2
                 if preCentro[0][1] <= mitadDeCancha: abajo = False
                 else: abajo = True
 
-                # Creo que esta parte está mal y se debería apendear preCentro[1] en vez de [0] para que se apendee la coordenada en Y.
                 if posiblesPiques == []:
-                    posiblesPiques.appendleft((abajo, preCentro[0], numeroFrame))
+                    #posiblesPiques.appendleft((abajo, preCentro[0], numeroFrame))
+                    posiblesPiques.appendleft((abajo, coordenadaPorMatriz(preCentro), numeroFrame))
                     ult_posible_pique = preCentro[0]
                 elif preCentro[0] != ult_posible_pique:
-                    posiblesPiques.appendleft((abajo, preCentro[0], numeroFrame))
+                    #posiblesPiques.appendleft((abajo, preCentro[0], numeroFrame))
+                    posiblesPiques.appendleft((abajo, coordenadaPorMatriz(preCentro), numeroFrame))
                     ult_posible_pique = preCentro[0]
                 
                 if len(posiblesPiques) >= 2:
                     es_pique = pica(TiempoDifPiques)
                     #if (preCentro[0][1] > puntoMaximoAbajoCancha * resizer or preCentro[0][1] < puntoMaximoArribaCancha * resizer or preCentro[0][0] > puntoMaximoDerechaCancha * resizer or preCentro[0][0] < puntoMaximoIzquierdaCancha * resizer):
                     #if (posiblesPiques[1][0][0][1] > puntoMaximoAbajoCancha * resizer or preCentro[0][1] < puntoMaximoArribaCancha * resizer or preCentro[0][0] > puntoMaximoDerechaCancha * resizer or preCentro[0][0] < puntoMaximoIzquierdaCancha * resizer): 
-                    esta_en_cancha_posible_pique = estaEnCancha(posiblesPiques[1][0][0])
+                    esta_en_cancha_posible_pique = estaEnCancha(posiblesPiques[1], True)
                     if es_pique and type(posiblesPiques[1][0]) is not bool and esta_en_cancha_posible_pique:                     
-                        pts_piques_finales.append([posiblesPiques[1][0][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                        #pts_piques_finales.append([coordenadaPorMatriz(posiblesPiques[1][0][0]), float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                        pts_piques_finales.append([posiblesPiques[1][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
 
                     elif es_pique and type(posiblesPiques[1][0]) is not bool and not esta_en_cancha_posible_pique:                     
-                        pts_piques_finales_afuera.append([posiblesPiques[1][0][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                        #pts_piques_finales_afuera.append([coordenadaPorMatriz(posiblesPiques[1][0][0]), float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                        pts_piques_finales_afuera.append([posiblesPiques[1][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
 
                     elif es_pique == False and type(posiblesPiques[1][0]) is not bool:
-                        pts_golpes_finales.append([posiblesPiques[1][0][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                        #pts_golpes_finales.append([coordenadaPorMatriz(posiblesPiques[1][0][0]), float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                        pts_golpes_finales.append([posiblesPiques[1][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
             
             #if (preCentro[0][1] > puntoMaximoAbajoCancha * resizer or preCentro[0][1] < puntoMaximoArribaCancha * resizer or preCentro[0][0] > puntoMaximoDerechaCancha * resizer or preCentro[0][0] < puntoMaximoIzquierdaCancha * resizer):
             # Entra a este if cuando la pelota está en la perspectiva. Creo que está demás lo de preguntar cosas para que entre al if, fijarse si no está todo ya dado por sentado antes.
             elif pre_esta_en_cancha:
                 if posiblesPiques == []:
-                    posiblesPiques.appendleft((preCentro, numeroFrame))
+                    #posiblesPiques.appendleft((preCentro, numeroFrame))
+                    posiblesPiques.appendleft((coordenadaPorMatriz(preCentro), numeroFrame))
                     ult_posible_pique = preCentro[0]
                 elif ult_posible_pique != preCentro[0]:
-                    posiblesPiques.appendleft((preCentro, numeroFrame))
+                    #posiblesPiques.appendleft((preCentro, numeroFrame))
+                    posiblesPiques.appendleft((coordenadaPorMatriz(preCentro), numeroFrame))
                     ult_posible_pique = preCentro[0]
                 TiempoDifPiques = 0
                 velocidad = True
@@ -211,21 +218,27 @@ def main(frame):
                 TiempoDifVelocidad += 1/fps
                 if len(posiblesPiques) >= 2:
                     es_pique = pica(TiempoDifPiques)
-                    esta_en_cancha_posible_pique = estaEnCancha(posiblesPiques[1][0][0])
+                    print("Es Pique", es_pique)
+                    esta_en_cancha_posible_pique = estaEnCancha(posiblesPiques[1], True)
+                    print("Esta en cancha", esta_en_cancha_posible_pique)
+                    print("Posibles piques", posiblesPiques)
                     #if (preCentro[0][1] > puntoMaximoAbajoCancha * resizer or preCentro[0][1] < puntoMaximoArribaCancha * resizer or preCentro[0][0] > puntoMaximoDerechaCancha * resizer or preCentro[0][0] < puntoMaximoIzquierdaCancha * resizer):
                     if es_pique and type(posiblesPiques[1][0]) is not bool and esta_en_cancha_posible_pique:
-                        pts_piques_finales.append([posiblesPiques[1][0][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                        #pts_piques_finales.append([coordenadaPorMatriz(posiblesPiques[1][0][0]), float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                        pts_piques_finales.append([posiblesPiques[1][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
                     
                     elif es_pique and type(posiblesPiques[1][0]) is not bool and not esta_en_cancha_posible_pique:                     
-                        pts_piques_finales_afuera.append([posiblesPiques[1][0][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                        #pts_piques_finales_afuera.append([coordenadaPorMatriz(posiblesPiques[1][0][0]), float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                        pts_piques_finales_afuera.append([posiblesPiques[1][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
 
                     elif es_pique == False and type(posiblesPiques[1][0]) is not bool:
-                        pts_golpes_finales.append([posiblesPiques[1][0][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                        #pts_golpes_finales.append([coordenadaPorMatriz(posiblesPiques[1][0][0]), float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                        pts_golpes_finales.append([posiblesPiques[1][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
     
     if es_pique is not None:
         es_pique = None
     
-    centro_esta_en_cancha = estaEnCancha(centro)
+    centro_esta_en_cancha = estaEnCancha(centro, False)
 
     if velocidad and centro_esta_en_cancha and punto1Velocidad is not None:
         if punto1Velocidad[0] != centro[0] or punto1Velocidad[0][1] != centro[0][1]:
@@ -261,6 +274,8 @@ def main(frame):
     cv2.imshow("Normal", frame)
 
 def coordenadaPorMatriz(centro):
+    if type(centro) is list:
+        centro = (centro, 0)
     pts1 = np.float32([[topLeftX, topLeftY],[topRightX, topRightY],[bottomLeftX, bottomLeftY],[bottomRightX, bottomRightY]])
     pts2 = np.float32([[0, 0], [164, 0], [0, 474], [164, 474]])
 
@@ -271,7 +286,7 @@ def coordenadaPorMatriz(centro):
     cords_pelota_pers = np.dot(matrix, cords_pelota)
     cords_pelota_pers = (int(cords_pelota_pers[0]/cords_pelota_pers[2]), int(cords_pelota_pers[1]/cords_pelota_pers[2]))
 
-    print("Pelota", cords_pelota_pers)
+    #print("Pelota", cords_pelota_pers)
 
     perspectiva = cv2.circle(perspectiva, cords_pelota_pers, 3, (0, 0, 255), -1)
     cv2.imshow("Perspectiva", perspectiva)
@@ -403,10 +418,8 @@ def pica (count):
     if type(posiblesPiques[0][0]) is not bool and type(posiblesPiques[1][0]) is not bool:
         abajoA = False
         abajoB = False
-        a = posiblesPiques[0][0][0][1] / resizer
-        b = posiblesPiques[1][0][0][1] / resizer
-        #cv2.circle(frame, posiblesPiques[0][0], 40, (255, 255, 255), -1)
-        #cv2.circle(frame, posiblesPiques[1][0], 40, (255, 255, 255), -1)
+        a = posiblesPiques[0][0][1]
+        b = posiblesPiques[1][0][1]
         if a >= 474 / 2: abajoA = True
         if b >= 474 / 2: abajoB = True
         if abajoB and abajoA and a > b and count <= 1:
@@ -471,7 +484,7 @@ def pica (count):
         
     elif type(posiblesPiques[0][0]) is bool:
         abajoB = False
-        b = posiblesPiques[1][0][0][1] / resizer
+        b = posiblesPiques[1][0][1]
         if b >= 474 / 2: abajoB = True
 
         a = posiblesPiques[0][0]
@@ -495,7 +508,7 @@ def pica (count):
 
     elif type(posiblesPiques[1][0]) is bool:
         abajoA = False
-        a = posiblesPiques[0][0][0][1] / resizer
+        a = posiblesPiques[0][0][1]
         if a >= 474 / 2: abajoA = True
 
         b = posiblesPiques[1][0]
@@ -534,11 +547,20 @@ def velocidadPelota(punto1, punto2, tiempo):
 
     return int(np.rint(distancia / tiempo * 3.6))
 
-def estaEnCancha(centro_pelota):
-    print(centro_pelota)
-    print(type(centro_pelota))
-    if type(centro_pelota) is list:
-        centro_pelota = [(centro_pelota), 0]
+def estaEnCancha(centro_pelota, perspectiva):
+    #print("Centro Pelota", centro_pelota)
+    #print("Puntos Máximos", puntoMaximoAbajoCancha, puntoMaximoArribaCancha, puntoMaximoDerechaCancha, puntoMaximoIzquierdaCancha)
+    #print(type(centro_pelota))
+    #print(centro_pelota)
+    #if type(centro_pelota) is list:
+        #centro_pelota = (centro_pelota, 0)
+
+    if perspectiva:
+        if centro_pelota is not None and centro_pelota[0][1] <= 474 and centro_pelota[0][1] >= 0 and centro_pelota[0][0] <= 164 and centro_pelota[0][0] >= 0:
+            return True
+        elif centro_pelota is not None: 
+            return False
+        return None
 
     if centro_pelota is not None and centro_pelota[0][1] < puntoMaximoAbajoCancha * resizer and centro_pelota[0][1] > puntoMaximoArribaCancha * resizer and centro_pelota[0][0] < puntoMaximoDerechaCancha * resizer and centro_pelota[0][0] > puntoMaximoIzquierdaCancha * resizer:
         return True
