@@ -6,11 +6,9 @@ import imutils
 import time
 
 
-
 def tracking(ruta_video):
-   
-    
-    def main(frame):        
+
+    def main(frame):
         # global velocidadFinal
         # global topLeftX, topLeftY, topRightX, topRightY, bottomLeftX, bottomLeftY, bottomRightX, bottomRightY
         # global estaCercaX
@@ -26,7 +24,7 @@ def tracking(ruta_video):
         nonlocal es_pique
         nonlocal velocidad
         nonlocal afterVelocidad
-        #nonlocal radio
+        # nonlocal radio
         nonlocal diferente
         nonlocal punto1Velocidad
         anchoOG = frame.shape[1]
@@ -65,7 +63,8 @@ def tracking(ruta_video):
             # Busca el contorno más grande y encuentra su posición (x, y)
             contornosQuietos(contornos, todosContornos, contornosIgnorar)
             if len(ultimosCentros) == 5 and TiempoDeteccionUltimaPelota >= 0.3 and seEstaMoviendo(ultimosCentros) == False:
-                contornos = ignorarContornosQuietos(contornos, contornosIgnorar)
+                contornos = ignorarContornosQuietos(
+                    contornos, contornosIgnorar)
 
             if len(contornos) > 0:
                 if primeraVez:
@@ -73,7 +72,7 @@ def tracking(ruta_video):
                     ((x, y), radio) = cv2.minEnclosingCircle(casiCentro)
                     M = cv2.moments(casiCentro)
                     centro = (int(M["m10"] / M["m00"]),
-                            int(M["m01"] / M["m00"])), int(radio)
+                              int(M["m01"] / M["m00"])), int(radio)
                     primeraVez = False
                     preCentro = centro
                     TiempoDeteccionUltimaPelota = 0
@@ -90,7 +89,7 @@ def tracking(ruta_video):
                         ((x, y), radio) = cv2.minEnclosingCircle(casiCentro)
                         M = cv2.moments(casiCentro)
                         centro = [int(M["m10"] / M["m00"]),
-                                int(M["m01"] / M["m00"])], int(radio)
+                                  int(M["m01"] / M["m00"])], int(radio)
                         preCentro = centro
                         TiempoTresCentrosConsecutivos += TiempoDeteccionUltimaPelota
                         TiempoDeteccionUltimaPelota = 0
@@ -108,7 +107,7 @@ def tracking(ruta_video):
                 if casiCentro is not None and radio > 0:
                     # Dibuja el círculo en la pelota
                     cv2.circle(frame, (int(x), int(y)),
-                            int(radio), (0, 255, 255), 2)
+                               int(radio), (0, 255, 255), 2)
                     cv2.circle(
                         frame, (centro[0][0], centro[0][1]), 5, (0, 0, 255), -1)
 
@@ -155,7 +154,7 @@ def tracking(ruta_video):
                 # Entra a este if cuanda la pelota no esté en la cancha. Al no estar en la cancha, solo puedo determinar si está por encima o por debajo de la red para luego determinar si un posiblePique es pique o golpe.
                 if (preCentro[0][1] > puntoMaximoAbajoCancha * resizer or preCentro[0][1] < puntoMaximoArribaCancha * resizer or preCentro[0][0] > puntoMaximoDerechaCancha * resizer or preCentro[0][0] < puntoMaximoIzquierdaCancha * resizer):
                     mitadDeCancha = (puntoMaximoAbajoCancha -
-                                    puntoMaximoArribaCancha) / 2
+                                     puntoMaximoArribaCancha) / 2
                     if preCentro[0][1] <= mitadDeCancha:
                         abajo = False
                     else:
@@ -243,7 +242,7 @@ def tracking(ruta_video):
 
     def coordenadaPorMatriz(centro):
         pts1 = np.float32([[topLeftX, topLeftY], [topRightX, topRightY], [
-                        bottomLeftX, bottomLeftY], [bottomRightX, bottomRightY]])
+            bottomLeftX, bottomLeftY], [bottomRightX, bottomRightY]])
         pts2 = np.float32([[0, 0], [164, 0], [0, 474], [164, 474]])
 
         matrix = cv2.getPerspectiveTransform(pts1, pts2)
@@ -254,7 +253,6 @@ def tracking(ruta_video):
             cords_pelota_pers[0]/cords_pelota_pers[2]), int(cords_pelota_pers[1]/cords_pelota_pers[2]))
 
         return cords_pelota_pers
-
 
     def eliminarContornosInservibles(todosContornos):
         count = 0
@@ -270,7 +268,6 @@ def tracking(ruta_video):
             n += 1
 
     # Define todos los contornos que no se mueven, es decir, que no pueden ser la pelota
-
 
     def contornosQuietos(cnts, todosContornos, contornosIgnorar):
         centrosCerca = False
@@ -306,15 +303,16 @@ def tracking(ruta_video):
                 promedioIgnorarX, promedioIgnorarY = int(
                     np.rint(promedioIgnorarX)), int(np.rint(promedioIgnorarY))
                 if (len(contornosIgnorar) == 0):
-                    contornosIgnorar.append((promedioIgnorarX, promedioIgnorarY))
+                    contornosIgnorar.append(
+                        (promedioIgnorarX, promedioIgnorarY))
                 for contorno in contornosIgnorar:
                     if (contorno[0] == promedioIgnorarX and contorno[1] == promedioIgnorarY):
                         ContornoExiste = True
                 if ContornoExiste == False:
-                    contornosIgnorar.append((promedioIgnorarX, promedioIgnorarY))
+                    contornosIgnorar.append(
+                        (promedioIgnorarX, promedioIgnorarY))
 
     # Ignora los contornos quietos encontrados en la función anterior
-
 
     def ignorarContornosQuietos(cnts, contornosIgnorar):
         new_cnts = []
@@ -332,7 +330,6 @@ def tracking(ruta_video):
                 new_cnts.append(cnt)
 
         return new_cnts
-
 
     def seEstaMoviendo(ultCentros):
         movimiento = False
@@ -353,7 +350,6 @@ def tracking(ruta_video):
 
     # Función que arregla el problema de "la zapatilla verde"
 
-
     def tp_fix(contornos, pre_centro, count):
         cnts_pts = []
         medidorX = 100
@@ -371,7 +367,6 @@ def tracking(ruta_video):
 
     # Define qué candidato a pelota es el punto más cercano al anterior. Toma los puntos de tp_fix y analiza cual está mas cerca al pre_centro (centro anterior).
 
-
     def cualEstaMasCerca(punto, lista):
         suma = []
         suma2 = []
@@ -386,7 +381,6 @@ def tracking(ruta_video):
         return suma2[suma.index(min(suma))]
 
     # Función que determina si es un pique o un golpe
-
 
     def pica(count):
         # Tengo que descubrir si la variable "b" es un pique o un golpe
@@ -513,7 +507,6 @@ def tracking(ruta_video):
             elif not abajoA and not b and count >= 5:
                 return True
 
-
     def velocidadPelota(punto1, punto2, tiempo):
         punto1X = punto1[0][0] / (resizer * 20)
         punto1Y = punto1[0][1] / (resizer * 20)
@@ -530,7 +523,8 @@ def tracking(ruta_video):
         elif punto1Y <= punto2Y:
             movimientoY = punto2Y - punto1Y
 
-        distancia = np.sqrt(movimientoX * movimientoX + movimientoY * movimientoY)
+        distancia = np.sqrt(movimientoX * movimientoX +
+                            movimientoY * movimientoY)
         #distancia *= 1.5
 
         return int(np.rint(distancia / tiempo * 3.6))
@@ -634,7 +628,7 @@ def tracking(ruta_video):
             break
 
         pts1 = np.float32([[topLeftX, topLeftY],       [topRightX, topRightY],
-                        [bottomLeftX, bottomLeftY], [bottomRightX, bottomRightY]])
+                           [bottomLeftX, bottomLeftY], [bottomRightX, bottomRightY]])
         pts2 = np.float32([[0, 0], [164, 0], [0, 474], [164, 474]])
 
         matrix = cv2.getPerspectiveTransform(pts1, pts2)
@@ -652,5 +646,3 @@ def tracking(ruta_video):
 
     vs.release()
     return pts_piques_finales
-
-print(tracking("https://res.cloudinary.com/dfpitoil1/video/upload/v1667090291/a4rpifn9ljyi9tdpnbbg.mp4"))

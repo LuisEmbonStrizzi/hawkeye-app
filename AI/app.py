@@ -3,9 +3,9 @@ from pydantic import BaseModel
 from ball_tracking2 import tracking
 app = FastAPI()
 
+
 class Msg(BaseModel):
-    msg: str
-    url : str
+    url: str
 
 
 @app.get("/")
@@ -17,5 +17,4 @@ async def hello_world():
 async def predict(inp: Msg):
     pts_piques_finales = tracking(inp.url)
 
-
-    return {"message": pts_piques_finales}
+    return {"piques_finales": pts_piques_finales}
