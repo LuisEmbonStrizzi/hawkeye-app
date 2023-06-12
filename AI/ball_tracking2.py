@@ -28,10 +28,10 @@ def main(frame):
     global afterVelocidad
     global radio
     global diferente
-    # global x
-    # global y
+    global x
+    global y
     global punto1Velocidad  
-    # global velocidadFinal
+    global velocidadFinal
     # global topLeftX, topLeftY, topRightX, topRightY, bottomLeftX, bottomLeftY, bottomRightX, bottomRightY
     # global estaCercaX
     # global estaCercaY
@@ -141,16 +141,20 @@ def main(frame):
         thickness = int(np.sqrt(args["buffer"] / float(i + 1)) * 2.5)
         cv2.line(frame, pts_pelota_pers[i - 1][0], pts_pelota_pers[i][0], (0, 0, 255), thickness)
     
+    bajando = False
+
     if centro is not None:
         pique.appendleft(centro[0][1])
         if (len(pique) >= 2):
-            if (pique[1] - pique[0] >= 2):
-                bajando = False
-            elif (pique[0] - pique[1] >= 2):
+            if (pique[0] - pique[1] > 0):
                 bajando = True
-            else: bajando = None
             if (pique[0] - pique[1] != 0):
                 pique2.appendleft((bajando, numeroFrame))
+            else: bajando = None
+    print("Pique", pique)
+    print("Pique 2", pique2)
+    print("Centro", centro)
+    print("PreCentro", preCentro)
     
     TiempoDifPiques += 1/fps
     posiblePique = False
@@ -417,6 +421,11 @@ def pica (count):
         b = posiblesPiques[1][0][1]
         if a >= 474 / 2: abajoA = True
         if b >= 474 / 2: abajoB = True
+        print("a", a)
+        print("b", b)
+        print("abajoA", abajoA)
+        print("abajoB", abajoB)
+        print("count", count)
         if abajoB and abajoA and a > b and count <= 1:
             return True
         elif abajoB and abajoA and a > b and count >= 1:
@@ -653,7 +662,7 @@ previous_time = start_time
 
 for _ in range(frame_count):
     numeroFrame += 1
-    #print("Numero de Frame: ", numeroFrame)
+    print("Numero de Frame: ", numeroFrame)
 
     TiempoSegundosEmpezoVideo += 1/fps
 
@@ -662,6 +671,27 @@ for _ in range(frame_count):
 
     if frame is None:
         break
+
+    if numeroFrame == 84:
+        # Coordenadas del punto central para hacer zoom
+        x, y = 1023, 247
+
+        # Tamaño del área de zoom
+        zoom_width, zoom_height = 200, 200
+
+        # Calcular las coordenadas del área de zoom
+        x1, y1 = x - zoom_width // 2, y - zoom_height // 2
+        x2, y2 = x + zoom_width // 2, y + zoom_height // 2
+
+        # Recortar el área de zoom
+        zoomed_area = frame[y1:y2, x1:x2]
+
+        # Redimensionar el área de zoom a su tamaño original
+        zoomed_area = cv2.resize(zoomed_area, (zoom_width, zoom_height))
+
+        # Guardar el área de zoom como una imagen
+        cv2.imwrite('zoomed_image.jpg', zoomed_area)
+        #break
 
     pts1 = np.float32([[topLeftX, topLeftY],       [topRightX, topRightY],
                         [bottomLeftX, bottomLeftY], [bottomRightX, bottomRightY]])
@@ -672,7 +702,8 @@ for _ in range(frame_count):
 
     main(frame)
 
-    print(pts_piques_finales)
+    print("pts_piques", pts_piques_finales)
+    print("pts_golpes", pts_golpes_finales)
 
     # Terminar la ejecución si se presiona la "q"
     key = cv2.waitKey(1) & 0xFF

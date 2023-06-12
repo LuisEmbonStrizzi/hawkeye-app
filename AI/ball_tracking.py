@@ -72,9 +72,11 @@ def pica (count):
         #cv2.circle(frame, posiblesPiques_pers[1][0], 40, (255, 255, 255), -1)
         if a >= 474 / 2: abajoA = True
         if b >= 474 / 2: abajoB = True
-        print("A", a)
-        print("B", b)
-        print("Count", count)
+        print("a", a)
+        print("b", b)
+        print("abajoA", abajoA)
+        print("abajoB", abajoB)
+        print("count", count)
         if abajoB and abajoA and a > b and count <= 1:
             return True
         elif abajoB and abajoA and a > b and count >= 1:
@@ -506,6 +508,10 @@ def main(frame, numeroGlob):
                     pique2_norm.appendleft((bajando, numeroFrame))
                 else: bajando = "Indeterminación"
             print("Bajando", bajando)
+            print("Pique", pique_norm)
+            print("Pique 2", pique2_norm)
+            print("Centro", center_glob)
+            print("PreCentro", preCentro_glob)
         
         else:
             pique_pers.appendleft(center_glob[numeroGlob][0][1])
@@ -554,6 +560,7 @@ def main(frame, numeroGlob):
                 if len(posiblesPiques_pers) >= 2:
                     Gerard = pica(countDifPiques)
                     print("Gerard", Gerard)
+                    print("Posibles Piques pers", posiblesPiques_pers)
                     if Gerard and type(posiblesPiques_pers[1][0]) is not bool:
                         #if pique2_pers[0][0] == False and pique2_pers[1][0] == True and preCentro_glob[numeroGlob] is not None and pique2_pers[0][1] - pique2_pers[1][1] <= fps/6:
                         #pts_piques_finales.append([[preCentro_glob[numeroGlob][0][0], preCentro_glob[numeroGlob][0][1]], float("{:.2f}".format(numeroFrame / fps))])
