@@ -11,7 +11,7 @@ type ButtonProps = {
   iconPosition?: "left" | "right";
 };
 
-const Button: React.FC<ButtonProps> = ({ label, style, icon, iconBtn, iconPosition, type }) => {
-  return <button>Button</button>;
+const Button: React.FC<ButtonProps> = ({ label, style, icon, iconBtn, iconPosition, type, onClick }) => {
+  return <button onClick={onClick} className='' type={type}>{icon}{label}</button>;
 };
 export default Button;
