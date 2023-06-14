@@ -14,6 +14,7 @@ ap.add_argument("-b", "--buffer", type=int, default=64, # Longitud del trazado d
 	help="max buffer size")
 args = vars(ap.parse_args())
 
+# Función principal
 def main(frame):
     global TiempoDeteccionUltimaPelota
     global primeraVez
@@ -33,18 +34,8 @@ def main(frame):
     global punto1Velocidad  
     global velocidadFinal
     global casiCentro
-    # global topLeftX, topLeftY, topRightX, topRightY, bottomLeftX, bottomLeftY, bottomRightX, bottomRightY
-    # global estaCercaX
-    # global estaCercaY
 
-    anchoOG = frame.shape[1]
-    altoOG = frame.shape[0]
-    
-    ############ VER DE BORRAR ESTO
-    estaCercaX = anchoOG * 10/100
-    estaCercaY = altoOG * 10/100
-    #################
-
+    # Agrandamos el frame para ver más la pelota
     frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
 
     # Cámara lenta para mayor análisis
@@ -62,19 +53,23 @@ def main(frame):
     #contornos = cv2.findContours(mascara.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     #contornos = imutils.grab_contours(contornos)
 
+    # GaussianBlur reduce el ruido de alta frecuencia
+    # MedianBlur elimina el ruido impulsivo
+
+    #blurred = cv2.GaussianBlur(frame, (11, 11), 0)
+    blurred = cv2.medianBlur(frame, 5)
     # Convertir la imagen a formato HSV
-    blurred = cv2.GaussianBlur(frame, (11, 11), 0)
     hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
-    # Aplicar una máscara para detectar el color verde
+    # Aplicar una máscara para detectar el color verde. En la máscara se muestran en color blanco todos los contornos detectados que sean de color verde
     mascara = cv2.inRange(hsv, greenLower, greenUpper)
 
     # Aplicar operaciones de morfología
     kernel = np.ones((5, 5), np.uint8)
+    # Eliminar los píxeles de los objetos que están en los bordes de las regiones.
     #mascara = cv2.erode(mascara, kernel, iterations=2)
+    # Dilatar los píxeles para que se vean mejor
     mascara = cv2.dilate(mascara, kernel, iterations=2)
-
-    #mascara = cv2.medianBlur(mascara, 5)
 
     # Encontrar los contornos en la máscara
     contornos, _ = cv2.findContours(mascara.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -84,17 +79,20 @@ def main(frame):
     
     centro = None
     
+    # Cada 5 segundos elimina los contornos que no son tan frecuentes, es decir, los contornos parecidos que no aparecen tanto a lo largo del video
     if (TiempoSegundosEmpezoVideo % 5 == 0):
         eliminarContornosInservibles(todosContornos)
     
     if len(contornos) > 0:
-        # Busca el contorno más grande y encuentra su posición (x, y)
+        # Vemos cuales son los contornos casi inmóviles y si lo que considera que es la pelota no se está moviendo (o sea no es la pelota) se ignoran estos contornos.
         contornosQuietos(contornos, todosContornos, contornosIgnorar)
-        if len(ultimosCentros) == 5 and TiempoDeteccionUltimaPelota >= 0.3 and seEstaMoviendo(ultimosCentros) == False:
+        if len(ultimosCentros) == 5 and seEstaMoviendo(ultimosCentros) == False:
             contornos = ignorarContornosQuietos(contornos, contornosIgnorar)
-                
+
         if len(contornos) > 0:
+            # Cuando empezó el video o pasaron 0.3 segundos desde que no se encuentra la pelota
             if primeraVez:
+                # Busca el contorno más grande y encuentra su posición (x, y). Determina el centro de la pelota
                 casiCentro = max(contornos, key=cv2.contourArea)
                 ((x, y), radio) = cv2.minEnclosingCircle(casiCentro)
                 M = cv2.moments(casiCentro)
@@ -106,9 +104,12 @@ def main(frame):
 
                 if centro is not None: ultimosCentros.appendleft(centro)
             
+            # Si se detectó un centro hace menos de 0.3 segundos
             else:
+                # Corre la función tp_fix para determinar cual es el contorno detectado que está mas cerca de la pelota del frame anterior, es decir, encuentra la peltoa a través de su posición en el frame anterior
                 if preCentro is not None: casiCentro = tp_fix(contornos, preCentro, TiempoDeteccionUltimaPelota)
                 
+                # Encuentra la posición x, y del contorno más cercano a la pelota del frame anterior. Determina el centro de la pelota
                 if casiCentro is not None:
                     ((x, y), radio) = cv2.minEnclosingCircle(casiCentro)
                     M = cv2.moments(casiCentro)
@@ -118,6 +119,7 @@ def main(frame):
                     TiempoDeteccionUltimaPelota = 0
                     if centro is not None: ultimosCentros.appendleft(centro)
                 
+                # Si no se encuentra la pelota, se cambian algunas variables para poder determinar mejor su posición en los siguientes frame
                 else:
                     if TiempoDeteccionUltimaPelota >= 0.3:
                         primeraVez = True
@@ -131,17 +133,16 @@ def main(frame):
                 cv2.circle(frame, (int(x), int(y)), int(radio), (0, 255, 255), 2)
                 cv2.circle(frame, (centro[0][0], centro[0][1]), 5, (0, 0, 255), -1)
     
+    # Si no se encuentra la pelota, se cambian algunas variables para poder determinar mejor su posición en los siguientes frame
     else:
         if TiempoDeteccionUltimaPelota >= 0.3:
             primeraVez = True
             preCentro = None
         TiempoDeteccionUltimaPelota += 1/fps
         TiempoTresCentrosConsecutivos = 0
-        #pelotaEstaEnPerspectiva = None
     
-    # Actualiza los puntos para trazar la trayectoria
+    # Actualiza los puntos para trazar la trayectoria de la pelota
     pts_pelota_norm.appendleft(centro)
-    pts_pelota_pers.appendleft(centro)
 
     for i in range(1, len(pts_pelota_norm)):
         # Ignora los puntos de trayectoria inexistentes
@@ -152,28 +153,22 @@ def main(frame):
         thickness = int(np.sqrt(args["buffer"] / float(i + 1)) * 2.5)
         cv2.line(frame, pts_pelota_norm[i - 1][0], pts_pelota_norm[i][0], (0, 0, 255), thickness)
     
-    for i in range(1, len(pts_pelota_pers)):
-        # Ignora los puntos de trayectoria inexistentes
-        if pts_pelota_pers[i - 1] is None or pts_pelota_pers[i] is None:
-            continue
-        
-        # Traza la trayectoria
-        thickness = int(np.sqrt(args["buffer"] / float(i + 1)) * 2.5)
-        cv2.line(frame, pts_pelota_pers[i - 1][0], pts_pelota_pers[i][0], (0, 0, 255), thickness)
-    
     bajando = False
 
+    # Determina si la pelota está bajando o subiendo.
     if centro is not None:
         centros_para_determinar_pique.appendleft(centro[0][1])
         if (len(centros_para_determinar_pique) >= 2):
             if (centros_para_determinar_pique[0] - centros_para_determinar_pique[1] > 0):
                 bajando = True
             if (centros_para_determinar_pique[0] - centros_para_determinar_pique[1] != 0):
+                # Agrega todos los booleanos de bajando a una lista para luego determinar si hay un posiblePique
                 bajandos.appendleft((bajando, numeroFrame))
             else: bajando = None
     
     TiempoDifPiques += 1/fps
     posiblePique = False
+    # Cuando la pelota esta bajando y empieza a subir, significa que hay un posiblePique, es decir se detectó un pique o golpe. Luego se hará la diferenciación
     if (len(bajandos) >= 2):
         if bajandos[0][0] == False and bajandos[1][0] == True and preCentro is not None and bajandos[0][1] - bajandos[1][1] <= fps/6 and centro is not None:
             posiblePique = True
@@ -181,86 +176,99 @@ def main(frame):
     
     # Entra a este if cuando se determina que hay un posiblePique, es decir, que se detectó algo que no se puede determinar si es un pique o un golpe
     if posiblePique:
-        #centro_pers = coordenadaPorMatriz(centro)
         if (len(bajandos) >= 2):
-            # Entra a este if cuanda la pelota no esté en la cancha. Al no estar en la cancha, solo puedo determinar si está por encima o por debajo de la red para luego determinar si un posiblePique es pique o golpe.
+            # Determina si el preCentro está sobre el plano 2D
             pre_esta_en_cancha = estaEnCancha(preCentro, False)
+            # Entra a este if cuanda la pelota no esté en la cancha. Al no estar en la cancha, solo puedo determinar si está por encima o por debajo de la red para luego determinar si un posiblePique es pique o golpe.
             if not pre_esta_en_cancha:
+                # Abajo es True o False dependiendo de su coordenada Y (Abajo se refiere a por debajo de la red al pasar la cancha a un plano 2D)
                 mitadDeCancha = (puntoMaximoAbajoCancha - puntoMaximoArribaCancha) / 2
                 if preCentro[0][1] <= mitadDeCancha: abajo = False
                 else: abajo = True
 
+                # En caso que la lista de posiblesPiques esté vacía o no se repita un punto de posiblePique, se agrega a esa lista si la pelota está abajo o arriba, la coordenada de la pelota pasada a un plano 2D y el número de Frame 
                 if posiblesPiques == []:
-                    #posiblesPiques.appendleft((abajo, preCentro[0], numeroFrame))
                     posiblesPiques.appendleft((abajo, coordenadaPorMatriz(preCentro), numeroFrame))
                     ult_posible_pique = preCentro[0]
                 elif preCentro[0] != ult_posible_pique:
-                    #posiblesPiques.appendleft((abajo, preCentro[0], numeroFrame))
                     posiblesPiques.appendleft((abajo, coordenadaPorMatriz(preCentro), numeroFrame))
                     ult_posible_pique = preCentro[0]
-                
-                if len(posiblesPiques) >= 2:
-                    es_pique = pica(TiempoDifPiques)
-                    #if (preCentro[0][1] > puntoMaximoAbajoCancha * resizer or preCentro[0][1] < puntoMaximoArribaCancha * resizer or preCentro[0][0] > puntoMaximoDerechaCancha * resizer or preCentro[0][0] < puntoMaximoIzquierdaCancha * resizer):
-                    #if (posiblesPiques[1][0][0][1] > puntoMaximoAbajoCancha * resizer or preCentro[0][1] < puntoMaximoArribaCancha * resizer or preCentro[0][0] > puntoMaximoDerechaCancha * resizer or preCentro[0][0] < puntoMaximoIzquierdaCancha * resizer): 
-                    if type(posiblesPiques[1][0]) is not bool: esta_en_cancha_posible_pique = estaEnCancha(posiblesPiques[1], True)
-                    if es_pique and type(posiblesPiques[1][0]) is not bool and esta_en_cancha_posible_pique:                     
-                        #pts_piques_finales.append([coordenadaPorMatriz(posiblesPiques[1][0][0]), float("{:.2f}".format(posiblesPiques[1][1] / fps))])
-                        pts_piques_finales.append([posiblesPiques[1][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
 
+                # Si hay más de dos posiblesPiques podemos determinar piques y golpes
+                if len(posiblesPiques) >= 2:
+                    # Corremos la función pica para determinar si el anteúltimo posiblePique detectado es un pique o un golpe
+                    es_pique = pica(TiempoDifPiques)
+                    # Vemos si el posiblePique analizado se encuentra adentro del plano 2D
+                    # Debemos determinar que el tipo de posiblesPiques[1][0] no sea un booleano porque eso significaría que sería el booleano abajo que fue agregado a la lista. Como el abajo significa que la pelota está fuera de la cancha, entonces no se puede determinar si es un pique no un golpe.
+                    if type(posiblesPiques[1][0]) is not bool: esta_en_cancha_posible_pique = estaEnCancha(posiblesPiques[1], True)
+                    
+                    # Entra cuando se detectó un pique que se encuentra en el plano 2D.
+                    if es_pique and type(posiblesPiques[1][0]) is not bool and esta_en_cancha_posible_pique:                     
+                        pts_piques_finales.append([posiblesPiques[1][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                    
+                    # Entra cuando se detectó un pique que no se encuentra en el plano 2D.    
                     elif es_pique and type(posiblesPiques[1][0]) is not bool and not esta_en_cancha_posible_pique:                     
-                        #pts_piques_finales_afuera.append([coordenadaPorMatriz(posiblesPiques[1][0][0]), float("{:.2f}".format(posiblesPiques[1][1] / fps))])
                         pts_piques_finales_afuera.append([posiblesPiques[1][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
 
+                    # Entra cuando se detectó un golpe
                     elif es_pique == False and type(posiblesPiques[1][0]) is not bool:
-                        #pts_golpes_finales.append([coordenadaPorMatriz(posiblesPiques[1][0][0]), float("{:.2f}".format(posiblesPiques[1][1] / fps))])
                         pts_golpes_finales.append([posiblesPiques[1][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+
+                    # En cada caso, se agrega a la lista correspondiente el punto de pique o golpe sobre el plano 2D.
             
-            #if (preCentro[0][1] > puntoMaximoAbajoCancha * resizer or preCentro[0][1] < puntoMaximoArribaCancha * resizer or preCentro[0][0] > puntoMaximoDerechaCancha * resizer or preCentro[0][0] < puntoMaximoIzquierdaCancha * resizer):
-            # Entra a este if cuando la pelota está en la perspectiva. Creo que está demás lo de preguntar cosas para que entre al if, fijarse si no está todo ya dado por sentado antes.
+            # Entra a este if cuando la pelota está en la perspectiva. 
             elif pre_esta_en_cancha:
+                # En caso que la lista de posiblesPiques esté vacía o no se repita un punto de posiblePique, se agrega a esa lista la coordenada de la pelota pasada a un plano 2D y el número de Frame 
                 if posiblesPiques == []:
-                    #posiblesPiques.appendleft((preCentro, numeroFrame))
                     posiblesPiques.appendleft((coordenadaPorMatriz(preCentro), numeroFrame))
                     ult_posible_pique = preCentro[0]
                 elif ult_posible_pique != preCentro[0]:
-                    #posiblesPiques.appendleft((preCentro, numeroFrame))
                     posiblesPiques.appendleft((coordenadaPorMatriz(preCentro), numeroFrame))
                     ult_posible_pique = preCentro[0]
-
+                
+                # Si hay más de dos posiblesPiques podemos determinar piques y golpes
                 if len(posiblesPiques) >= 2:
+                    # Corremos la función pica para determinar si el anteúltimo posiblePique detectado es un pique o un golpe
                     es_pique = pica(TiempoDifPiques)
+                    
+                    # Vemos si el posiblePique analizado se encuentra adentro del plano 2D
+                    # Debemos determinar que el tipo de posiblesPiques[1][0] no sea un booleano porque eso significaría que sería el booleano abajo que fue agregado a la lista. Como el abajo significa que la pelota está fuera de la cancha, entonces no se puede determinar si es un pique no un golpe.
                     if type(posiblesPiques[1][0]) is not bool: esta_en_cancha_posible_pique = estaEnCancha(posiblesPiques[1], True)
 
-                    #TiempoDifPiques = 0
                     velocidad = True
                     punto1Velocidad = preCentro
                     TiempoDifVelocidad += 1/fps
-
-                    #if (preCentro[0][1] > puntoMaximoAbajoCancha * resizer or preCentro[0][1] < puntoMaximoArribaCancha * resizer or preCentro[0][0] > puntoMaximoDerechaCancha * resizer or preCentro[0][0] < puntoMaximoIzquierdaCancha * resizer):
+                    
+                    # Entra cuando se detectó un pique que se encuentra en el plano 2D.
                     if es_pique and type(posiblesPiques[1][0]) is not bool and esta_en_cancha_posible_pique:
-                        #pts_piques_finales.append([coordenadaPorMatriz(posiblesPiques[1][0][0]), float("{:.2f}".format(posiblesPiques[1][1] / fps))])
                         pts_piques_finales.append([posiblesPiques[1][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
                     
+                    # Entra cuando se detectó un pique que no se encuentra en el plano 2D.  
                     elif es_pique and type(posiblesPiques[1][0]) is not bool and not esta_en_cancha_posible_pique:                     
-                        #pts_piques_finales_afuera.append([coordenadaPorMatriz(posiblesPiques[1][0][0]), float("{:.2f}".format(posiblesPiques[1][1] / fps))])
                         pts_piques_finales_afuera.append([posiblesPiques[1][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
 
+                    # Entra cuando se detectó un golpe
                     elif es_pique == False and type(posiblesPiques[1][0]) is not bool:
-                        #pts_golpes_finales.append([coordenadaPorMatriz(posiblesPiques[1][0][0]), float("{:.2f}".format(posiblesPiques[1][1] / fps))])
                         pts_golpes_finales.append([posiblesPiques[1][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
 
-                        TiempoDifPiques = 0
+                    # En cada caso, se agrega a la lista correspondiente el punto de pique o golpe sobre el plano 2D.
+
+                    TiempoDifPiques = 0
     
+    # Si no se detectó ni un pique ni golpe, entonces es_pique es None. 
     if es_pique is not None:
         es_pique = None
     
+    # Determino si el centro está dentro del plano 2D.
     centro_esta_en_cancha = estaEnCancha(centro, False)
 
+    # Se detecta la velocidad cuando hay un pique o un golpe.
     if velocidad and centro_esta_en_cancha and punto1Velocidad is not None:
+        # Cuando los puntos para calcular la velocidad son diferentes.
         if punto1Velocidad[0] != centro[0] or punto1Velocidad[0][1] != centro[0][1]:
             diferente = True
     
+    # Calculamos la velocidad de la pelota
     if velocidad and centro_esta_en_cancha and diferente:
         velocidadFinal = velocidadPelota(punto1Velocidad, centro, TiempoDifVelocidad)
         velocidad = False
@@ -269,53 +277,66 @@ def main(frame):
         diferente = False
         afterVelocidad = True
 
+    # Si no encuentro el segundo punto para calcular la velocidad.
     elif velocidad:
         TiempoDifVelocidad += 1/fps
 
+    # En caso de que el tiempo que haya pasado entre la detección de los dos puntos sea muy grande.
     elif TiempoDifVelocidad >= 0.5:
         TiempoDifVelocidad = 0
         velocidad = False
         punto1Velocidad = None
         diferente = False
 
+    # Cuando calculé la velocidad
     if afterVelocidad and centro is not None:
         afterVelocidad = False
     
-    # Resizea y Muestra el Frame
+    # Resizea el frame al tamaño original y lo muestra
     frame = imutils.resize(frame, anchoOG, altoOG)
     frame = imutils.resize(frame, height= 768)
     mascara = imutils.resize(mascara, anchoOG, altoOG)
     mascara = imutils.resize(mascara, height= 768)
-
+    
+    # También muestra la máscara
     cv2.imshow("Mascara Normal", mascara)
     cv2.imshow("Normal", frame)
 
+# Función que recibe el centro de la pelota y pasa sus coordenadas a un plano 2D de la cancha de tenis
 def coordenadaPorMatriz(centro):
+    # Adapto la variable centro para que sea siempre de esta forma ((x, y), r)
     if type(centro) is list:
         centro = (centro, 0)
     pts1 = np.float32([[topLeftX, topLeftY],[topRightX, topRightY],[bottomLeftX, bottomLeftY],[bottomRightX, bottomRightY]])
     pts2 = np.float32([[0, 0], [164, 0], [0, 474], [164, 474]])
 
+    # Pasamos las esquinas a perspectiva
     matrix = cv2.getPerspectiveTransform(pts1, pts2)
     perspectiva = cv2.warpPerspective(frame, matrix, (164, 474))
 
+    # Determinamos la posición de la pelota en la perspectiva
     cords_pelota = np.array([[centro[0][0] / resizer], [centro[0][1] / resizer], [1]])
     cords_pelota_pers = np.dot(matrix, cords_pelota)
-    cords_pelota_pers = (int(cords_pelota_pers[0]/cords_pelota_pers[2]), int(cords_pelota_pers[1]/cords_pelota_pers[2]))
+    cords_pelota_pers = (int(np.rint(cords_pelota_pers[0]/cords_pelota_pers[2])), int(np.rint(cords_pelota_pers[1]/cords_pelota_pers[2])))
 
     perspectiva = cv2.circle(perspectiva, cords_pelota_pers, 3, (0, 0, 255), -1)
     cv2.imshow("Perspectiva", perspectiva)
 
+    # Devolvemos el punto pasado al plano 2D.
     return cords_pelota_pers
 
+# Función que elimina los contornos que no son tan frecuentes, es decir, los contornos parecidos que no aparecen tanto a lo largo del video
 def eliminarContornosInservibles(todosContornos):
     count = 0
     aBorrar = []
-    for i in todosContornos:
-        if (len(i) <= 5):
+    for circulos_cercanos in todosContornos:
+        # Si los círculos cercanos detectados no son tan frecuentes (detecté menos de 5 parecidos)
+        if (len(circulos_cercanos) <= 5):
+            # Agrego en la lista el index de aquellos contornos que tengo que borrar de todosContornos (lista que contiene todos los contornos de todos los frames)
             aBorrar.append(count)
         count += 1
     
+    # Borramos de todosContornos los no frecuentes a partir de su posición.
     n = 0
     for i in aBorrar:
         todosContornos.pop(i - n)
@@ -323,7 +344,10 @@ def eliminarContornosInservibles(todosContornos):
 
 # Define todos los contornos que no se mueven, es decir, que no pueden ser la pelota
 def contornosQuietos(cnts, todosContornos, contornosIgnorar):
+    # todosContornos es una lista que contiene todos los contornos de todo el video.
+    # Está dividida de la siguiente manera: Contiene listas adentro de todosContornos, cada una de estas listas contiene círculos que están cerca entre si.
     centrosCerca = False
+    # Analizo cada contorno del frame actual.
     for contorno in cnts:
         count = 0
         # Círculo del contorno
@@ -331,15 +355,18 @@ def contornosQuietos(cnts, todosContornos, contornosIgnorar):
         x, y, radius = int(x), int(y), int(radius)
         for circulos_cercanos in todosContornos:
             for circulo in circulos_cercanos:
+                # Si el círculo de una lista dentro de todosContornos está cerca del contorno siendo analizado, entonces centrosCerca es True, de lo contrario, es False.
                 if x - circulo[0][0] >= -10 and x - circulo[0][0] <= 10 and y - circulo[0][1] >= -10 and y - circulo[0][1] <= 10:
                     centrosCerca = True
                 else:
                     centrosCerca = False
                     break
+            # Cuando está cerca, entonces agrego a la lista dentro de todosContornos que está cerca al contorno siendo analizado el centro de la pelota
             if centrosCerca:
                 todosContornos[count].append([(x, y, radius)])
                 break
             count += 1
+        # Si no está cerca, entonces creo una nueva lista en todosContornos con el centro de la pelota.
         if centrosCerca == False:
             todosContornos.append([[(x, y, radius)]])
     
@@ -367,8 +394,8 @@ def ignorarContornosQuietos(cnts, contornosIgnorar):
     Ignorar = False
     for cnt in cnts:
         (x, y), _ = cv2.minEnclosingCircle(cnt)
-        for i in contornosIgnorar:
-            if x - i[0] >= -20 and x - i[0] <= 20 and y - i[1] >= -20 and y - i[1] <= 20:
+        for cnt_a_ignorar in contornosIgnorar:
+            if x - cnt_a_ignorar[0] >= -20 and x - cnt_a_ignorar[0] <= 20 and y - cnt_a_ignorar[1] >= -20 and y - cnt_a_ignorar[1] <= 20:
                 Ignorar = True
                 break
             else:
@@ -684,6 +711,16 @@ for _ in range(frame_count):
 
     frame = vs.read()
     frame = frame[1] if args.get("video", False) else frame
+
+    if numeroFrame == 1:
+        # Ancho y alto de la imagen
+        anchoOG = frame.shape[1]
+        altoOG = frame.shape[0]
+        
+        ############ VER DE BORRAR ESTO
+        estaCercaX = anchoOG * 10/100
+        estaCercaY = altoOG * 10/100
+        #################
 
     if frame is None:
         break
