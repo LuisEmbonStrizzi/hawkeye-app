@@ -1,9 +1,14 @@
 import Button from "~/components/Button";
 import Separator from "~/components/Separator";
 import { useForm } from "react-hook-form";
+import { signIn } from "next-auth/react";
 
 type AuthFormProps = {
   mode: "login" | "register";
+};
+type Data = {
+  Email: string;
+  Password: string;
 };
 
 const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
@@ -11,9 +16,17 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+  } = useForm<Data>();
 
-  const onSubmit = (data) => console.log(data);
+  const onSubmit = async (data: Data) => {
+    const status = await signIn("Login", {
+      redirect: false,
+      email: data.Email,
+      password: data.Password,
+      callbackUrl: "http://localhost:3000/",
+    });
+    console.log(status?.error);
+  };
   console.log(errors);
 
   return (
