@@ -370,9 +370,12 @@ def contornosQuietos(cnts, todosContornos, contornosIgnorar):
         if centrosCerca == False:
             todosContornos.append([[(x, y, radius)]])
     
+    # Luego de agregar los círuclos en todosContornos en donde corresponda
     for circulos_cercanos in todosContornos:
         ContornoExiste = False
+        # Cuando una lista dentro de todosContornos tiene más de 10 círculos cercanos.
         if (len(circulos_cercanos) >= 10):
+            # Se calcula el promedio en x, y de cada una de las listas que tienen más de 10 círuclos cercanos
             promedioIgnorarX = 0
             promedioIgnorarY = 0
             for circulo in circulos_cercanos:
@@ -381,7 +384,9 @@ def contornosQuietos(cnts, todosContornos, contornosIgnorar):
             promedioIgnorarX /= len(circulos_cercanos)
             promedioIgnorarY /= len(circulos_cercanos)
             promedioIgnorarX, promedioIgnorarY = int(np.rint(promedioIgnorarX)), int(np.rint(promedioIgnorarY))
+            # Se agregan los contornos que se deben ignorar (el promedio) a contornosIgnorar
             if (len(contornosIgnorar) == 0): contornosIgnorar.append((promedioIgnorarX, promedioIgnorarY))
+            # Si el contorno no existe en la lista
             for contorno in contornosIgnorar:
                 if (contorno[0] == promedioIgnorarX and contorno[1] == promedioIgnorarY):
                     ContornoExiste = True
@@ -394,6 +399,7 @@ def ignorarContornosQuietos(cnts, contornosIgnorar):
     Ignorar = False
     for cnt in cnts:
         (x, y), _ = cv2.minEnclosingCircle(cnt)
+        # Por cada contorno del frame actual, verifico si es parecido a algún valor de la lista de contornosIgnorar.
         for cnt_a_ignorar in contornosIgnorar:
             if x - cnt_a_ignorar[0] >= -20 and x - cnt_a_ignorar[0] <= 20 and y - cnt_a_ignorar[1] >= -20 and y - cnt_a_ignorar[1] <= 20:
                 Ignorar = True
@@ -401,12 +407,16 @@ def ignorarContornosQuietos(cnts, contornosIgnorar):
             else:
                 Ignorar = False
         
+        # En caso de que no tenga que ignorar el contorno siendo analizado, es decir, que no esté cerca de ninguno de los puntos de contornosIgnorar, lo agrego a una nueva lista 
         if Ignorar == False: new_cnts.append(cnt)
     
+    # Luego devuelvo esa nueva lista
     return new_cnts
 
+# Fución que determina si la pelota se está moviendo
 def seEstaMoviendo(ultCentros):
     movimiento = False
+    # Si la suma de las restas de los últimos centros es mayor a 15, significa que la pelota se está moviendo, de lo contrario no lo está.
     for i in range(2):
         restaA = ultCentros[4][0][i] - ultCentros[3][0][i]
         restaB = ultCentros[3][0][i] - ultCentros[2][0][i]
@@ -418,6 +428,7 @@ def seEstaMoviendo(ultCentros):
             movimiento = False
             break
     
+    # Devuelve True o False dependiendo de si la pelota se mueve o no
     if movimiento: 
         return True
     return False
@@ -427,15 +438,15 @@ def tp_fix(contornos, pre_centro, count):
     cnts_pts = []
     medidorX = 100
     medidorY = 103
-    #medidorX = estaCercaX
-    #medidorY = estaCercaY
-
+    
     for contorno in contornos:
         ((x, y), _) = cv2.minEnclosingCircle(contorno)
+        # cnts_pts tiene aquellos contornos del frame actual que están cerca del pre_centro en las coordenadas x,y. 
         if x - pre_centro[0][0] > medidorX * resizer or pre_centro[0][0] - x > medidorX * resizer or y - pre_centro[0][1] > medidorY * resizer or pre_centro[0][1] - y > medidorY * resizer and count <= 0.5:
             continue
         cnts_pts.append(contorno)
     if cnts_pts != []:
+        # Devuelve la función cualEstaMasCerca con los parametros obtenidos en la función
         return cualEstaMasCerca(pre_centro, cnts_pts)
 
 # Define qué candidato a pelota es el punto más cercano al anterior. Toma los puntos de tp_fix y analiza cual está mas cerca al pre_centro (centro anterior).
@@ -443,19 +454,23 @@ def cualEstaMasCerca(punto, lista):
     suma = []
     suma2 = []
     for i in lista:
+        # Obtenemos las diferencias entre el preCentro y el círculo a comparar que proviene del contorno.
         (xCenter, yCenter), radius = cv2.minEnclosingCircle(i)
         difEnX = abs(int(xCenter) - int(punto[0][0]))
         difEnY = abs(int(yCenter) - int(punto[0][1]))
         difRadio = abs(int(radius) - int(punto[1]))
         
+        # Guardamos los valores en listas
         suma.append(difEnX + difEnY + difRadio * 3)
         suma2.append(i)
+    # Devolvemos el valor más chico que represeta el círculo a menor distancia del preCentro
     return suma2[suma.index(min(suma))]
 
 # Función que determina si es un pique o un golpe
 def pica (count):
     # Tengo que descubrir si la variable "b" es un pique o un golpe
     # Si es un pique, se devuelve True, de lo contrario se devuelve False
+    # A partir de la posición de los dos últimos posiblesPiques se determina si el anteútimo es pique o golpe
 
     if type(posiblesPiques[0][0]) is not bool and type(posiblesPiques[1][0]) is not bool:
         abajoA = False
@@ -573,11 +588,15 @@ def pica (count):
             return True
 
 def velocidadPelota(punto1, punto2, tiempo):
+    # FALTA PASAR PUNTOS A PERSPECTIVA PARA CALCULAR LA VELOCIDAD
+
+    # Calculamos distancias entre coordenadas de puntos
     punto1X = punto1[0][0] / (resizer * 20)
     punto1Y = punto1[0][1] / (resizer * 20)
     punto2X = punto2[0][0] / (resizer * 20)
     punto2Y = punto2[0][1] / (resizer * 20)
 
+    # Hacemos pitagoras para calcular la hipotenusa entre ambos puntos
     if punto1X >= punto2X: movimientoX = punto1X - punto2X
     elif punto1X <= punto2X: movimientoX = punto2X - punto1X
 
@@ -585,11 +604,13 @@ def velocidadPelota(punto1, punto2, tiempo):
     elif punto1Y <= punto2Y: movimientoY = punto2Y - punto1Y
 
     distancia = np.sqrt(movimientoX * movimientoX + movimientoY * movimientoY)
-    #distancia *= 1.5
 
+    # Hacemos distancia / tiempo y obtenemos la velocidad
     return int(np.rint(distancia / tiempo * 3.6))
 
+# Función para determinar si una pelota se encuentra dentro del plano 2D de la cancha
 def estaEnCancha(centro_pelota, perspectiva):
+    # Si cumple ciertos parametros está dentro, sino está fuera
     if perspectiva:
         if centro_pelota is not None and centro_pelota[0][1] <= 474 and centro_pelota[0][1] >= 0 and centro_pelota[0][0] <= 164 and centro_pelota[0][0] >= 0:
             return True
@@ -615,9 +636,7 @@ else:
 greenLower = np.array([29, 50, 110])
 greenUpper = np.array([64, 255, 255])
 
-#greenLower = np.array([29, 50, 110])
-#greenUpper = np.array([64, 255, 200])
-
+# Puntos de esquinas de la cancha
 topLeftX = 749
 topLeftY = 253
 topRightX = 1095
@@ -703,12 +722,14 @@ casiCentro = None
 start_time = time.time()
 previous_time = start_time
 
+# Se corre el for la cantidad de frames que contiene el video
 for _ in range(frame_count):
     numeroFrame += 1
     print("Numero de Frame: ", numeroFrame)
 
     TiempoSegundosEmpezoVideo += 1/fps
 
+    # Toma el frame del video
     frame = vs.read()
     frame = frame[1] if args.get("video", False) else frame
 
@@ -722,9 +743,11 @@ for _ in range(frame_count):
         estaCercaY = altoOG * 10/100
         #################
 
+    # Cuando termina las iteraciones y no hay frames. Se usa al no saber la duración del video
     if frame is None:
         break
 
+    # Cuando el frame es un número determinado, le hacmeos un zoom a la imagen, obtenemos esa foto y la guardamos en la carpeta
     if numeroFrame == 84:
         # Coordenadas del punto central para hacer zoom
         x, y = 1023, 247
@@ -746,13 +769,6 @@ for _ in range(frame_count):
         cv2.imwrite('zoomed_image.jpg', zoomed_area)
         #break
 
-    pts1 = np.float32([[topLeftX, topLeftY],       [topRightX, topRightY],
-                        [bottomLeftX, bottomLeftY], [bottomRightX, bottomRightY]])
-    pts2 = np.float32([[0, 0], [164, 0], [0, 474], [164, 474]])
-
-    matrix = cv2.getPerspectiveTransform(pts1, pts2)
-    result = cv2.warpPerspective(frame, matrix, (164, 474))
-
     main(frame)
 
     print("pts_piques", pts_piques_finales)
@@ -763,6 +779,7 @@ for _ in range(frame_count):
     if key == ord("q"):
         break
 
+    # Pausar la ejecución al presionar la "p"
     if key == ord('p'):
         cv2.waitKey(-1)
 
@@ -771,4 +788,6 @@ if not args.get("video", False):
 
 else:
     vs.release()
+
+# Destruimos (cerramos) todas las ventanas de opencv
 cv2.destroyAllWindows()
