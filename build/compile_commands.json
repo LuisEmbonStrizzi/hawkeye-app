@@ -1,0 +1,8 @@
+[
+{
+  "directory": "C:/Users/46919295/Documents/hawkeye-app/build",
+  "command": "C:\\mingw64\\bin\\x86_64-w64-mingw32-g++.exe  @CMakeFiles/cpplibrary.dir/includes_CXX.rsp -g -o CMakeFiles\\cpplibrary.dir\\main.cpp.obj -c C:\\Users\\46919295\\Documents\\hawkeye-app\\AI\\C++\\main.cpp",
+  "file": "C:/Users/46919295/Documents/hawkeye-app/AI/C++/main.cpp",
+  "output": "CMakeFiles/cpplibrary.dir/main.cpp.obj"
+}
+]

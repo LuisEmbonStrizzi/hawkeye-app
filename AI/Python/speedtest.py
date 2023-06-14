@@ -5,7 +5,7 @@ import numpy as np
 import ctypes
 
 #### CTYPES ####
-cpplibrary = ctypes.CDLL("E:\Guido\Documentos\Programacion\hawkeye-app\AI\cpplibrary.so", winmode=0)
+cpplibrary = ctypes.CDLL("cpplibrary.so", winmode=0)
 
 resultado = cpplibrary.suma(1, 2)
 print(f"corrí en C++: {resultado}")
