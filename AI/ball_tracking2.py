@@ -32,6 +32,7 @@ def main(frame):
     global y
     global punto1Velocidad  
     global velocidadFinal
+    global casiCentro
     # global topLeftX, topLeftY, topRightX, topRightY, bottomLeftX, bottomLeftY, bottomRightX, bottomRightY
     # global estaCercaX
     # global estaCercaY
@@ -49,18 +50,37 @@ def main(frame):
     # Cámara lenta para mayor análisis
     #cv2.waitKey(100)
     
-    blurred = cv2.GaussianBlur(frame, (11, 11), 0)
-    #blurred = cv2.dilate(frame, None, iterations=2)
-    hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
+    #blurred = cv2.GaussianBlur(frame, (11, 11), 0)
+    #hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
     
     # Filtra los tonos verdes de la imagen
-    mascara = cv2.inRange(hsv, greenLower, greenUpper)
-    mascara = cv2.erode(mascara, None, iterations=2)
-    mascara = cv2.dilate(mascara, None, iterations=2)
+    #mascara = cv2.inRange(hsv, greenLower, greenUpper)
+    #mascara = cv2.erode(mascara, None, iterations=2)
+    #mascara = cv2.dilate(mascara, None, iterations=2)
     
     # Toma todos los contornos de la imagen
-    contornos = cv2.findContours(mascara.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    contornos = imutils.grab_contours(contornos)
+    #contornos = cv2.findContours(mascara.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    #contornos = imutils.grab_contours(contornos)
+
+    # Convertir la imagen a formato HSV
+    blurred = cv2.GaussianBlur(frame, (11, 11), 0)
+    hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
+
+    # Aplicar una máscara para detectar el color verde
+    mascara = cv2.inRange(hsv, greenLower, greenUpper)
+
+    # Aplicar operaciones de morfología
+    kernel = np.ones((5, 5), np.uint8)
+    #mascara = cv2.erode(mascara, kernel, iterations=2)
+    mascara = cv2.dilate(mascara, kernel, iterations=2)
+
+    #mascara = cv2.medianBlur(mascara, 5)
+
+    # Encontrar los contornos en la máscara
+    contornos, _ = cv2.findContours(mascara.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Dibujar los contornos en la imagen original
+    cv2.drawContours(frame, contornos, -1, (0, 255, 0), 2)
     
     centro = None
     
@@ -78,25 +98,25 @@ def main(frame):
                 casiCentro = max(contornos, key=cv2.contourArea)
                 ((x, y), radio) = cv2.minEnclosingCircle(casiCentro)
                 M = cv2.moments(casiCentro)
-                centro = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), int(radio)
+                if M["m00"] > 0: centro = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), int(radio)
                 primeraVez = False
                 preCentro = centro
                 TiempoDeteccionUltimaPelota = 0
                 TiempoTresCentrosConsecutivos = 0
 
-                ultimosCentros.appendleft(centro)
+                if centro is not None: ultimosCentros.appendleft(centro)
             
             else:
-                casiCentro = tp_fix(contornos, preCentro, TiempoDeteccionUltimaPelota)
+                if preCentro is not None: casiCentro = tp_fix(contornos, preCentro, TiempoDeteccionUltimaPelota)
                 
                 if casiCentro is not None:
                     ((x, y), radio) = cv2.minEnclosingCircle(casiCentro)
                     M = cv2.moments(casiCentro)
-                    centro = [int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])], int(radio)
+                    if M["m00"] > 0: centro = [int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])], int(radio)
                     preCentro = centro
                     TiempoTresCentrosConsecutivos += TiempoDeteccionUltimaPelota
                     TiempoDeteccionUltimaPelota = 0
-                    ultimosCentros.appendleft(centro)
+                    if centro is not None: ultimosCentros.appendleft(centro)
                 
                 else:
                     if TiempoDeteccionUltimaPelota >= 0.3:
@@ -106,7 +126,7 @@ def main(frame):
                     TiempoTresCentrosConsecutivos = 0
                 
             # Sigue si el contorno tiene cierto tamaño
-            if radio > 0 and casiCentro is not None:
+            if radio > 0 and casiCentro is not None and centro is not None:
                 # Dibuja el círculo en la pelota
                 cv2.circle(frame, (int(x), int(y)), int(radio), (0, 255, 255), 2)
                 cv2.circle(frame, (centro[0][0], centro[0][1]), 5, (0, 0, 255), -1)
@@ -144,29 +164,25 @@ def main(frame):
     bajando = False
 
     if centro is not None:
-        pique.appendleft(centro[0][1])
-        if (len(pique) >= 2):
-            if (pique[0] - pique[1] > 0):
+        centros_para_determinar_pique.appendleft(centro[0][1])
+        if (len(centros_para_determinar_pique) >= 2):
+            if (centros_para_determinar_pique[0] - centros_para_determinar_pique[1] > 0):
                 bajando = True
-            if (pique[0] - pique[1] != 0):
-                pique2.appendleft((bajando, numeroFrame))
+            if (centros_para_determinar_pique[0] - centros_para_determinar_pique[1] != 0):
+                bajandos.appendleft((bajando, numeroFrame))
             else: bajando = None
-    print("Pique", pique)
-    print("Pique 2", pique2)
-    print("Centro", centro)
-    print("PreCentro", preCentro)
     
     TiempoDifPiques += 1/fps
     posiblePique = False
-    if (len(pique2) >= 2):
-        if pique2[0][0] == False and pique2[1][0] == True and preCentro is not None and pique2[0][1] - pique2[1][1] <= fps/6 and centro is not None:
+    if (len(bajandos) >= 2):
+        if bajandos[0][0] == False and bajandos[1][0] == True and preCentro is not None and bajandos[0][1] - bajandos[1][1] <= fps/6 and centro is not None:
             posiblePique = True
             if len(posiblesPiques) % 2 == 1: TiempoDifPiques = 0
     
     # Entra a este if cuando se determina que hay un posiblePique, es decir, que se detectó algo que no se puede determinar si es un pique o un golpe
     if posiblePique:
         #centro_pers = coordenadaPorMatriz(centro)
-        if (len(pique2) >= 2):
+        if (len(bajandos) >= 2):
             # Entra a este if cuanda la pelota no esté en la cancha. Al no estar en la cancha, solo puedo determinar si está por encima o por debajo de la red para luego determinar si un posiblePique es pique o golpe.
             pre_esta_en_cancha = estaEnCancha(preCentro, False)
             if not pre_esta_en_cancha:
@@ -421,11 +437,6 @@ def pica (count):
         b = posiblesPiques[1][0][1]
         if a >= 474 / 2: abajoA = True
         if b >= 474 / 2: abajoB = True
-        print("a", a)
-        print("b", b)
-        print("abajoA", abajoA)
-        print("abajoB", abajoB)
-        print("count", count)
         if abajoB and abajoA and a > b and count <= 1:
             return True
         elif abajoB and abajoA and a > b and count >= 1:
@@ -577,6 +588,9 @@ else:
 greenLower = np.array([29, 50, 110])
 greenUpper = np.array([64, 255, 255])
 
+#greenLower = np.array([29, 50, 110])
+#greenUpper = np.array([64, 255, 200])
+
 topLeftX = 749
 topLeftY = 253
 topRightX = 1095
@@ -626,12 +640,12 @@ ultimosCentros = deque(maxlen=5)
 todosContornos = []
 contornosIgnorar = []
 
-pique = deque(maxlen=4)
-pique2 = deque(maxlen=4)
+centros_para_determinar_pique = deque(maxlen=2)
+bajandos = deque(maxlen=2)
 
 # Se establece el resizer, sirve para agrandar la imagen y realizar un análisis más profundo, a cambio de más tiempo de procesamiento
 # El primer valor corresponde al video original y el segundo a la perspectiva
-resizer= 3
+resizer = 3
 
 altoOG = 0
 anchoOG = 0
@@ -656,6 +670,8 @@ velocidadFinal = None
 afterVelocidad = False
 
 pelotaEstaEnPerspectiva = None
+
+casiCentro = None
 
 start_time = time.time()
 previous_time = start_time
