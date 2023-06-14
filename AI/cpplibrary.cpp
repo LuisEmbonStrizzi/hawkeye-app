@@ -1,8 +1,8 @@
 #include <iostream>
 using namespace std;
 
-int main(){
-    cout << "Hello world" << endl;
-
-    return 0;
+extern "C" {
+    int suma(int n1, int n2) {
+        return n1 + n2;
+    }
 }

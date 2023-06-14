@@ -4,6 +4,12 @@ import imutils
 import numpy as np
 import ctypes
 
+#### CTYPES ####
+cpplibrary = ctypes.CDLL("E:\Guido\Documentos\Programacion\hawkeye-app\AI\cpplibrary.so", winmode=0)
+
+resultado = cpplibrary.suma(1, 2)
+print(f"corrí en C++: {resultado}")
+
 resizer = 3
 greenLower = np.array([29, 50, 110])
 greenUpper = np.array([64, 255, 255])
@@ -11,9 +17,14 @@ greenUpper = np.array([64, 255, 255])
 if __name__ == '__main__':
     video = cv2.VideoCapture("E:\Guido\Documentos\Programacion\Hawkeye-2022\Videos Tenis para Analizar\InkedInkedTennisBrothersVideo1080p.mp4")
 
+    
+
     frame_actual = 0
     while True:
         frame_actual += 1
+
+        gpu_frame = cv2.cuda_GpuMat()
+        gpu_frame.upload(frame)
 
         ### BLOQUE 1 ###
         start_time = time.time()
