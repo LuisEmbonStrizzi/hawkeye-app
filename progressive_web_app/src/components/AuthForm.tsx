@@ -25,7 +25,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
       password: data.Password,
       callbackUrl: "http://localhost:3000/",
     });
-    console.log(status?.error);
+    console.log(status);
   };
   console.log(errors);
 
