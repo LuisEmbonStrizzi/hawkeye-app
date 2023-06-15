@@ -1,3 +1,0 @@
-"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\cpplibrary.dir/objects.a
-C:\mingw64\bin\ar.exe qc CMakeFiles\cpplibrary.dir/objects.a @CMakeFiles\cpplibrary.dir\objects1.rsp
-C:\mingw64\bin\x86_64-w64-mingw32-g++.exe -g -Wl,--whole-archive CMakeFiles\cpplibrary.dir/objects.a -Wl,--no-whole-archive -o cpplibrary.exe -Wl,--out-implib,libcpplibrary.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\cpplibrary.dir\linkLibs.rsp
