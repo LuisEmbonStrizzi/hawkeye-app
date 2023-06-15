@@ -1,11 +1,11 @@
 import cv2
 import time
-import imutils
+#import imutils
 import numpy as np
 import ctypes
 
 #### CTYPES ####
-cpplibrary = ctypes.CDLL("cpplibrary.so", winmode=0)
+cpplibrary = ctypes.CDLL("./cpplibrary.so", winmode=0)
 
 resultado = cpplibrary.suma(1, 2)
 print(f"corrí en C++: {resultado}")
@@ -14,6 +14,11 @@ resizer = 3
 greenLower = np.array([29, 50, 110])
 greenUpper = np.array([64, 255, 255])
 
+imagen = np.zeros((100,100,3),np.uint8)
+imagen = cv2.putText(imagen, "Luis panza", (0, 0), cv2.FONT_HERSHEY_SIMPLEX, 1, color=(0, 255, 0))
+cv2.imshow('luis trol', imagen)
+
+"""
 if __name__ == '__main__':
     video = cv2.VideoCapture("E:\Guido\Documentos\Programacion\Hawkeye-2022\Videos Tenis para Analizar\InkedInkedTennisBrothersVideo1080p.mp4")
 
@@ -68,3 +73,4 @@ if __name__ == '__main__':
         contornos = imutils.grab_contours(contornos)
         print("BLOQUE 5:", time.time() - start_time, "frame: ", frame_actual, "\n--------------------")
         ### BLOQUE 5 ###
+"""
