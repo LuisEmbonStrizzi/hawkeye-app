@@ -14,9 +14,10 @@ resizer = 3
 greenLower = np.array([29, 50, 110])
 greenUpper = np.array([64, 255, 255])
 
-imagen = np.zeros((100,100,3),np.uint8)
-imagen = cv2.putText(imagen, "Luis panza", (0, 0), cv2.FONT_HERSHEY_SIMPLEX, 1, color=(0, 255, 0))
-cv2.imshow('luis trol', imagen)
+imagen = np.zeros((1000,1000,3),np.uint8)
+imagen = cv2.putText(imagen, "Luis panza", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, color=(0, 255, 0))
+cv2.imwrite('imagen.jpg', imagen)
+#cv2.imshow('luis trol', imagen)
 
 """
 if __name__ == '__main__':
