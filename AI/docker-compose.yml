@@ -1,6 +1,7 @@
 version: '3.8'
 services:
   cv_api_hawkeye:
+    image: pollito500/hawkeye-app:1.3
     build: 
       context: .
       dockerfile: Dockerfile
