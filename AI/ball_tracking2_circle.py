@@ -40,59 +40,59 @@ def main(frame):
 
     # Cámara lenta para mayor análisis
     #cv2.waitKey(100)
-    
-    #blurred = cv2.GaussianBlur(frame, (11, 11), 0)
-    #hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
-    
-    # Filtra los tonos verdes de la imagen
-    #mascara = cv2.inRange(hsv, greenLower, greenUpper)
-    #mascara = cv2.erode(mascara, None, iterations=2)
-    #mascara = cv2.dilate(mascara, None, iterations=2)
-    
-    # Toma todos los contornos de la imagen
-    #contornos = cv2.findContours(mascara.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    #contornos = imutils.grab_contours(contornos)
 
-    # GaussianBlur reduce el ruido de alta frecuencia
-    # MedianBlur elimina el ruido impulsivo
-
-    #blurred = cv2.GaussianBlur(frame, (11, 11), 0)
-    blurred = cv2.medianBlur(frame, 5)
-
-    # Convertir la imagen a formato HSV
-    hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
-
-    # Aplicar una máscara para detectar el color verde. En la máscara se muestran en color blanco todos los contornos detectados que sean de color verde
-    mascara = cv2.inRange(hsv, greenLower, greenUpper)
-
-    # Aplicar operaciones de morfología
-    kernel = np.ones((5, 5), np.uint8)
-    # Eliminar los píxeles de los objetos que están en los bordes de las regiones.
-    #mascara = cv2.erode(mascara, kernel, iterations=2)
-    # Dilatar los píxeles para que se vean mejor
-    mascara = cv2.dilate(mascara, kernel, iterations=2)
-
-    # Encontrar los contornos en la máscara
-    contornos, _ = cv2.findContours(mascara.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    # Dibujar los contornos en la imagen original
-    cv2.drawContours(frame, contornos, -1, (0, 255, 0), 2)
-
-    # Dibujar los contornos en la imagen original
-    #cv2.drawContours(frame, contornos, -1, (0, 255, 0), 2)
-
-    # # Convertir el frame a escala de grises
+    # Convertir el frame a escala de grises
     # gris = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     # suavizado = cv2.GaussianBlur(gris, (5, 5), 0)
 
     # # Busca los círculos en la imagen utilizando HoughCircles
     # circles = cv2.HoughCircles(suavizado, cv2.HOUGH_GRADIENT, dp=1, minDist=50, param1=50, param2=30, minRadius=10, maxRadius=30)
     
+    # # Crear una máscara vacía del mismo tamaño que la imagen original
+    # mascara = np.zeros(gris.shape, dtype=np.uint8)
+    
     # # Si se encuentran círculos, dibújalos en la imagen original
     # if circles is not None:
     #     circles = np.round(circles[0, :]).astype(int)
     #     for (x, y, r) in circles:
     #         cv2.circle(frame, (x, y), r, (0, 255, 0), 2)
+    #         cv2.circle(mascara, (x, y), r, (0, 255, 0), 2)
+
+    blurred = cv2.GaussianBlur(frame, (5, 5), 0)
+
+    # Convertir la imagen a escala de grises
+    gris = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
+
+    # Aplicar umbral para obtener una imagen binaria
+    _, thresh = cv2.threshold(gris, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+    kernel = np.ones((5, 5), np.uint8)
+    eroded = cv2.erode(thresh, kernel, iterations=2)
+    dilated = cv2.dilate(eroded, kernel, iterations=2)
+
+    # Encontrar los contornos en la imagen binaria
+    contornos, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Obtener solo los contornos cuyo radio es menor o igual a 100
+    contornos = [cnt for cnt in contornos if cv2.minEnclosingCircle(cnt)[1] <= 100]
+
+    # Crear una máscara en blanco del mismo tamaño que la imagen original
+    mascara = np.zeros_like(dilated)
+
+    # Dibujar los contornos en la máscara
+    cv2.drawContours(mascara, contornos, -1, (255), thickness=cv2.FILLED)
+
+    # Aplicar la detección de círculos en la máscara
+    circles = cv2.HoughCircles(mascara, cv2.HOUGH_GRADIENT, dp=1, minDist=50, param1=50, param2=30, minRadius=10, maxRadius=100)
+
+    # Verificar si se encontraron círculos
+    if circles is not None:
+        # Redondear los valores y convertirlos a enteros
+        circles = np.round(circles[0, :]).astype(int)
+        
+        # Dibujar los círculos detectados en la imagen original
+        for (x, y, r) in circles:
+            cv2.circle(mascara, (x, y), r + 50, (0, 255, 0), 2)
     
     centro = None
     
