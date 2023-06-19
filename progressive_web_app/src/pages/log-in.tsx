@@ -4,12 +4,9 @@ import { type NextPage } from "next";
 
 const LogIn: NextPage = () => {
   return (
-    <main>
-      <h1>Log In</h1>
+    <main className="flex flex-col min-h-screen items-center justify-center bg-[url('/img/bg-1920x1080.png')]">
+      <h1 className="font-bold  text-h1 text-foreground-important">Log In</h1>
       <AuthForm mode="login" />
-      <p>
-        Do not have an account? <Link href="/sign-up">Sign Up</Link>
-      </p>
     </main>
   );
 };
