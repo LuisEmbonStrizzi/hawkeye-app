@@ -17,6 +17,7 @@ const hash = async (password: string) => {
   return hashedPassword;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const userRouter = createTRPCRouter({
@@ -43,6 +44,7 @@ export const userRouter = createTRPCRouter({
   sendEmail: publicProcedure
     .input(z.object({ email: z.string().email() }))
     .mutation(async ({ input }) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       const response = await resend.emails.send({
         from: "onboarding@resend.dev",
         to: input.email,
