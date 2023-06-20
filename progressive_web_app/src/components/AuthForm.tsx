@@ -3,10 +3,11 @@ import Button from "~/components/Button";
 import Separator from "~/components/Separator";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { signIn } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 import clsx from "clsx";
 import Progress from "./Progress";
+import { api } from "~/utils/api";
 
 type AuthFormProps = {
   mode: "login" | "register";
@@ -39,6 +40,13 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
     setLoading(false);
   };
   console.log(errors);
+
+  const { data: sessionData } = useSession();
+
+  const { data: secretMessage } = api.example.getSecretMessage.useQuery(
+    undefined, // no input
+    { enabled: sessionData?.user !== undefined }
+  );
 
   return (
     <div className="mx-auto flex w-full  max-w-[450px] flex-col items-center gap-[24px]">
@@ -87,6 +95,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
         <Button
           style="secondary"
           label="Continue with Google"
+          onClick={() => void signIn("google")}
           icon={
             <svg
               width="20"
@@ -120,6 +129,20 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
             </svg>
           }
         />
+
+        <div className="flex flex-col gap-[20px] text-center">
+          <p className="flex flex-col gap-[10px] text-center text-xl text-gray-500 ">
+            {sessionData && <span>Logged in as {sessionData.user?.name}</span>}
+            {secretMessage && <span> {secretMessage}</span>}
+            {sessionData && (
+              <Button
+                style="primary"
+                label="Sign out"
+                onClick={() => void signOut()}
+              />
+            )}
+          </p>
+        </div>
       </div>
       {mode === "login" ? (
         <p className="text-sm text-foreground">
