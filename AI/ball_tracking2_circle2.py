@@ -79,8 +79,8 @@ greenUpper = np.array([70, 255, 255])
 greenLower = np.array([29, 50, 110])
 greenUpper = np.array([64, 255, 255])
 
-greenLower = np.array([29, 15, 100])
-greenUpper = np.array([200, 255, 255])
+#greenLower = np.array([29, 15, 100])
+#greenUpper = np.array([200, 255, 255])
 
 # Se corre el for la cantidad de frames que contiene el video
 while True:
