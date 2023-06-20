@@ -2,8 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
-*{ 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
-} 
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+::-moz-selection {
+  /* Code for Firefox */
+  color: rgba(78, 203, 113, 1);
+  background: rgba(78, 203, 113, 0.1);
+}
+
+::selection {
+  color: rgba(78, 203, 113, 1);
+  background: rgba(78, 203, 113, 0.1);
+}
