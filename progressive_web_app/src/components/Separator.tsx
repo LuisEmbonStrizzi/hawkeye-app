@@ -6,9 +6,9 @@ type SeparatorProps = {
 
 const Separator: React.FC<SeparatorProps> = ({ label }) => {
   return (
-    <div>
-      <p>Separator</p>
-    </div>
+    <span className="flex w-full select-none items-center gap-[8px] text-sm font-bold text-tertiary-border before:flex-grow before:border-t before:border-background-border after:flex-grow after:border-t after:border-background-border">
+      {label}
+    </span>
   );
 };
 export default Separator;
