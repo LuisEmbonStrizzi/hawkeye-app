@@ -6,6 +6,8 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import bcrypt from "bcrypt";
+import { Resend } from "resend";
+import { EmailTemplate } from "~/components/email-template";
 
 const hash = async (password: string) => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -14,6 +16,8 @@ const hash = async (password: string) => {
   const hashedPassword = await bcrypt.hash(password, salt);
   return hashedPassword;
 };
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const userRouter = createTRPCRouter({
   register: publicProcedure
@@ -35,5 +39,17 @@ export const userRouter = createTRPCRouter({
         code: "INTERNAL_SERVER_ERROR",
         message: "An unexpected error occurred, please try again later.",
       });
+    }),
+  sendEmail: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .mutation(async ({ input }) => {
+      const response = await resend.emails.send({
+        from: "onboarding@resend.dev",
+        to: input.email,
+        subject: "Hello World",
+        html: "<p>Congrats on sending your <strong>first email</strong>!</p>",
+        react: EmailTemplate({ firstName: "John" }),
+      });
+      console.log(response);
     }),
 });
