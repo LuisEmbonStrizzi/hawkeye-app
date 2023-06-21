@@ -34,6 +34,7 @@ def main(frame):
     global punto1Velocidad  
     global velocidadFinal
     global casiCentro
+    global numeroFrame
 
     # Agrandamos el frame para ver más la pelota
     frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
@@ -93,61 +94,6 @@ def main(frame):
     #     circles = np.round(circles[0, :]).astype(int)
     #     for (x, y, r) in circles:
     #         cv2.circle(frame, (x, y), r, (0, 255, 0), 2)
-    
-    if preCentro is not None:
-
-        greenLower2 = np.array([29, 15, 100])
-        greenUpper2 = np.array([200, 255, 255])
-
-        # Ajustar los puntos de recorte si están fuera de rango
-        x1 = max(preCentro[0][0] - recorteCerca, 0)
-        y1 = max(preCentro[0][1] - recorteCerca, 0)
-        x2 = min(preCentro[0][0] + recorteCerca, anchoOG * 3)
-        y2 = min(preCentro[0][1] + recorteCerca, altoOG * 3)
-
-        # Recortar la región de interés de la imagen original
-        imagen_recortada = frame[y1:y2, x1:x2]
-
-        # Agrandamos el frame para ver más la pelota
-        imagen_recortada = imutils.resize(imagen_recortada, imagen_recortada.shape[1] * resizer, imagen_recortada.shape[0] * resizer)
-
-        # Convertir la imagen a escala de grises
-        imagen_gris = cv2.cvtColor(imagen_recortada, cv2.COLOR_BGR2GRAY)
-
-        # Aplicar un suavizado si es necesario
-        blurred = cv2.GaussianBlur(imagen_gris, (11, 11), 0)
-        #thresh = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY)[1]
-
-        # Convertir la imagen a HSV
-        # hsv = cv2.cvtColor(imagen_recortada, cv2.COLOR_BGR2HSV)
-
-        # # Filtrar los tonos verdes de la imagen
-        # mask = cv2.inRange(hsv, greenLower2, greenUpper2)
-
-        # # Aplicar operaciones de morfología para eliminar ruido
-        # kernel = np.ones((5, 5), np.uint8)
-        # mask = cv2.erode(mask, kernel, iterations=2)
-        # mask = cv2.dilate(mask, kernel, iterations=2)
-
-        #contours, _ = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        #cv2.drawContours(imagen_recortada, contours, -1, (255), thickness=cv2.FILLED)
-
-        # Busca los círculos en la imagen utilizando HoughCircles
-
-        # DP dice que si los círculos cercanos van a ser fusionados, o sea cuando el número aumenta es más probable que se fusionen. Tal vez haga que la posición del círculo no sea tan precisa. Suele variar entre 1, 1.2, 1.4
-        # Param1 es la sensibilidad que tiene para encontrar círculos. Si es muy grande, no va a encontrar muchos círculos y si es muy chico va a encontrar muchos círculos. Hay que encontrar un punto medio.
-        # Param2 es la precisión de la detección de círculos. Setea la cantidad de puntos del borde para que lo detectado sea considerado un círculo. Si es muy grande, no va a encontrar muchos círculos y si es muy chico va a encontrar muchos círculos. Hay que encontrar un punto medio.
-        circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=10, maxRadius=100)
-
-        # Si se encuentran círculos, dibújalos en la imagen original
-        if circles is not None:
-            circles = np.round(circles[0, :]).astype(int)
-            for (x, y, r) in circles:
-                cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
-                print("R", r)
-
-        cv2.imshow("Frame recortado", imagen_recortada)
-        #cv2.imshow("Mask Frame recortado", mask)
 
     centro = None
     
@@ -160,10 +106,6 @@ def main(frame):
         contornosQuietos(contornos, todosContornos, contornosIgnorar)
         if len(ultimosCentros) == 5 and seEstaMoviendo(ultimosCentros) == False:
             contornos = ignorarContornosQuietos(contornos, contornosIgnorar)
-
-        mascara2 = np.zeros(frame.shape[:2], dtype="uint8")
-        mascara2 = contornos.copy()
-        cv2.imshow("Mascara2", mascara2)
 
         if len(contornos) > 0:
             # Cuando empezó el video o pasaron 0.3 segundos desde que no se encuentra la pelota
@@ -184,7 +126,7 @@ def main(frame):
             # Si se detectó un centro hace menos de 0.3 segundos
             else:
                 # Corre la función tp_fix para determinar cual es el contorno detectado que está mas cerca de la pelota del frame anterior, es decir, encuentra la peltoa a través de su posición en el frame anterior
-                if preCentro is not None: casiCentro = tp_fix(contornos, preCentro, TiempoDeteccionUltimaPelota)
+                if preCentro is not None: casiCentro = tp_fix(contornos, preCentro, TiempoDeteccionUltimaPelota, False)
                 
                 # Encuentra la posición x, y del contorno más cercano a la pelota del frame anterior. Determina el centro de la pelota
                 if casiCentro is not None:
@@ -217,6 +159,68 @@ def main(frame):
             preCentro = None
         TiempoDeteccionUltimaPelota += 1/fps
         TiempoTresCentrosConsecutivos = 0
+
+    if centro is None and preCentro is not None:
+        # Ajustar los puntos de recorte si están fuera de rango
+        x1 = max(preCentro[0][0] - recorteCerca, 0)
+        y1 = max(preCentro[0][1] - recorteCerca, 0)
+        x2 = min(preCentro[0][0] + recorteCerca, anchoOG * 3)
+        y2 = min(preCentro[0][1] + recorteCerca, altoOG * 3)
+
+        # Recortar la región de interés de la imagen original
+        imagen_recortada = frame[y1:y2, x1:x2]
+
+        # Agrandamos el frame para ver más la pelota
+        imagen_recortada = imutils.resize(imagen_recortada, imagen_recortada.shape[1] * resizer, imagen_recortada.shape[0] * resizer)
+
+        # Convertir la imagen a escala de grises
+        imagen_gris = cv2.cvtColor(imagen_recortada, cv2.COLOR_BGR2GRAY)
+
+        # Aplicar un suavizado si es necesario
+        blurred = cv2.GaussianBlur(imagen_gris, (11, 11), 0)
+
+        # Busca los círculos en la imagen utilizando HoughCircles
+        circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=10, maxRadius=100)
+        
+        if circles is not None:
+            circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), 1), 0.2, True)
+            cv2.circle(imagen_recortada, (int(circuloDetectado[0]), int(circuloDetectado[1])), 50, (255, 255, 0), thickness = 2)
+
+            xr = int(x1 + circuloDetectado[0] / 3)
+            yr = int(y1 + circuloDetectado[1] / 3)
+            rr = int(circuloDetectado[2] / 3)
+
+            cv2.circle(frame, (xr, yr), rr, (255, 255, 0), thickness = 2)
+
+            centro = ((xr, yr), rr)
+
+        # Si se encuentran círculos, dibújalos en la imagen original
+        if circles is not None:
+            circles = np.round(circles[0, :]).astype(int)
+            for (x, y, r) in circles:
+                cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
+            
+        # pausado = True
+
+        # while True:
+        #     # Verificar si se debe pausar la imagen
+        #     if pausado:
+        #         # Esperar hasta que se presione cualquier tecla
+        #         cv2.waitKey(0)
+        #         pausado = False
+        #     else:
+        #         # Esperar 1 milisegundo y obtener el código de tecla
+        #         key = cv2.waitKey(1)
+                
+        #         # Verificar si se debe pausar la imagen
+        #         if key == ord('p'):
+        #             pausado = True
+        #         # Verificar si se debe salir del bucle
+        #         elif key == ord('q'):  # Código ASCII de la tecla Esc
+        #             break
+
+        imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
+        cv2.imshow("Imagen recortada", imagen_recortada)
     
     # Actualiza los puntos para trazar la trayectoria de la pelota
     pts_pelota_norm.appendleft(centro)
@@ -513,30 +517,32 @@ def seEstaMoviendo(ultCentros):
     return False
 
 # Función que arregla el problema de "la zapatilla verde"
-def tp_fix(contornos, pre_centro, count):
+def tp_fix(contornos, pre_centro, count, circulo):
     cnts_pts = []
     medidorX = 100
     medidorY = 103
-    
     for contorno in contornos:
-        ((x, y), _) = cv2.minEnclosingCircle(contorno)
-        print("preCentro", pre_centro)
-        print("x,y", x,y)
-        # cnts_pts tiene aquellos contornos del frame actual que están cerca del pre_centro en las coordenadas x,y. 
-        if x - pre_centro[0][0] > medidorX * resizer or pre_centro[0][0] - x > medidorX * resizer or y - pre_centro[0][1] > medidorY * resizer or pre_centro[0][1] - y > medidorY * resizer and count <= 0.5:
-            continue
-        cnts_pts.append(contorno)
+        if circulo == False:
+            ((x, y), _) = cv2.minEnclosingCircle(contorno)
+            # cnts_pts tiene aquellos contornos del frame actual que están cerca del pre_centro en las coordenadas x,y. 
+            if x - pre_centro[0][0] > medidorX * resizer or pre_centro[0][0] - x > medidorX * resizer or y - pre_centro[0][1] > medidorY * resizer or pre_centro[0][1] - y > medidorY * resizer and count <= 0.5:
+                continue
+            cnts_pts.append(contorno)
+        else:
+            cnts_pts.append(contorno)
     if cnts_pts != []:
         # Devuelve la función cualEstaMasCerca con los parametros obtenidos en la función
-        return cualEstaMasCerca(pre_centro, cnts_pts)
+        return cualEstaMasCerca(pre_centro, cnts_pts, circulo)
 
 # Define qué candidato a pelota es el punto más cercano al anterior. Toma los puntos de tp_fix y analiza cual está mas cerca al pre_centro (centro anterior).
-def cualEstaMasCerca(punto, lista):
+def cualEstaMasCerca(punto, lista, circulo):
     suma = []
     suma2 = []
     for i in lista:
         # Obtenemos las diferencias entre el preCentro y el círculo a comparar que proviene del contorno.
-        (xCenter, yCenter), radius = cv2.minEnclosingCircle(i)
+        if circulo:
+            xCenter, yCenter, radius = i
+        else: (xCenter, yCenter), radius = cv2.minEnclosingCircle(i)
         difEnX = abs(int(xCenter) - int(punto[0][0]))
         difEnY = abs(int(yCenter) - int(punto[0][1]))
         difRadio = abs(int(radius) - int(punto[1]))
@@ -855,8 +861,8 @@ for _ in range(frame_count):
 
     main(frame)
 
-    print("pts_piques", pts_piques_finales)
-    print("pts_golpes", pts_golpes_finales)
+    #print("pts_piques", pts_piques_finales)
+    #print("pts_golpes", pts_golpes_finales)
 
     # Terminar la ejecución si se presiona la "q"
     key = cv2.waitKey(1) & 0xFF
