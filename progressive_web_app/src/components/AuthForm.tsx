@@ -3,10 +3,11 @@ import Button from "~/components/Button";
 import Separator from "~/components/Separator";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { signIn } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 import clsx from "clsx";
 import Progress from "./Progress";
+import { api } from "~/utils/api";
 
 type AuthFormProps = {
   mode: "login" | "register";
@@ -16,6 +17,13 @@ type Data = {
   Password: string;
 };
 type Type = "password" | "text";
+type AuthMethod = "Login" | "SignUp";
+type AuthResponse = {
+  error: string,
+  status: number,
+  ok: boolean,
+  url: string | null
+}
 
 const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
   const {
@@ -26,24 +34,41 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
 
   const [type, setType] = useState<Type>("password");
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
 
   const onSubmit = async (data: Data) => {
     setLoading(true);
-    const status = await signIn("Login", {
-      redirect: false,
-      email: data.Email,
-      password: data.Password,
-      callbackUrl: "http://localhost:3000/",
-    });
-    console.log(status);
+
+
+    async function auth(authmethod: AuthMethod) {
+      const status: AuthResponse = await signIn(authmethod, {
+        redirect: false, //CAMBIAR DESPUÉS
+        email: data.Email,
+        password: data.Password,
+        callbackUrl: "http://localhost:3000/",
+      }) 
+      setError(status.error)
+      console.log(status)
+      return status
+    }
+
+    {mode === "login" ? auth('Login') : auth('SignUp')}
+
     setLoading(false);
   };
   console.log(errors);
 
+  const { data: sessionData } = useSession();
+
+  const { data: secretMessage } = api.example.getSecretMessage.useQuery(
+    undefined, // no input
+    { enabled: sessionData?.user !== undefined }
+  );
+
   return (
     <div className="mx-auto flex w-full  max-w-[450px] flex-col items-center gap-[24px]">
-      <h1 className="mb-[24px] text-[24px] font-bold text-foreground-important">
-        {mode === "login" ? "Login to Hawkeye" : "Sign Up to Hawkeye"}
+      <h1 className="mb-[24px] text-h3 font-bold text-foreground-important">
+        {mode === "login" ? "Log In" : "Sign Up"}
       </h1>
       <form
         onSubmit={handleSubmit(onSubmit)}
@@ -61,6 +86,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
             type="text"
             {...register("Email", { required: true, pattern: /^\S+@\S+$/i })}
           />
+          
         </div>
         <div className="flex flex-col gap-[5px]">
           <label
@@ -77,10 +103,13 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
         </div>
         <Button
           style="primary"
-          label={loading ? "" : "Log in"}
+          label={loading ? "" : mode === "register" ? "Create an account" : "Log in"}
           icon={loading ? <Progress color="#181B27" /> : null}
           type="submit"
         />
+        <p className = "text-sm text-center text-[#FF034F]">
+            {error}
+        </p>
       </form>
       <Separator label="OR" />
       <div className="flex w-full flex-col gap-[24px]">
@@ -120,6 +149,19 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
             </svg>
           }
         />
+        <div className="flex flex-col gap-[20px] text-center">
+          <p className="flex flex-col gap-[10px] text-center text-xl text-gray-500 ">
+            {sessionData && <span>Logged in as {sessionData.user?.name ||  sessionData.user.email.split("@")[0]}</span>}
+            {secretMessage && <span> {secretMessage}</span>}
+            {sessionData && (
+              <Button
+                style="primary"
+                label="Sign out"
+                onClick={() => void signOut()}
+              />
+            )}
+          </p>
+        </div>
       </div>
       {mode === "login" ? (
         <p className="text-sm text-foreground mt-[24px]">
