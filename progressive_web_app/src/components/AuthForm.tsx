@@ -122,14 +122,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
         />
       </div>
       {mode === "login" ? (
-        <p className="text-sm text-foreground">
+        <p className="text-sm text-foreground mt-[24px]">
           Do not have an account?{" "}
           <Link className="text-primary underline" href="/sign-up">
             Sign Up
           </Link>
         </p>
       ) : (
-        <p className="text-sm text-foreground">
+        <p className="text-sm text-foreground mt-[24px]">
           Have an account?{" "}
           <Link className="text-primary underline" href="/log-in">
             Log In
