@@ -3,7 +3,6 @@ import { SessionProvider } from "next-auth/react";
 import { type AppType } from "next/app";
 import { api } from "~/utils/api";
 import "~/styles/globals.css";
-import 'react-material-symbols/dist/rounded.css';
 import { Plus_Jakarta_Sans } from "@next/font/google";
 
 const sans = Plus_Jakarta_Sans({
