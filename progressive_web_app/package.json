@@ -20,6 +20,8 @@
     "@trpc/next": "^10.26.0",
     "@trpc/react-query": "^10.26.0",
     "@trpc/server": "^10.26.0",
+    "axios": "^1.4.0",
+    "multer": "^1.4.5-lts.1",
     "next": "^13.4.2",
     "next-auth": "^4.22.1",
     "next-pwa": "^5.6.0",

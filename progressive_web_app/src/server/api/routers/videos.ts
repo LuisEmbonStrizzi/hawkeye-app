@@ -8,16 +8,16 @@ import {
 import { BlobServiceClient } from "@azure/storage-blob";
 import { v1 as uuidv1 } from "uuid";
 import { env } from "~/env.mjs";
+import axios from "axios";
 
 export const videoRouter = createTRPCRouter({
     uploadVideo: publicProcedure
-      .input(z.object({ url: z.string() }))
+      .input(z.object({ video: z.string() }))
       .mutation(({ input }) => {
         async function main() {
           try {
             
             //Conectarse con el servicio
-            //const AZURE_STORAGE_CONNECTION_STRING = env.AZURE_STORAGE_CONNECTION_STRING;
 
             if (!env.AZURE_STORAGE_CONNECTION_STRING) {
             throw Error('Azure Storage Connection string not found');
@@ -26,25 +26,27 @@ export const videoRouter = createTRPCRouter({
             const blobServiceClient = BlobServiceClient.fromConnectionString(env.AZURE_STORAGE_CONNECTION_STRING);
 
             //Crear Container o elegir container preexistente
-            //const containerName = 'urlVideos' + uuidv1();
-            const containerClient = blobServiceClient.getContainerClient("pruebavideos");
-            /*const createContainerResponse = await containerClient.create();
-            console.log(
-              `Container was created successfully.\n\trequestId:${createContainerResponse.requestId}\n\tURL: ${containerClient.url}`
-            );*/
+            const containerClient = blobServiceClient.getContainerClient("pruebavideos")
 
             //Crear Blob
-            const blobName = 'urlVideo' + uuidv1() + '.mp4';
+            const blobName = 'Video' + uuidv1() + '.mp4';
             const blockBlobClient = containerClient.getBlockBlobClient(blobName);
             console.log(
               `\nUploading to Azure storage as blob\n\tname: ${blobName}:\n\tURL: ${blockBlobClient.url}`
             );
 
             //Upload Data
-            const data = input.url;
+            /*const data = input.video;
             const uploadBlobResponse = await blockBlobClient.upload(data, Buffer.byteLength(data));
             console.log(
               `Blob was uploaded successfully. requestId: ${uploadBlobResponse.requestId}`
+            );*/
+
+            //Prueba
+            const response = await axios.get(input.video, { responseType: 'stream' });  
+            const uploadResponse = await blockBlobClient.uploadStream(response.data);
+            console.log(
+              `Blob was uploaded successfully. requestId: ${uploadResponse.requestId}`
             );
 
         

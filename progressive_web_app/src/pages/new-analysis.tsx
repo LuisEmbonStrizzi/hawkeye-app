@@ -5,7 +5,7 @@ const NewAnalysis: NextPage = () => {
   
   const blobVideo = api.videos.uploadVideo.useMutation()
   const handleSubmit = ()=>{
-    blobVideo.mutate({url: "https://res.cloudinary.com/dfpitoil1/video/upload/v1667090291/a4rpifn9ljyi9tdpnbbg.mp4"})
+    blobVideo.mutate({video: "https://res.cloudinary.com/dfpitoil1/video/upload/v1677799061/rudp2zur1irdqnvc4qho.mp4"})
   }
   
   return (
