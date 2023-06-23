@@ -38,8 +38,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
 
   const onSubmit = async (data: Data) => {
     setLoading(true);
-
-
     async function auth(authmethod: AuthMethod) {
       const status: AuthResponse = await signIn(authmethod, {
         redirect: false, //CAMBIAR DESPUÉS
@@ -67,7 +65,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
 
   return (
     <div className="mx-auto flex w-full  max-w-[450px] flex-col items-center gap-[24px]">
-      <h1 className="mb-[24px] text-h3 font-bold text-foreground-important">
+      <h1 className="mb-[24px] text-h2 font-bold text-foreground-important">
         {mode === "login" ? "Log In" : "Sign Up"}
       </h1>
       <form

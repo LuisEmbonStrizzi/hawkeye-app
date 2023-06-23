@@ -35,7 +35,7 @@ const Button: React.FC<ButtonProps> = ({
         style === "secondary" &&
           "border border-secondary-border bg-secondary-background hover:bg-tertiary-background hover:border-tertiary-border hover:text-foreground font-medium text-secondary-foreground focus:ring-2 focus:ring-secondary-foreground/30 ring-offset-background focus:ring-offset-2",
         disabled && "pointer-events-none cursor-default select-none opacity-25",
-        iconPosition === "left" ? "flex-row-reverse" : "flex-row",
+        iconPosition === "left" ? "flex-row" : "flex-row-reverse",
         iconBtn && "p-[10px]"
       )}
       type={type}
