@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y \
     libopencv-dev 
 
 RUN apt-get install -y python3-pip
+RUN apt-get install -y vim
+
 WORKDIR /app
 
 COPY ./Python/requirements.txt /app/
