@@ -15,26 +15,46 @@ def soFile():
     greenLower = np.array([29, 50, 110])
     greenUpper = np.array([64, 255, 255])
 
-    imagen = np.zeros((1000,1000,3),np.uint8)
-    imagen = cv2.putText(imagen, "Luis panza", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, color=(0, 255, 0))
+    vs = cv2.VideoCapture("./InkedInkedTennisBrothersVideo1080p.mp4")
+    frame_count = int(vs.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    # Convierte la imagen a un array de NumPy
-    imagen_array = np.asarray(imagen)
+    frame_actual = 1
+    for _ in range(frame_count):
+        print("empece pa")
 
-    # Obtiene un puntero al array NumPy
-    imagen_ptr = ctypes.c_void_p(imagen_array.ctypes.data)
+        #imagen = np.zeros((1000,1000,3),np.uint8)
+        #imagen = cv2.putText(imagen, "Luis panza", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, color=(0, 255, 0))
 
-    # Crea una variable en Python para almacenar el retorno de la función en C++
-    result = ctypes.c_int()
+        frame = vs.read()[1]
 
-    # Llama a la función en C++
-    cpplibrary.abrir_img(imagen_ptr, imagen.shape[0], imagen.shape[1], imagen.shape[2], ctypes.byref(result))
+        start_time = time.time()
+            
+        # Convierte la imagen a un array de NumPy
+        imagen_array = np.asarray(frame)
 
-    # Accede al resultado a través del puntero
-    result_value = result.value
-    print("Resultado:", result_value)
+        # Obtiene un puntero al array NumPy
+        imagen_ptr = ctypes.c_void_p(imagen_array.ctypes.data)
 
-    return result_value
+        # Cambia el tipo de retorno de la función de C++ para recibir el Vector correctamente
+        cpplibrary.abrir_img.restype = ctypes.c_void_p
+        print("1")
+        c_contornos = cpplibrary.abrir_img(imagen_ptr, frame.shape[0], frame.shape[1], frame.shape[2]) # Llama a la función en C++
+        print("2")
+        print(c_contornos)
+        contornos = ctypes.cast(c_contornos, ctypes.py_object).value # Convierte el Vector a un 
+        print("3")
+        print(contornos)
+
+        #print(type(contornos))
+        print("4")
+
+        # Accede al resultado a través del puntero
+        #print(type(contornos))
+        print("Tiempo:", time.time() - start_time, "frame: ", frame_actual)
+        print("Contornos:", contornos)
+        frame_actual += 1
+
+    return contornos
 
 if __name__ == '__main__':
     soFile()

@@ -19,6 +19,7 @@ RUN pip3 install -r /app/requirements.txt
 COPY ./C++/cpplibrary.cpp /app/
 COPY ./Python/speedtest.py /app/
 COPY ./Python/app.py /app/
+COPY ./InkedInkedTennisBrothersVideo1080p.mp4 /app/
 
 
 # -o main especifica el nombre del archivo de salida como main.

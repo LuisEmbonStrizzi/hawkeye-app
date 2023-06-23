@@ -1,34 +1,40 @@
 #include <iostream>
 #include <opencv4/opencv2/highgui.hpp>
 #include <opencv4/opencv2/imgproc/imgproc.hpp>
+#include <vector>
 
-using namespace cv;
+//using namespace cv;
 
 extern "C" {
-    void abrir_img(void* image_ptr, int alto_OG, int ancho_OG, int channels, int* result_ptr) {
+    std::vector<std::vector<cv::Point>>* abrir_img(void* image_ptr, int alto_OG, int ancho_OG, int channels) {
         unsigned char* image_data = static_cast<unsigned char*>(image_ptr);
 
         int resizer = 3;
 
-        Mat frame(alto_OG, ancho_OG, CV_8UC3, image_data);
+        cv::Mat frame(alto_OG, ancho_OG, CV_8UC3, image_data);
 
-        resize(frame, frame, Size(ancho_OG * resizer, alto_OG * resizer), 0, 0, INTER_AREA);
+        cv::resize(frame, frame, cv::Size(ancho_OG * resizer, alto_OG * resizer), 0, 0, cv::INTER_AREA);
 
-        GaussianBlur(frame, frame, Size(11, 11), 0);
-        cvtColor(frame, frame, COLOR_BGR2HSV);
+        cv::GaussianBlur(frame, frame, cv::Size(11, 11), 0);
+        cv::cvtColor(frame, frame, cv::COLOR_BGR2HSV);
 
-        Mat mask;
-        inRange(frame, Scalar(29, 50, 110), Scalar(64, 255, 255), mask); //greenLower = [29, 50, 110] greenUpper = [64, 255, 255]
+        cv::Mat mask;
+        cv::inRange(frame, cv::Scalar(29, 50, 110), cv::Scalar(64, 255, 255), mask); //greenLower = [29, 50, 110] greenUpper = [64, 255, 255]
         
         // Dos iteraciones de la erosión
-        erode(mask, mask, getStructuringElement(MORPH_RECT, Size(3, 3)));
-        erode(mask, mask, getStructuringElement(MORPH_RECT, Size(3, 3)));
+        cv::erode(mask, mask, cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3)));
+        cv::erode(mask, mask, cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3)));
 
         // Dos iteraciones de la dilatación
-        dilate(mask, mask, getStructuringElement(MORPH_RECT, Size(3, 3)));
-        dilate(mask, mask, getStructuringElement(MORPH_RECT, Size(3, 3)));
+        cv::dilate(mask, mask, cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3)));
+        cv::dilate(mask, mask, cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3)));
 
-        int result = 777;
-        *result_ptr = result;
+        std::vector<std::vector<cv::Point>> contornos;
+
+        cv::findContours(mask, contornos, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+        std::vector<std::vector<cv::Point>> *cnts = new std::vector<std::vector<cv::Point>>(contornos);
+
+        return cnts;
     }
 }
