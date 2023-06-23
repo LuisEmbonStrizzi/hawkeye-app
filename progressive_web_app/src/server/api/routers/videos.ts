@@ -36,14 +36,15 @@ export const videoRouter = createTRPCRouter({
             );
 
             //Upload Data
-            /*const data = input.video;
-            const uploadBlobResponse = await blockBlobClient.upload(data, Buffer.byteLength(data));
+            /*const response = await axios.get(input.video, { responseType: 'json' });
+            const uploadBlobResponse = await blockBlobClient.upload(response.data, Buffer.byteLength(response.data));
             console.log(
               `Blob was uploaded successfully. requestId: ${uploadBlobResponse.requestId}`
             );*/
 
             //Prueba
-            const response = await axios.get(input.video, { responseType: 'stream' });  
+            const response = await axios.get(input.video, { responseType: 'stream' });
+            console.log(response)
             const uploadResponse = await blockBlobClient.uploadStream(response.data);
             console.log(
               `Blob was uploaded successfully. requestId: ${uploadResponse.requestId}`
