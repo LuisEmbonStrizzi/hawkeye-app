@@ -8,23 +8,26 @@ import time
 
 def tracking():
     def main(frame):
-        global TiempoDeteccionUltimaPelota
-        global primeraVez
-        global preCentro
-        global TiempoTresCentrosConsecutivos
-        global TiempoDifPiques
-        global posiblePique
-        global ult_posible_pique
-        global TiempoDifVelocidad
-        global es_pique
-        global velocidad
-        global afterVelocidad
-        global radio
-        global diferente
-        global x
-        global y
-        global punto1Velocidad
-        global velocidadFinal
+        nonlocal TiempoDeteccionUltimaPelota
+        nonlocal primeraVez
+        nonlocal preCentro
+        nonlocal TiempoTresCentrosConsecutivos
+        nonlocal TiempoDifPiques
+        nonlocal posiblePique
+        nonlocal ult_posible_pique
+        nonlocal TiempoDifVelocidad
+        nonlocal es_pique
+        nonlocal velocidad
+        nonlocal afterVelocidad
+        nonlocal radio
+        nonlocal diferente
+        #nonlocal x
+        #nonlocal y
+        nonlocal punto1Velocidad
+        nonlocal velocidadFinal
+        nonlocal pelotaEstaEnPerspectiva
+        nonlocal altoOG
+        nonlocal anchoOG
         # global topLeftX, topLeftY, topRightX, topRightY, bottomLeftX, bottomLeftY, bottomRightX, bottomRightY
         # global estaCercaX
         # global estaCercaY
@@ -81,7 +84,7 @@ def tracking():
                     ((x, y), radio) = cv2.minEnclosingCircle(casiCentro)
                     M = cv2.moments(casiCentro)
                     centro = (int(M["m10"] / M["m00"]),
-                              int(M["m01"] / M["m00"])), int(radio)
+                                int(M["m01"] / M["m00"])), int(radio)
                     primeraVez = False
                     preCentro = centro
                     TiempoDeteccionUltimaPelota = 0
@@ -97,7 +100,7 @@ def tracking():
                         ((x, y), radio) = cv2.minEnclosingCircle(casiCentro)
                         M = cv2.moments(casiCentro)
                         centro = [int(M["m10"] / M["m00"]),
-                                  int(M["m01"] / M["m00"])], int(radio)
+                                    int(M["m01"] / M["m00"])], int(radio)
                         preCentro = centro
                         TiempoTresCentrosConsecutivos += TiempoDeteccionUltimaPelota
                         TiempoDeteccionUltimaPelota = 0
@@ -114,7 +117,7 @@ def tracking():
                 if radio > 0 and casiCentro is not None:
                     # Dibuja el círculo en la pelota
                     cv2.circle(frame, (int(x), int(y)),
-                               int(radio), (0, 255, 255), 2)
+                                int(radio), (0, 255, 255), 2)
                     cv2.circle(
                         frame, (centro[0][0], centro[0][1]), 5, (0, 0, 255), -1)
         ################################ TIEMPO: 0.001 ###################################
@@ -161,7 +164,7 @@ def tracking():
                 pre_esta_en_cancha = estaEnCancha(preCentro, False)
                 if not pre_esta_en_cancha:
                     mitadDeCancha = (puntoMaximoAbajoCancha -
-                                     puntoMaximoArribaCancha) / 2
+                                        puntoMaximoArribaCancha) / 2
                     if preCentro[0][1] <= mitadDeCancha:
                         abajo = False
                     else:
@@ -642,12 +645,10 @@ def tracking():
 
     preCentro = None
     primeraVez = True
-    centro = None
 
     # Fps, frames totales y duración del video en segundos
     fps = int(vs.get(cv2.CAP_PROP_FPS))
     frame_count = int(vs.get(cv2.CAP_PROP_FRAME_COUNT))
-    duracion = frame_count / fps
 
     time.sleep(2.0)
 
@@ -697,6 +698,8 @@ def tracking():
 
     pelotaEstaEnPerspectiva = None
 
+    radio = 0
+
     tiempo_inicial = time.time()
     for _ in range(frame_count):
 
@@ -713,50 +716,11 @@ def tracking():
         if frame is None:
             break
 
-        if numeroFrame == 84:
-            # Coordenadas del punto central para hacer zoom
-            x, y = 1023, 247
-
-            # Tamaño del área de zoom
-            zoom_width, zoom_height = 200, 200
-
-            # Calcular las coordenadas del área de zoom
-            x1, y1 = x - zoom_width // 2, y - zoom_height // 2
-            x2, y2 = x + zoom_width // 2, y + zoom_height // 2
-
-            # Recortar el área de zoom
-            zoomed_area = frame[y1:y2, x1:x2]
-
-            # Redimensionar el área de zoom a su tamaño original
-            zoomed_area = cv2.resize(zoomed_area, (zoom_width, zoom_height))
-
-            # Guardar el área de zoom como una imagen
-            cv2.imwrite('zoomed_image.jpg', zoomed_area)
-            # break
-
-        pts1 = np.float32([[topLeftX, topLeftY],       [topRightX, topRightY],
-                           [bottomLeftX, bottomLeftY], [bottomRightX, bottomRightY]])
-        pts2 = np.float32([[0, 0], [164, 0], [0, 474], [164, 474]])
-
-        #matrix = cv2.getPerspectiveTransform(pts1, pts2)
-        #result = cv2.warpPerspective(frame, matrix, (164, 474))
-
         ################################ TIEMPO: 0.1 ###################################
         start_time = time.time()
         main(frame)
         print("Tiempo:", time.time() - start_time, " - Frame:", numeroFrame)
         ################################ TIEMPO: 0.1 ###################################
-
-        # print("pts_piques", pts_piques_finales)
-        # print("pts_golpes", pts_golpes_finales)
-
-        # Terminar la ejecución si se presiona la "q"
-        key = cv2.waitKey(1) & 0xFF
-        if key == ord("q"):
-            break
-
-        if key == ord('p'):
-            cv2.waitKey(-1)
 
     print("Tiempo total:", time.time() - tiempo_inicial)
     print(pts_piques_finales)
@@ -764,4 +728,6 @@ def tracking():
     vs.release()
 
     return pts_piques_finales
-# cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    tracking()
