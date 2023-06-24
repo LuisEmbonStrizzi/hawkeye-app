@@ -6,7 +6,7 @@ import time
 # from tqdm import tqdm
 
 
-def tracking():
+def tracking(url):
     def main(frame):
         nonlocal TiempoDeteccionUltimaPelota
         nonlocal primeraVez
@@ -617,7 +617,7 @@ def tracking():
             return False
         return None
 
-    vs = cv2.VideoCapture("./InkedInkedTennisBrothersVideo1080p.mp4")
+    vs = cv2.VideoCapture(url)
 
     # Rango de deteccion de verdes
     greenLower = np.array([29, 50, 110])
@@ -730,4 +730,4 @@ def tracking():
     return pts_piques_finales
 
 if __name__ == '__main__':
-    tracking()
+    tracking("./InkedInkedTennisBrothersVideo1080p.mp4")
