@@ -8,6 +8,7 @@ import { useState } from "react";
 import clsx from "clsx";
 import Progress from "./Progress";
 import { api } from "~/utils/api";
+import { useRouter } from "next/router";
 
 type AuthFormProps = {
   mode: "login" | "register";
@@ -19,13 +20,15 @@ type Data = {
 type Type = "password" | "text";
 type AuthMethod = "Login" | "SignUp";
 type AuthResponse = {
-  error: string,
-  status: number,
-  ok: boolean,
-  url: string | null
-}
+  error: string;
+  status: number;
+  ok: boolean;
+  url: string | null;
+};
 
 const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
+  const router = useRouter();
+
   const {
     register,
     handleSubmit,
@@ -34,7 +37,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
 
   const [type, setType] = useState<Type>("password");
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
 
   const onSubmit = async (data: Data) => {
     setLoading(true);
@@ -43,25 +46,21 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
         redirect: false, //CAMBIAR DESPUÉS
         email: data.Email,
         password: data.Password,
-        callbackUrl: "http://localhost:3000/",
-      }) 
-      setError(status.error)
-      console.log(status)
-      return status
+        callbackUrl: "http://localhost:3000/home",
+      });
+      setError(status?.error);
+      void router.push(status?.url || "/home");
+      console.log(status);
+      return status;
     }
 
-    {mode === "login" ? auth('Login') : auth('SignUp')}
+    {
+      mode === "login" ? await auth("Login") : await auth("SignUp");
+    }
 
     setLoading(false);
   };
   console.log(errors);
-
-  const { data: sessionData } = useSession();
-
-  const { data: secretMessage } = api.example.getSecretMessage.useQuery(
-    undefined, // no input
-    { enabled: sessionData?.user !== undefined }
-  );
 
   return (
     <div className="mx-auto flex w-full  max-w-[450px] flex-col items-center gap-[24px]">
@@ -84,7 +83,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
             type="text"
             {...register("Email", { required: true, pattern: /^\S+@\S+$/i })}
           />
-          
         </div>
         <div className="flex flex-col gap-[5px]">
           <label
@@ -101,19 +99,20 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
         </div>
         <Button
           style="primary"
-          label={loading ? "" : mode === "register" ? "Create an account" : "Log in"}
+          label={
+            loading ? "" : mode === "register" ? "Create an account" : "Log in"
+          }
           icon={loading ? <Progress color="#181B27" /> : null}
           type="submit"
         />
-        <p className = "text-sm text-center text-[#FF034F]">
-            {error}
-        </p>
+        <p className="text-center text-sm text-[#FF034F]">{error}</p>
       </form>
       <Separator label="OR" />
       <div className="flex w-full flex-col gap-[24px]">
         <Button
           style="secondary"
           label="Continue with Google"
+          onClick={() => signIn("google", { callbackUrl: "/home" })}
           icon={
             <svg
               width="20"
@@ -147,29 +146,16 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
             </svg>
           }
         />
-        <div className="flex flex-col gap-[20px] text-center">
-          <p className="flex flex-col gap-[10px] text-center text-xl text-gray-500 ">
-            {sessionData && <span>Logged in as {sessionData.user?.name ||  sessionData.user.email.split("@")[0]}</span>}
-            {secretMessage && <span> {secretMessage}</span>}
-            {sessionData && (
-              <Button
-                style="primary"
-                label="Sign out"
-                onClick={() => void signOut()}
-              />
-            )}
-          </p>
-        </div>
       </div>
       {mode === "login" ? (
-        <p className="text-sm text-foreground mt-[24px]">
+        <p className="mt-[24px] text-sm text-foreground">
           Do not have an account?{" "}
           <Link className="text-primary underline" href="/sign-up">
             Sign Up
           </Link>
         </p>
       ) : (
-        <p className="text-sm text-foreground mt-[24px]">
+        <p className="mt-[24px] text-sm text-foreground">
           Have an account?{" "}
           <Link className="text-primary underline" href="/log-in">
             Log In
