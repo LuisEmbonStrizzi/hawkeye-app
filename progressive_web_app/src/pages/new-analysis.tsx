@@ -2,10 +2,14 @@ import { type NextPage } from "next";
 import { api } from "~/utils/api";
 
 const NewAnalysis: NextPage = () => {
-  
-  const blobVideo = api.videos.uploadVideo.useMutation()
+  type blobVideo = {
+    url: string;
+  };
+
+  let blobVideo = { url: ""}
+
   const handleSubmit = ()=>{
-    blobVideo.mutate({video: "https://res.cloudinary.com/dfpitoil1/video/upload/eo_10,so_6.5/v1681685906/fargowg6dr7m8wj9njcg.mp4"})
+    blobVideo = api.videos.uploadVideo.useQuery()
   }
   
   return (
@@ -23,6 +27,10 @@ const NewAnalysis: NextPage = () => {
           Submit
         </button>
       </form>
+
+      <br />
+
+      <video src={`${blobVideo.url}`} width={700} ></video>
 
     </>
   );

@@ -2,7 +2,6 @@ import { z } from "zod";
 import {
   createTRPCRouter,
   publicProcedure,
-  protectedProcedure,
 } from "~/server/api/trpc";
 
 import { BlobServiceClient } from "@azure/storage-blob";
@@ -12,11 +11,13 @@ import axios from "axios";
 
 export const videoRouter = createTRPCRouter({
     uploadVideo: publicProcedure
-      .input(z.object({ video: z.string() }))
-      .mutation(({ input }) => {
+    .input(z.object({ video: z.string() }))
+      .query(({ input }) => {
         async function main() {
           try {
             
+            input = await axios.get("http://127.0.0.1:8000/getVideo", { responseType: 'text' });
+
             //Conectarse con el servicio
 
             if (!env.AZURE_STORAGE_CONNECTION_STRING) {
@@ -26,7 +27,7 @@ export const videoRouter = createTRPCRouter({
             const blobServiceClient = BlobServiceClient.fromConnectionString(env.AZURE_STORAGE_CONNECTION_STRING);
 
             //Crear Container o elegir container preexistente
-            const containerClient = blobServiceClient.getContainerClient("pruebavideos")
+            const containerClient = blobServiceClient.getContainerClient("pruebavideos");
 
             //Crear Blob
             const blobName = 'Video' + uuidv1() + '.mp4';
@@ -49,7 +50,8 @@ export const videoRouter = createTRPCRouter({
             console.log(
               `Blob was uploaded successfully. requestId: ${uploadResponse.requestId}`
             );
-
+            const Video = {url: uploadResponse.requestId}
+            return Video
         
           } catch (err: any) {
             console.log(`Error: ${err.message}`);
