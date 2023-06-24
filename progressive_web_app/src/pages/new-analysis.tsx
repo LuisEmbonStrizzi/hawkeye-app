@@ -6,10 +6,10 @@ const NewAnalysis: NextPage = () => {
     url: string;
   };
 
-  let blobVideo = { url: ""}
+  let Video:blobVideo = { url: ""}
 
   const handleSubmit = ()=>{
-    blobVideo = api.videos.uploadVideo.useQuery()
+    Video = api.videos.uploadVideo.useQuery()
   }
   
   return (
@@ -30,7 +30,7 @@ const NewAnalysis: NextPage = () => {
 
       <br />
 
-      <video src={`${blobVideo.url}`} width={700} ></video>
+      <video src={`${Video.url}`} width={700} ></video>
 
     </>
   );
