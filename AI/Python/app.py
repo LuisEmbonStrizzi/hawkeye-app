@@ -1,23 +1,16 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from speedtest import soFile
-#from ball_tracking2 import tracking
+from ball_tracking2_cpp import tracking
 app = FastAPI()
+
 
 class Msg(BaseModel):
     url: str
 
 
-@app.get("/")
-async def speedtest():
-    result = soFile()
+@app.post("/predict")
+async def predict(inp: Msg):
 
-    return {"result": result}
+    pts_piques_finales = tracking(inp.url)
 
-
-#@app.post("/predict")
-#async def predict(inp: Msg):
-
-    #pts_piques_finales = tracking(inp.url)
-
-    #return {"piques_finales": pts_piques_finales}
+    return {"piques_finales": pts_piques_finales}
