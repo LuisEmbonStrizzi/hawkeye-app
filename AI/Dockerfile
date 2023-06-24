@@ -24,6 +24,7 @@ COPY ./Python/app.py /app/
 COPY ./InkedInkedTennisBrothersVideo1080p.mp4 /app/
 COPY ./Python/cpp_functions.py /app/
 COPY ./Python/ball_tracking2_cpp.py /app/
+COPY ./Python/ball_tracking2_timed.py /app/
 
 # -o main especifica el nombre del archivo de salida como main.
 # main.cpp es el archivo fuente que deseas compilar.

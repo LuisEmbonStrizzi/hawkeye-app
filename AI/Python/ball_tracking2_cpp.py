@@ -45,9 +45,7 @@ def main(frame):
     estaCercaY = altoOG * 10/100
     #################
 
-    start_time = time.time()
     contornos = analizarFrame(frame)
-    print("Tiempo:", time.time() - start_time, " - Frame:", numeroFrame)
 
     contornos = imutils.grab_contours(contornos)
     ################################ TIEMPO: 0.15 ###################################
@@ -668,11 +666,8 @@ afterVelocidad = False
 
 pelotaEstaEnPerspectiva = None
 
-start_time = time.time()
-previous_time = start_time
-
+tiempo_inincial = time.time()
 for _ in range(frame_count):
-    start_time = time.time()
     numeroFrame += 1
     #print("Numero de Frame: ", numeroFrame)
 
@@ -711,17 +706,17 @@ for _ in range(frame_count):
                         [bottomLeftX, bottomLeftY], [bottomRightX, bottomRightY]])
     pts2 = np.float32([[0, 0], [164, 0], [0, 474], [164, 474]])
 
-    matrix = cv2.getPerspectiveTransform(pts1, pts2)
-    result = cv2.warpPerspective(frame, matrix, (164, 474))
+    #matrix = cv2.getPerspectiveTransform(pts1, pts2)
+    #result = cv2.warpPerspective(frame, matrix, (164, 474))
 
     ################################ TIEMPO: 0.1 ###################################
+    start_time = time.time()
     main(frame)
+    print("Tiempo:", time.time() - start_time, " - Frame:", numeroFrame)
     ################################ TIEMPO: 0.1 ###################################
 
     # print("pts_piques", pts_piques_finales)
     # print("pts_golpes", pts_golpes_finales)
-
-    print("Tiempo:", time.time() - start_time, " - Frame:", numeroFrame)
 
     # Terminar la ejecución si se presiona la "q"
     key = cv2.waitKey(1) & 0xFF
@@ -730,6 +725,9 @@ for _ in range(frame_count):
 
     if key == ord('p'):
         cv2.waitKey(-1)
+
+print("Tiempo total:", time.time() - tiempo_inincial)
+print(pts_piques_finales)
 
 if not args.get("video", False):
     vs.stop()

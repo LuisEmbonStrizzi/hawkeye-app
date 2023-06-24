@@ -44,7 +44,7 @@ def main(frame):
     estaCercaY = altoOG * 10/100
     #################
 
-    start_time = time.time()
+    
     ################################ TIEMPO: 0.1 ###################################
     frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
     ################################ TIEMPO: 0.1 ###################################
@@ -67,7 +67,6 @@ def main(frame):
     # Toma todos los contornos de la imagen
     ################################ TIEMPO: 0.15 ###################################
     contornos = cv2.findContours(mascara.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    print("Tiempo:", time.time() - start_time, " - Frame:", numeroFrame)
     contornos = imutils.grab_contours(contornos)
     ################################ TIEMPO: 0.15 ###################################
     
@@ -288,8 +287,8 @@ def main(frame):
     mascara = imutils.resize(mascara, anchoOG, altoOG)
     mascara = imutils.resize(mascara, height= 768)
 
-    cv2.imshow("Mascara Normal", mascara)
-    cv2.imshow("Normal", frame)
+    #cv2.imshow("Mascara Normal", mascara)
+    #cv2.imshow("Normal", frame)
 
 def coordenadaPorMatriz(centro):
     ################################ TIEMPO: 0.002 (llegó a tirar 0.008) ###################################
@@ -306,7 +305,7 @@ def coordenadaPorMatriz(centro):
     cords_pelota_pers = (int(cords_pelota_pers[0]/cords_pelota_pers[2]), int(cords_pelota_pers[1]/cords_pelota_pers[2]))
 
     perspectiva = cv2.circle(perspectiva, cords_pelota_pers, 3, (0, 0, 255), -1)
-    cv2.imshow("Perspectiva", perspectiva)
+    #cv2.imshow("Perspectiva", perspectiva)
 
     ################################ TIEMPO: 0.002 (llegó a tirar 0.008) ###################################
 
@@ -687,9 +686,7 @@ afterVelocidad = False
 
 pelotaEstaEnPerspectiva = None
 
-start_time = time.time()
-previous_time = start_time
-
+tiempo_inicial = time.time()
 for _ in range(frame_count):
     
 
@@ -731,11 +728,13 @@ for _ in range(frame_count):
                         [bottomLeftX, bottomLeftY], [bottomRightX, bottomRightY]])
     pts2 = np.float32([[0, 0], [164, 0], [0, 474], [164, 474]])
 
-    matrix = cv2.getPerspectiveTransform(pts1, pts2)
-    result = cv2.warpPerspective(frame, matrix, (164, 474))
+    #matrix = cv2.getPerspectiveTransform(pts1, pts2)
+    #result = cv2.warpPerspective(frame, matrix, (164, 474))
 
     ################################ TIEMPO: 0.1 ###################################
+    start_time = time.time()
     main(frame)
+    print("Tiempo:", time.time() - start_time, " - Frame:", numeroFrame)
     ################################ TIEMPO: 0.1 ###################################
 
     # print("pts_piques", pts_piques_finales)
@@ -748,6 +747,9 @@ for _ in range(frame_count):
 
     if key == ord('p'):
         cv2.waitKey(-1)
+
+print("Tiempo total:", time.time() - tiempo_inicial)
+print(pts_piques_finales)
 
 if not args.get("video", False):
     vs.stop()

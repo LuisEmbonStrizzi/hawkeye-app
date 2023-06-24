@@ -24,8 +24,6 @@ def soFile():
 
     frame_actual = 1
     for _ in range(frame_count):
-        print("empece pa")
-
         frame = vs.read()[1]
 
         start_time = time.time()
@@ -64,7 +62,7 @@ def soFile():
 #    soFile()
 
 
-
+"""
 if __name__ == '__main__':
     video = cv2.VideoCapture("E:\Guido\Documentos\Programacion\Hawkeye-2022\Videos Tenis para Analizar\InkedInkedTennisBrothersVideo1080p.mp4")
 
@@ -115,3 +113,4 @@ if __name__ == '__main__':
         contornos = imutils.grab_contours(contornos)
         print("BLOQUE 5:", time.time() - start_time, "frame: ", frame_actual, "\n--------------------")
         ### BLOQUE 5 ###
+"""
