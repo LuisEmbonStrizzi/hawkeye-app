@@ -44,26 +44,35 @@ def main(frame):
     estaCercaY = altoOG * 10/100
     #################
 
+    start_time = time.time()
+    ################################ TIEMPO: 0.1 ###################################
     frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
-
+    ################################ TIEMPO: 0.1 ###################################
+    
     # Cámara lenta para mayor análisis
     #cv2.waitKey(100)
     
+    ################################ TIEMPO: 0.33 ###################################
     blurred = cv2.GaussianBlur(frame, (11, 11), 0)
-    #blurred = cv2.dilate(frame, None, iterations=2)
     hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
+    ################################ TIEMPO: 0.33 ###################################
     
     # Filtra los tonos verdes de la imagen
+    ################################ TIEMPO: 0.35 ###################################
     mascara = cv2.inRange(hsv, greenLower, greenUpper)
     mascara = cv2.erode(mascara, None, iterations=2)
     mascara = cv2.dilate(mascara, None, iterations=2)
+    ################################ TIEMPO: 0.35 ###################################
     
     # Toma todos los contornos de la imagen
+    ################################ TIEMPO: 0.15 ###################################
     contornos = cv2.findContours(mascara.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    print("Tiempo:", time.time() - start_time, " - Frame:", numeroFrame)
     contornos = imutils.grab_contours(contornos)
+    ################################ TIEMPO: 0.15 ###################################
     
     centro = None
-    
+    ################################ TIEMPO: 0.001 ###################################
     if (TiempoSegundosEmpezoVideo % 5 == 0):
         eliminarContornosInservibles(todosContornos)
     
@@ -110,6 +119,7 @@ def main(frame):
                 # Dibuja el círculo en la pelota
                 cv2.circle(frame, (int(x), int(y)), int(radio), (0, 255, 255), 2)
                 cv2.circle(frame, (centro[0][0], centro[0][1]), 5, (0, 0, 255), -1)
+    ################################ TIEMPO: 0.001 ###################################
     
     else:
         if TiempoDeteccionUltimaPelota >= 0.3:
@@ -151,12 +161,14 @@ def main(frame):
             if (pique[0] - pique[1] != 0):
                 pique2.appendleft((bajando, numeroFrame))
             else: bajando = None
-    print("Pique", pique)
-    print("Pique 2", pique2)
-    print("Centro", centro)
-    print("PreCentro", preCentro)
+    # print("Pique", pique)
+    # print("Pique 2", pique2)
+    # print("Centro", centro)
+    # print("PreCentro", preCentro)
     
     TiempoDifPiques += 1/fps
+
+    ################################ TIEMPO: 0.001 ###################################
     posiblePique = False
     if (len(pique2) >= 2):
         if pique2[0][0] == False and pique2[1][0] == True and preCentro is not None and pique2[0][1] - pique2[1][1] <= fps/6 and centro is not None:
@@ -235,12 +247,16 @@ def main(frame):
                         pts_golpes_finales.append([posiblesPiques[1][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
 
                         TiempoDifPiques = 0
+    ################################ TIEMPO: 0.001 ###################################
     
     if es_pique is not None:
         es_pique = None
     
+    ################################ TIEMPO: 0 ###################################
     centro_esta_en_cancha = estaEnCancha(centro, False)
+    ################################ TIEMPO: 0 ###################################
 
+    ################################ TIEMPO: 0.001 ###################################
     if velocidad and centro_esta_en_cancha and punto1Velocidad is not None:
         if punto1Velocidad[0] != centro[0] or punto1Velocidad[0][1] != centro[0][1]:
             diferente = True
@@ -264,6 +280,7 @@ def main(frame):
 
     if afterVelocidad and centro is not None:
         afterVelocidad = False
+    ################################ TIEMPO: 0.001 ###################################
     
     # Resizea y Muestra el Frame
     frame = imutils.resize(frame, anchoOG, altoOG)
@@ -275,6 +292,7 @@ def main(frame):
     cv2.imshow("Normal", frame)
 
 def coordenadaPorMatriz(centro):
+    ################################ TIEMPO: 0.002 (llegó a tirar 0.008) ###################################
     if type(centro) is list:
         centro = (centro, 0)
     pts1 = np.float32([[topLeftX, topLeftY],[topRightX, topRightY],[bottomLeftX, bottomLeftY],[bottomRightX, bottomRightY]])
@@ -289,6 +307,8 @@ def coordenadaPorMatriz(centro):
 
     perspectiva = cv2.circle(perspectiva, cords_pelota_pers, 3, (0, 0, 255), -1)
     cv2.imshow("Perspectiva", perspectiva)
+
+    ################################ TIEMPO: 0.002 (llegó a tirar 0.008) ###################################
 
     return cords_pelota_pers
 
@@ -307,6 +327,7 @@ def eliminarContornosInservibles(todosContornos):
 
 # Define todos los contornos que no se mueven, es decir, que no pueden ser la pelota
 def contornosQuietos(cnts, todosContornos, contornosIgnorar):
+    ################################ TIEMPO: 0.001 ###################################
     centrosCerca = False
     for contorno in cnts:
         count = 0
@@ -344,6 +365,7 @@ def contornosQuietos(cnts, todosContornos, contornosIgnorar):
                     ContornoExiste = True
             if ContornoExiste == False:
                 contornosIgnorar.append((promedioIgnorarX, promedioIgnorarY))
+    ################################ TIEMPO: 0.001 ###################################
 
 # Ignora los contornos quietos encontrados en la función anterior
 def ignorarContornosQuietos(cnts, contornosIgnorar):
@@ -359,7 +381,7 @@ def ignorarContornosQuietos(cnts, contornosIgnorar):
                 Ignorar = False
         
         if Ignorar == False: new_cnts.append(cnt)
-    
+
     return new_cnts
 
 def seEstaMoviendo(ultCentros):
@@ -381,6 +403,7 @@ def seEstaMoviendo(ultCentros):
 
 # Función que arregla el problema de "la zapatilla verde"
 def tp_fix(contornos, pre_centro, count):
+    ################################ TIEMPO: 0 (algunas veces 0.001) ###################################
     cnts_pts = []
     medidorX = 100
     medidorY = 103
@@ -392,11 +415,13 @@ def tp_fix(contornos, pre_centro, count):
         if x - pre_centro[0][0] > medidorX * resizer or pre_centro[0][0] - x > medidorX * resizer or y - pre_centro[0][1] > medidorY * resizer or pre_centro[0][1] - y > medidorY * resizer and count <= 0.5:
             continue
         cnts_pts.append(contorno)
+    ################################ TIEMPO: 0 (algunas veces 0.001) ###################################
     if cnts_pts != []:
         return cualEstaMasCerca(pre_centro, cnts_pts)
 
 # Define qué candidato a pelota es el punto más cercano al anterior. Toma los puntos de tp_fix y analiza cual está mas cerca al pre_centro (centro anterior).
 def cualEstaMasCerca(punto, lista):
+    ################################ TIEMPO: 0 (algunas veces 0.001) ###################################
     suma = []
     suma2 = []
     for i in lista:
@@ -407,6 +432,7 @@ def cualEstaMasCerca(punto, lista):
         
         suma.append(difEnX + difEnY + difRadio * 3)
         suma2.append(i)
+    ################################ TIEMPO: 0 (algunas veces 0.001) ###################################
     return suma2[suma.index(min(suma))]
 
 # Función que determina si es un pique o un golpe
@@ -414,6 +440,7 @@ def pica (count):
     # Tengo que descubrir si la variable "b" es un pique o un golpe
     # Si es un pique, se devuelve True, de lo contrario se devuelve False
 
+    ################################ TIEMPO: 0 (algunas veces 0.001) ###################################
     if type(posiblesPiques[0][0]) is not bool and type(posiblesPiques[1][0]) is not bool:
         abajoA = False
         abajoB = False
@@ -421,11 +448,11 @@ def pica (count):
         b = posiblesPiques[1][0][1]
         if a >= 474 / 2: abajoA = True
         if b >= 474 / 2: abajoB = True
-        print("a", a)
-        print("b", b)
-        print("abajoA", abajoA)
-        print("abajoB", abajoB)
-        print("count", count)
+        # print("a", a)
+        # print("b", b)
+        # print("abajoA", abajoA)
+        # print("abajoB", abajoB)
+        # print("count", count)
         if abajoB and abajoA and a > b and count <= 1:
             return True
         elif abajoB and abajoA and a > b and count >= 1:
@@ -533,8 +560,10 @@ def pica (count):
             return False
         elif not abajoA and not b and count >= 5:
             return True
+    ################################ TIEMPO: 0 (algunas veces 0.001) ###################################
 
 def velocidadPelota(punto1, punto2, tiempo):
+    ################################ TIEMPO: 0 ###################################
     punto1X = punto1[0][0] / (resizer * 20)
     punto1Y = punto1[0][1] / (resizer * 20)
     punto2X = punto2[0][0] / (resizer * 20)
@@ -549,6 +578,7 @@ def velocidadPelota(punto1, punto2, tiempo):
     distancia = np.sqrt(movimientoX * movimientoX + movimientoY * movimientoY)
     #distancia *= 1.5
 
+    ################################ TIEMPO: 0 ###################################
     return int(np.rint(distancia / tiempo * 3.6))
 
 def estaEnCancha(centro_pelota, perspectiva):
@@ -661,12 +691,16 @@ start_time = time.time()
 previous_time = start_time
 
 for _ in range(frame_count):
+    
+
     numeroFrame += 1
-    print("Numero de Frame: ", numeroFrame)
+    #print("Numero de Frame: ", numeroFrame)
 
     TiempoSegundosEmpezoVideo += 1/fps
 
+    ################################ TIEMPO: 0.1 ###################################
     frame = vs.read()[1]
+    ################################ TIEMPO: 0.1 ###################################
     #frame = frame[1] if args.get("video", False) else frame
 
     if frame is None:
@@ -700,10 +734,12 @@ for _ in range(frame_count):
     matrix = cv2.getPerspectiveTransform(pts1, pts2)
     result = cv2.warpPerspective(frame, matrix, (164, 474))
 
+    ################################ TIEMPO: 0.1 ###################################
     main(frame)
+    ################################ TIEMPO: 0.1 ###################################
 
-    print("pts_piques", pts_piques_finales)
-    print("pts_golpes", pts_golpes_finales)
+    # print("pts_piques", pts_piques_finales)
+    # print("pts_golpes", pts_golpes_finales)
 
     # Terminar la ejecución si se presiona la "q"
     key = cv2.waitKey(1) & 0xFF
