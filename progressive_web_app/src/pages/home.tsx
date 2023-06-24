@@ -1,5 +1,6 @@
 import { type NextPage } from "next";
-import { signOut, useSession } from "next-auth/react";
+import { signOut, useSession, getSession } from "next-auth/react";
+import type { GetServerSidePropsContext } from "next/types";
 import Button from "~/components/Button";
 import { api } from "~/utils/api";
 
@@ -38,3 +39,23 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+
+
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  const session = await getSession(ctx);
+  console.log(session);
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/log-in",
+        permanent: false,
+      },
+    };
+  }
+  return {
+    props: {
+      session,
+    },
+  };
+};

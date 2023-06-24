@@ -1,14 +1,12 @@
 import { type NextPage } from "next";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { getSession } from "next-auth/react";
 import Head from "next/head";
 import Link from "next/link";
 import Button from "~/components/Button";
-import { api } from "~/utils/api";
+import type { GetServerSidePropsContext } from "next/types";
 import Image from "next/image";
 
 const Launch: NextPage = () => {
-  const hello = api.example.hello.useQuery({ text: "from tRPC" });
-
   return (
     <>
       <Head>
@@ -63,35 +61,21 @@ const Launch: NextPage = () => {
 
 export default Launch;
 
-/*
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  const session = await getSession(ctx);
+  console.log(session);
 
-        <h1 className="text-center text-4xl font-bold text-foreground-important">
-          Welcome to Hawkeye
-        </h1>
-        <p className="text-center text-base font-normal text-foreground">
-          Elevate your game to the next level with the power of AI.
-        </p>
-        <Link href={"/log-in"} className="flex w-full">
-          <Button
-            style="primary"
-            label="Get started"
-            iconPosition="right"
-            type="button"
-            icon={
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M8 15L6.9375 13.9375L10.875 10L6.9375 6.0625L8 5L13 10L8 15Z"
-                  className="fill-background"
-                />
-              </svg>
-            }
-          />
-        </Link>
-
-*/
+  if (session) {
+    return {
+      redirect: {
+        destination: "/home",
+        permanent: false,
+      },
+    };
+  }
+  return {
+    props: {
+      session,
+    },
+  };
+};
