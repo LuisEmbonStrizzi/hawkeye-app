@@ -1,15 +1,22 @@
 import { type NextPage } from "next";
 import { api } from "~/utils/api";
+import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
+import type { AppRouter } from "~/server/api/root"; 
+
+type RouterOutput = inferRouterOutputs<AppRouter>;
+ 
+type Video = RouterOutput['videos']['uploadVideo'];
 
 const NewAnalysis: NextPage = () => {
   type blobVideo = {
     url: string;
   };
 
-  let Video:blobVideo = { url: ""}
-
+  
+  const uploadVideo:Video = api.videos.uploadVideo.useMutation()
   const handleSubmit = ()=>{
-    Video = api.videos.uploadVideo.useQuery()
+    const Video = uploadVideo.mutate()
+    console.log(Video)
   }
   
   return (
