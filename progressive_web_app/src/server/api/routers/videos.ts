@@ -7,16 +7,19 @@ import {
 import { BlobServiceClient } from "@azure/storage-blob";
 import { v1 as uuidv1 } from "uuid";
 import { env } from "~/env.mjs";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
+
+type cameraData = {
+  url: string,
+}
 
 export const videoRouter = createTRPCRouter({
     uploadVideo: publicProcedure
-    .input(z.object({ video: z.string() }))
-      .query(({ input }) => {
-        async function main() {
+      .mutation(async ({  }) => {
           try {
             
-            input = await axios.get("http://127.0.0.1:8000/getVideo", { responseType: 'text' });
+            const cameraData:cameraData = await axios.get("http://127.0.0.1:8000/getVideo", { responseType: 'text' });
+            console.log(cameraData)
 
             //Conectarse con el servicio
 
@@ -44,7 +47,7 @@ export const videoRouter = createTRPCRouter({
             );*/
 
             //Prueba
-            const response = await axios.get(input.video, { responseType: 'stream' });
+            const response = await axios.get(cameraData.url, { responseType: 'stream' });
             console.log(response)
             const uploadResponse = await blockBlobClient.uploadStream(response.data);
             console.log(
@@ -57,10 +60,6 @@ export const videoRouter = createTRPCRouter({
             console.log(`Error: ${err.message}`);
           }
         }
-        
-        main()
-          .then(() => console.log("The video has been uploaded"))
-          .catch((ex) => console.log(ex.message));
-      }),
+        ),
   });
   
