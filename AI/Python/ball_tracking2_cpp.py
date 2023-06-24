@@ -66,6 +66,7 @@ def main(frame):
     # Toma todos los contornos de la imagen
     ################################ TIEMPO: 0.15 ###################################
     contornos = cv2.findContours(mascara.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    print(contornos)
     contornos = imutils.grab_contours(contornos)
     ################################ TIEMPO: 0.15 ###################################
     
@@ -698,6 +699,8 @@ for _ in range(frame_count):
     frame = vs.read()[1]
     ################################ TIEMPO: 0.1 ###################################
     #frame = frame[1] if args.get("video", False) else frame
+
+    if numeroFrame == 41: break
 
     if frame is None:
         break

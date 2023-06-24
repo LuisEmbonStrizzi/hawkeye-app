@@ -32,7 +32,7 @@ COPY ./InkedInkedTennisBrothersVideo1080p.mp4 /app/
 RUN g++ -fPIC -shared -o cpplibrary.so cpplibrary.cpp -I/usr/include/opencv4 -lopencv_core -lopencv_highgui -lopencv_imgcodecs -lopencv_imgproc
 
 EXPOSE 8080
-CMD ["uvicorn", "app:app", "--host=0.0.0.0", "--port=8080"]
+#CMD ["uvicorn", "app:app", "--host=0.0.0.0", "--port=8080"]
 
 # COMANDOS UTILIZADOS DENTRO DEL CONTAINER CON LA IMAGEN DE UBUNTU:
 # find /usr/include/ -name highgui.hpp --> para buscar el archivo highgui.hpp y tener la ruta de este

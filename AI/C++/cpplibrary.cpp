@@ -6,7 +6,7 @@
 //using namespace cv;
 
 extern "C" {
-    std::vector<std::vector<cv::Point>>* abrir_img(void* image_ptr, int alto_OG, int ancho_OG, int channels) {
+    unsigned char* procesar_frame(unsigned char* image_ptr, int alto_OG, int ancho_OG, int channels) {
         unsigned char* image_data = static_cast<unsigned char*>(image_ptr);
 
         int resizer = 3;
@@ -29,12 +29,14 @@ extern "C" {
         cv::dilate(mask, mask, cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3)));
         cv::dilate(mask, mask, cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3)));
 
-        std::vector<std::vector<cv::Point>> contornos;
+        //mask.convertTo(mask2, )
 
-        cv::findContours(mask, contornos, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+        // Crear un nuevo bloque de memoria para los datos de la imagen modificada
+        unsigned char* imagen_modificada_data = (unsigned char*)malloc(alto_OG * resizer * ancho_OG * resizer);
 
-        std::vector<std::vector<cv::Point>> *cnts = new std::vector<std::vector<cv::Point>>(contornos);
+        // Copiar los datos de la imagen modificada al nuevo bloque de memoria
+        std::memcpy(imagen_modificada_data, mask.data, alto_OG * resizer * ancho_OG * resizer);
 
-        return cnts;
+        return imagen_modificada_data;
     }
 }

@@ -22,9 +22,6 @@ def soFile():
     for _ in range(frame_count):
         print("empece pa")
 
-        #imagen = np.zeros((1000,1000,3),np.uint8)
-        #imagen = cv2.putText(imagen, "Luis panza", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, color=(0, 255, 0))
-
         frame = vs.read()[1]
 
         start_time = time.time()
@@ -33,28 +30,31 @@ def soFile():
         imagen_array = np.asarray(frame)
 
         # Obtiene un puntero al array NumPy
-        imagen_ptr = ctypes.c_void_p(imagen_array.ctypes.data)
+        imagen_ptr = imagen_array.ctypes.data_as(ctypes.POINTER(ctypes.c_ubyte))
 
-        # Cambia el tipo de retorno de la función de C++ para recibir el Vector correctamente
-        cpplibrary.abrir_img.restype = ctypes.c_void_p
-        print("1")
-        c_contornos = cpplibrary.abrir_img(imagen_ptr, frame.shape[0], frame.shape[1], frame.shape[2]) # Llama a la función en C++
-        print("2")
-        print(c_contornos)
-        contornos = ctypes.cast(c_contornos, ctypes.py_object).value # Convierte el Vector a un 
-        print("3")
-        print(contornos)
+        # Establece los tipos de argumento y retorno de la función
+        cpplibrary.procesar_frame.argtypes = [ctypes.POINTER(ctypes.c_ubyte), ctypes.c_int, ctypes.c_int, ctypes.c_int]
+        cpplibrary.procesar_frame.restype = ctypes.POINTER(ctypes.c_ubyte)
 
-        #print(type(contornos))
-        print("4")
+        # Llama a la función en C++ y guarda el puntero de la máscara
+        mask_ptr = cpplibrary.procesar_frame(imagen_ptr, frame.shape[0], frame.shape[1], frame.shape[2])
+
+        # Crea una matriz NumPy a partir del puntero de la máscara
+        imagen_np = np.ctypeslib.as_array(mask_ptr, shape=(frame.shape[0] * resizer, frame.shape[1] * resizer, 1)) # Nota: tiene un solo canal ya que es en escala de grises
+
+        # Busca los contornos en la imagen
+        contornos = cv2.findContours(imagen_np, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         # Accede al resultado a través del puntero
-        #print(type(contornos))
         print("Tiempo:", time.time() - start_time, "frame: ", frame_actual)
-        print("Contornos:", contornos)
+        #print("Contornos:", contornos)
+
+        # Libera la memoria
+        ctypes.CDLL('libc.so.6').free(mask_ptr)
+
         frame_actual += 1
 
-    return contornos
+    #return contornos
 
 if __name__ == '__main__':
     soFile()
