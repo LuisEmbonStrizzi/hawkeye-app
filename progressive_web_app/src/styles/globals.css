@@ -18,3 +18,14 @@
   color: rgba(78, 203, 113, 1);
   background: rgba(78, 203, 113, 0.1);
 }
+
+@layer components {
+  .toast {
+    border-radius: 6px;
+    border: 1px solid#32394D;
+    background: rgba(32, 36, 51, 0.75);
+    padding: 10px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+}

@@ -41,6 +41,9 @@ export default {
         muted: {
           foreground: '#1F2331',
           background: '#1C202E',
+        },
+        other: {
+          error: '#FF005C',
         }
       },
       backdropBlur: {
