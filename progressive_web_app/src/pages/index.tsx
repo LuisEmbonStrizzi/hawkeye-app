@@ -24,7 +24,7 @@ const Launch: NextPage = () => {
           />
           <div className="flex flex-col items-center justify-center gap-[16px]">
             <h1 className="text-center text-4xl font-bold text-foreground-important">
-              Welcome to Hawkeye
+              Welcome
             </h1>
             <p className="text-center text-base font-normal text-foreground">
               Elevate your game to the next level with{" "}
