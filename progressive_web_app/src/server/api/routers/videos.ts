@@ -1,4 +1,4 @@
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 
 import { BlobServiceClient } from "@azure/storage-blob";
 import { v1 as uuidv1 } from "uuid";
@@ -10,10 +10,10 @@ type cameraData = {
 };
 
 export const videoRouter = createTRPCRouter({
-  uploadVideo: protectedProcedure.mutation(async ({ ctx }) => {
+  uploadVideo: publicProcedure.mutation(async ({ ctx }) => {
     try {
       const cameraData: cameraData = await axios.get(
-        "http://127.0.0.1:8000/getVideo",
+        "https://hawkeyegoproapi.azurewebsites.net/getVideo",
         { responseType: "text" }
       );
       console.log(cameraData);
