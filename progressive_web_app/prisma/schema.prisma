@@ -81,7 +81,7 @@ model Videos {
     boundsArray    Json?
     heatmapUrl     String?
     speeds         String?
-    videoUrl       String?
+    videoUrl       String?   @db.Text
     thumbnailUrl   String?
     prediction     String?
     userId         String

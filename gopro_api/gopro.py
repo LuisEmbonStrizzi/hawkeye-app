@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from open_gopro import WirelessGoPro, Params
 from fastapi.responses import JSONResponse
-import json
 from fastapi.encoders import jsonable_encoder
 app = FastAPI()
+
 
 @app.get("/connectCameras")
 async def connect_to_cameras():
@@ -11,11 +11,13 @@ async def connect_to_cameras():
         gopro.ble_command.set_shutter(Params.Toggle.ENABLE)
     return {"message": "Cameras connected"}
 
+
 @app.get("/record")
 async def record():
     with WirelessGoPro() as gopro:
         gopro.ble_command.set_shutter(Params.Toggle.ENABLE)
     return {"message": "Record started"}
+
 
 @app.get("/stopRecording")
 async def stopRecording():
@@ -23,14 +25,18 @@ async def stopRecording():
         gopro.ble_command.set_shutter(Params.Toggle.DISABLE)
     return {"message": "Record stopped"}
 
+
 @app.get("/getVideo")
 async def getVideo():
-    response = {"video": "https://res.cloudinary.com/dfpitoil1/video/upload/eo_10,so_6.5/v1681685906/fargowg6dr7m8wj9njcg.mp4"}
-    return json.dumps(response, indent = 4, default = str)
+    response = {
+        "video": "https://res.cloudinary.com/dfpitoil1/video/upload/eo_10,so_6.5/v1681685906/fargowg6dr7m8wj9njcg.mp4"}
+    return JSONResponse(content=jsonable_encoder(response))
+
 
 @app.get("/getBattery")
 async def getBattery():
     return {"message": "Battery here :)"}
+
 
 @app.get("/disconnectCameras")
 async def disconnectCameras():

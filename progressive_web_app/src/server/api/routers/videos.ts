@@ -1,4 +1,8 @@
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "~/server/api/trpc";
 
 import { BlobServiceClient } from "@azure/storage-blob";
 import { v1 as uuidv1 } from "uuid";
@@ -6,19 +10,20 @@ import { env } from "~/env.mjs";
 import axios from "axios";
 
 type cameraData = {
-  video: string;
+  data: {
+    video: string;
+  };
 };
 
 export const videoRouter = createTRPCRouter({
-  uploadVideo: publicProcedure.mutation(async ({ ctx }) => {
+  uploadVideo: protectedProcedure.mutation(async ({ ctx }) => {
     try {
       const cameraData: cameraData = await axios.get(
         "http://127.0.0.1:8000/getVideo",
         { responseType: "json" }
       );
-      console.log("holaholaholahola")
-      const goproResponse = JSON.parse(cameraData.data);
-      console.log(goproResponse.video)
+      console.log("holaholaholahola");
+      console.log(cameraData.data.video);
 
       //Conectarse con el servicio
 
@@ -49,7 +54,7 @@ export const videoRouter = createTRPCRouter({
             );*/
 
       //Prueba
-      const response = await axios.get(goproResponse.video, {
+      const response = await axios.get(cameraData.data.video, {
         responseType: "stream",
       });
       //console.log(response);
@@ -60,11 +65,15 @@ export const videoRouter = createTRPCRouter({
         `Blob was uploaded successfully. requestId: ${uploadResponse.requestId}`
       );
 
-      const azureResponse = { videoUrl: uploadResponse.requestId };
+      // const azureResponse = { videoUrl: blockBlobClient.url };
+      const azureResponse = {
+        videoUrl:
+          "https://hawkeyevideos1.blob.core.windows.net/pruebavideos/Videoa4a641a0-1398-11ee-bff6-a515a2285270.mp4?sp=r&st=2023-06-25T20:44:36Z&se=2023-06-26T04:44:36Z&spr=https&sv=2022-11-02&sr=b&sig=7%2ByLuQyhdnt%2BQhpJcfcO5LlAXkVrZb2Vf0YIFGN4C3M%3D",
+      };
       await ctx.prisma.videos.create({
         data: {
           videoUrl: azureResponse.videoUrl,
-          userId: ctx.session.user.id,
+          userId: ctx.session?.user.id,
         },
       });
     } catch (err: any) {
@@ -79,6 +88,7 @@ export const videoRouter = createTRPCRouter({
         userId: ctx.session.user.id,
       },
     });
+    console.log(result);
     return result;
   }),
 });
