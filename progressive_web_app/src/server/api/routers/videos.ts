@@ -19,14 +19,11 @@ export const videoRouter = createTRPCRouter({
   uploadVideo: protectedProcedure.mutation(async ({ ctx }) => {
     try {
       const cameraData: cameraData = await axios.get(
-        "http://127.0.0.1:8000/getVideo",
+        "https://hawkeyegoproapi.azurewebsites.net/getVideo",
         { responseType: "json" }
       );
-      console.log("holaholaholahola");
-      console.log(cameraData.data.video);
 
       //Conectarse con el servicio
-
       if (!env.AZURE_STORAGE_CONNECTION_STRING) {
         throw Error("Azure Storage Connection string not found");
       }
@@ -46,13 +43,6 @@ export const videoRouter = createTRPCRouter({
         `\nUploading to Azure storage as blob\n\tname: ${blobName}:\n\tURL: ${blockBlobClient.url}`
       );
 
-      //Upload Data
-      /*const response = await axios.get(input.video, { responseType: 'json' });
-            const uploadBlobResponse = await blockBlobClient.upload(response.data, Buffer.byteLength(response.data));
-            console.log(
-              `Blob was uploaded successfully. requestId: ${uploadBlobResponse.requestId}`
-            );*/
-
       //Prueba
       const response = await axios.get(cameraData.data.video, {
         responseType: "stream",
@@ -65,11 +55,8 @@ export const videoRouter = createTRPCRouter({
         `Blob was uploaded successfully. requestId: ${uploadResponse.requestId}`
       );
 
-      // const azureResponse = { videoUrl: blockBlobClient.url };
-      const azureResponse = {
-        videoUrl:
-          "https://hawkeyevideos1.blob.core.windows.net/pruebavideos/Videoa4a641a0-1398-11ee-bff6-a515a2285270.mp4?sp=r&st=2023-06-25T20:44:36Z&se=2023-06-26T04:44:36Z&spr=https&sv=2022-11-02&sr=b&sig=7%2ByLuQyhdnt%2BQhpJcfcO5LlAXkVrZb2Vf0YIFGN4C3M%3D",
-      };
+      const azureResponse = { videoUrl: blockBlobClient.url };
+
       await ctx.prisma.videos.create({
         data: {
           videoUrl: azureResponse.videoUrl,

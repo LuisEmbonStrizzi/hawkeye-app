@@ -27,6 +27,7 @@ const NewAnalysis: NextPage = () => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         <video
           key={video.id}
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           src={video.videoUrl!}
           height={800}
           width={800}
