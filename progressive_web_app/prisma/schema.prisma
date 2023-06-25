@@ -72,22 +72,20 @@ model VerificationToken {
 }
 
 model Videos {
-    id             Int      @id @default(autoincrement())
-    title          String
-    rival          String
-    typeOfAnalysis String
-    isFavorite     Boolean
-    matchDate      DateTime
-    boundsArray    Json
-    heatmapUrl     String
-    speeds         String
-    videoUrl       String
-    thumbnailUrl   String
-    prediction     String
+    id             Int       @id @default(autoincrement())
+    title          String?
+    rival          String?
+    typeOfAnalysis String?
+    isFavorite     Boolean?
+    matchDate      DateTime?
+    boundsArray    Json?
+    heatmapUrl     String?
+    speeds         String?
+    videoUrl       String?   @db.Text
+    thumbnailUrl   String?
+    prediction     String?
     userId         String
-    createdAt      DateTime @default(now())
-    updatedAt      DateTime @updatedAt
-    user           User     @relation(fields: [userId], references: [id])
-
-    @@index([userId])
+    createdAt      DateTime  @default(now())
+    updatedAt      DateTime  @updatedAt
+    user           User      @relation(fields: [userId], references: [id])
 }
