@@ -69,7 +69,7 @@ def main(frame):
     # Aplicar operaciones de morfología
     kernel = np.ones((5, 5), np.uint8)
     # Eliminar los píxeles de los objetos que están en los bordes de las regiones.
-    #mascara = cv2.erode(mascara, kernel, iterations=2)
+    mascara = cv2.erode(mascara, kernel, iterations=2)
     # Dilatar los píxeles para que se vean mejor
     mascara = cv2.dilate(mascara, kernel, iterations=2)
 
@@ -121,7 +121,6 @@ def main(frame):
                 TiempoTresCentrosConsecutivos = 0
 
                 if centro is not None: ultimosCentros.appendleft(centro)
-            
 
             # Si se detectó un centro hace menos de 0.3 segundos
             else:
@@ -161,6 +160,7 @@ def main(frame):
         TiempoTresCentrosConsecutivos = 0
 
     if centro is None and preCentro is not None:
+        print("AAAAAAAAAAAAa")
         # Ajustar los puntos de recorte si están fuera de rango
         x1 = max(preCentro[0][0] - recorteCerca, 0)
         y1 = max(preCentro[0][1] - recorteCerca, 0)
@@ -180,19 +180,23 @@ def main(frame):
         blurred = cv2.GaussianBlur(imagen_gris, (11, 11), 0)
 
         # Busca los círculos en la imagen utilizando HoughCircles
+        # DP dice que si los círculos cercanos van a ser fusionados, o sea cuando el número aumenta es más probable que se fusionen. Tal vez haga que la posición del círculo no sea tan precisa. Suele variar entre 1, 1.2, 1.4
+        # Param1 es la sensibilidad que tiene para encontrar círculos. Si es muy grande, no va a encontrar muchos círculos y si es muy chico va a encontrar muchos círculos. Hay que encontrar un punto medio.
+        # Param2 es la precisión de la detección de círculos. Setea la cantidad de puntos del borde para que lo detectado sea considerado un círculo. Si es muy grande, no va a encontrar muchos círculos y si es muy chico va a encontrar muchos círculos. Hay que encontrar un punto medio.
         circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=10, maxRadius=100)
         
         if circles is not None:
             circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), 1), 0.2, True)
-            cv2.circle(imagen_recortada, (int(circuloDetectado[0]), int(circuloDetectado[1])), 50, (255, 255, 0), thickness = 2)
+            if circuloDetectado is not None:
+                cv2.circle(imagen_recortada, (int(circuloDetectado[0]), int(circuloDetectado[1])), 50, (255, 255, 0), thickness = 2)
 
-            xr = int(x1 + circuloDetectado[0] / 3)
-            yr = int(y1 + circuloDetectado[1] / 3)
-            rr = int(circuloDetectado[2] / 3)
+                xr = int(x1 + circuloDetectado[0] / 3)
+                yr = int(y1 + circuloDetectado[1] / 3)
+                rr = int(circuloDetectado[2] / 3)
 
-            cv2.circle(frame, (xr, yr), rr, (255, 255, 0), thickness = 2)
+                cv2.circle(frame, (xr, yr), rr, (255, 255, 0), thickness = 2)
 
-            centro = ((xr, yr), rr)
+                centro = ((xr, yr), rr)
 
         # Si se encuentran círculos, dibújalos en la imagen original
         if circles is not None:
@@ -216,11 +220,18 @@ def main(frame):
         #         if key == ord('p'):
         #             pausado = True
         #         # Verificar si se debe salir del bucle
-        #         elif key == ord('q'):  # Código ASCII de la tecla Esc
+        #         elif key == ord('q'):
         #             break
 
         imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
         cv2.imshow("Imagen recortada", imagen_recortada)
+
+    # if centro is None:
+    #     if TiempoDeteccionUltimaPelota >= 0.3:
+    #         primeraVez = True
+    #         preCentro = None
+    #     TiempoDeteccionUltimaPelota += 1/fps
+    #     TiempoTresCentrosConsecutivos = 0
     
     # Actualiza los puntos para trazar la trayectoria de la pelota
     pts_pelota_norm.appendleft(centro)
@@ -374,12 +385,13 @@ def main(frame):
         afterVelocidad = False
 
     if centro is not None: preCentro = centro
+    print("Radio de la pelota", radio)
     
     # Resizea el frame al tamaño original y lo muestra
     frame = imutils.resize(frame, anchoOG, altoOG)
-    frame = imutils.resize(frame, height= 768)
+    frame = imutils.resize(frame, height= 700)
     mascara = imutils.resize(mascara, anchoOG, altoOG)
-    mascara = imutils.resize(mascara, height= 768)
+    mascara = imutils.resize(mascara, height= 740)
     
     # También muestra la máscara
     cv2.imshow("Mascara Normal", mascara)
