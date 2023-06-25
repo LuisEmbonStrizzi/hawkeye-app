@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 from open_gopro import WirelessGoPro, Params
+from fastapi.responses import JSONResponse
+import json
+from fastapi.encoders import jsonable_encoder
 app = FastAPI()
 
 @app.get("/connectCameras")
@@ -22,7 +25,8 @@ async def stopRecording():
 
 @app.get("/getVideo")
 async def getVideo():
-    return {"video": "https://res.cloudinary.com/dfpitoil1/video/upload/eo_10,so_6.5/v1681685906/fargowg6dr7m8wj9njcg.mp4", "message": "Hola"}
+    response = {"video": "https://res.cloudinary.com/dfpitoil1/video/upload/eo_10,so_6.5/v1681685906/fargowg6dr7m8wj9njcg.mp4"}
+    return json.dumps(response, indent = 4, default = str)
 
 @app.get("/getBattery")
 async def getBattery():

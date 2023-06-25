@@ -6,17 +6,18 @@ import { env } from "~/env.mjs";
 import axios from "axios";
 
 type cameraData = {
-  url: string;
+  video: string;
 };
 
 export const videoRouter = createTRPCRouter({
   uploadVideo: publicProcedure.mutation(async ({ ctx }) => {
     try {
       const cameraData: cameraData = await axios.get(
-        "https://hawkeyegoproapi.azurewebsites.net/getVideo",
+        "http://127.0.0.1:8000/getVideo",
         { responseType: "text" }
       );
-      console.log(cameraData);
+      console.log("hola")
+      console.log(cameraData.data);
 
       //Conectarse con el servicio
 
@@ -47,7 +48,7 @@ export const videoRouter = createTRPCRouter({
             );*/
 
       //Prueba
-      const response = await axios.get(cameraData.url, {
+      const response = await axios.get(cameraData.data.video, {
         responseType: "stream",
       });
       console.log(response);
