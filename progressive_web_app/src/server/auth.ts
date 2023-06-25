@@ -18,10 +18,11 @@ const loginSchema = z.object({
 });
 
 const hash = async (password: string) => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
   const salt = await bcrypt.genSalt(10);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
   const hashedPassword = await bcrypt.hash(password, salt);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return hashedPassword;
 };
 
@@ -83,6 +84,7 @@ export const authOptions: NextAuthOptions = {
         if (!user) return Promise.reject(new Error("User not found"));
 
         if (user?.password && credentials?.password) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
           const isValidPassword = await bcrypt.compare(
             credentials?.password,
             user?.password
@@ -115,10 +117,12 @@ export const authOptions: NextAuthOptions = {
           return Promise.reject(new Error("User already exists"));
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const hashedPassword = await hash(creds.password);
         const user = await prisma.user.create({
           data: {
             email: credentials?.email,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             password: hashedPassword,
           },
         });

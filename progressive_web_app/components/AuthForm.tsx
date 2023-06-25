@@ -3,11 +3,10 @@ import Button from "~/components/Button";
 import Separator from "~/components/Separator";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useState } from "react";
 import clsx from "clsx";
 import Progress from "./Progress";
-import { api } from "~/utils/api";
 import { useRouter } from "next/router";
 
 type AuthFormProps = {
@@ -17,14 +16,7 @@ type Data = {
   Email: string;
   Password: string;
 };
-type Type = "password" | "text";
 type AuthMethod = "Login" | "SignUp";
-type AuthResponse = {
-  error: string;
-  status: number;
-  ok: boolean;
-  url: string | null;
-};
 
 const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
   const router = useRouter();
@@ -35,14 +27,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
     formState: { errors },
   } = useForm<Data>();
 
-  const [type, setType] = useState<Type>("password");
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+  const [error, setError] = useState<any>(null);
 
   const onSubmit = async (data: Data) => {
     setLoading(true);
     async function auth(authmethod: AuthMethod) {
-      const status: AuthResponse = await signIn(authmethod, {
+      const status = await signIn(authmethod, {
         redirect: false, //CAMBIAR DESPUÉS
         email: data.Email,
         password: data.Password,

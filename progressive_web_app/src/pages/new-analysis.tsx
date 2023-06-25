@@ -2,16 +2,21 @@ import { type NextPage } from "next";
 import { api } from "~/utils/api";
 
 const NewAnalysis: NextPage = () => {
-  const uploadVideo = api.videos.uploadVideo.useMutation({onSuccess: () =>{
-    refetchVideos()
-  }});
+  const uploadVideo = api.videos.uploadVideo.useMutation({
+    onSuccess: () => {
+      void refetchVideos();
+    },
+  });
 
-  const handleSubmit = (e:any) => {
-    e.preventDefault()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleSubmit = (e: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    e.preventDefault();
     uploadVideo.mutate();
   };
 
-  const { data: videos, refetch: refetchVideos } = api.videos.getVideo.useQuery();
+  const { data: videos, refetch: refetchVideos } =
+    api.videos.getVideo.useQuery();
 
   return (
     <>
