@@ -14,10 +14,11 @@ export const videoRouter = createTRPCRouter({
     try {
       const cameraData: cameraData = await axios.get(
         "http://127.0.0.1:8000/getVideo",
-        { responseType: "text" }
+        { responseType: "json" }
       );
-      console.log("hola")
-      console.log(cameraData.data);
+      console.log("holaholaholahola")
+      const goproResponse = JSON.parse(cameraData.data);
+      console.log(goproResponse.video)
 
       //Conectarse con el servicio
 
@@ -48,10 +49,10 @@ export const videoRouter = createTRPCRouter({
             );*/
 
       //Prueba
-      const response = await axios.get(cameraData.data.video, {
+      const response = await axios.get(goproResponse.video, {
         responseType: "stream",
       });
-      console.log(response);
+      //console.log(response);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const uploadResponse = await blockBlobClient.uploadStream(response.data);
       console.log(
