@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   createTRPCRouter,
   publicProcedure,
+  protectedProcedure,
 } from "~/server/api/trpc";
 
 import { BlobServiceClient } from "@azure/storage-blob";
@@ -14,8 +15,8 @@ type cameraData = {
 }
 
 export const videoRouter = createTRPCRouter({
-    uploadVideo: publicProcedure
-      .mutation(async ({  }) => {
+    uploadVideo: protectedProcedure
+      .mutation(async ({ ctx }) => {
           try {
             
             const cameraData:cameraData = await axios.get("http://127.0.0.1:8000/getVideo", { responseType: 'text' });
@@ -53,8 +54,13 @@ export const videoRouter = createTRPCRouter({
             console.log(
               `Blob was uploaded successfully. requestId: ${uploadResponse.requestId}`
             );
-            const Video = {url: uploadResponse.requestId}
-            return Video
+            const Video = uploadResponse.requestId as string
+            ctx.prisma.videos.create({ 
+              data: {
+                videoUrl: Video,
+               }
+            })
+
         
           } catch (err: any) {
             console.log(`Error: ${err.message}`);

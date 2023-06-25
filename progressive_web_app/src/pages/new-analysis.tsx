@@ -2,10 +2,13 @@ import { type NextPage } from "next";
 import { api } from "~/utils/api";
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import type { AppRouter } from "~/server/api/root"; 
+import { useState } from "react";
 
 type RouterOutput = inferRouterOutputs<AppRouter>;
  
 type Video = RouterOutput['videos']['uploadVideo'];
+
+const [type, setType] = useState("")
 
 const NewAnalysis: NextPage = () => {
   type blobVideo = {
@@ -13,12 +16,13 @@ const NewAnalysis: NextPage = () => {
   };
 
   
-  const uploadVideo:Video = api.videos.uploadVideo.useMutation()
   const handleSubmit = ()=>{
-    const Video = uploadVideo.mutate()
-    console.log(Video)
+    setType("luisPanza")
   }
-  
+  if (type == "luisPanza"){
+    const uploadVideo = api.videos.uploadVideo.useQuery()
+    const hola:Video = uploadVideo
+  }
   return (
     <>
       <h1>NewAnalysis</h1>
@@ -37,7 +41,7 @@ const NewAnalysis: NextPage = () => {
 
       <br />
 
-      <video src={`${Video.url}`} width={700} ></video>
+      <video src={`${uploadVideo}`} width={700} ></video>
 
     </>
   );
