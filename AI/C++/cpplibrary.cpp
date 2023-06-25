@@ -2,8 +2,6 @@
 #include <opencv4/opencv2/highgui.hpp>
 #include <opencv4/opencv2/imgproc/imgproc.hpp>
 
-// using namespace cv;
-
 extern "C"
 {
     unsigned char *procesar_frame(unsigned char *image_ptr, int alto_OG, int ancho_OG, int channels)
@@ -29,8 +27,6 @@ extern "C"
         // Dos iteraciones de la dilatación
         cv::dilate(mask, mask, cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3)));
         cv::dilate(mask, mask, cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3)));
-
-        // mask.convertTo(mask2, )
 
         // Crear un nuevo bloque de memoria para los datos de la imagen modificada
         unsigned char *imagen_modificada_data = (unsigned char *)malloc(alto_OG * resizer * ancho_OG * resizer);

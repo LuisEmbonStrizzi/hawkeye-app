@@ -40,6 +40,7 @@ def tracking(url):
         estaCercaY = altoOG * 10/100
         #################
 
+        # LLama a la función de C++ que analiza el frame
         contornos = analizarFrame(frame)
 
         contornos = imutils.grab_contours(contornos)
@@ -233,15 +234,6 @@ def tracking(url):
         if afterVelocidad and centro is not None:
             afterVelocidad = False
         ################################ TIEMPO: 0.001 ###################################
-        
-        # Resizea y Muestra el Frame
-        #frame = imutils.resize(frame, anchoOG, altoOG)
-        #frame = imutils.resize(frame, height= 768)
-        #mascara = imutils.resize(mascara, anchoOG, altoOG)
-        #mascara = imutils.resize(mascara, height= 768)
-
-        #cv2.imshow("Mascara Normal", mascara)
-        #cv2.imshow("Normal", frame)
 
     def coordenadaPorMatriz(centro):
         ################################ TIEMPO: 0.002 (llegó a tirar 0.008) ###################################
@@ -251,15 +243,10 @@ def tracking(url):
         pts2 = np.float32([[0, 0], [164, 0], [0, 474], [164, 474]])
 
         matrix = cv2.getPerspectiveTransform(pts1, pts2)
-        perspectiva = cv2.warpPerspective(frame, matrix, (164, 474))
 
         cords_pelota = np.array([[centro[0][0] / resizer], [centro[0][1] / resizer], [1]])
         cords_pelota_pers = np.dot(matrix, cords_pelota)
         cords_pelota_pers = (int(cords_pelota_pers[0]/cords_pelota_pers[2]), int(cords_pelota_pers[1]/cords_pelota_pers[2]))
-
-        perspectiva = cv2.circle(perspectiva, cords_pelota_pers, 3, (0, 0, 255), -1)
-        #cv2.imshow("Perspectiva", perspectiva)
-
         ################################ TIEMPO: 0.002 (llegó a tirar 0.008) ###################################
 
         return cords_pelota_pers
@@ -550,8 +537,8 @@ def tracking(url):
     vs = cv2.VideoCapture(url)
 
     # Rango de deteccion de verdes
-    greenLower = np.array([29, 50, 110])
-    greenUpper = np.array([64, 255, 255])
+    #greenLower = np.array([29, 50, 110])
+    #greenUpper = np.array([64, 255, 255])
 
     topLeftX = 749
     topLeftY = 253
