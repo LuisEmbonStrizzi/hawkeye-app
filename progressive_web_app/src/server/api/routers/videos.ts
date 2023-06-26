@@ -11,6 +11,10 @@ type cameraData = {
   };
 };
 
+type analysedVideo = {
+  piques_finales: string[][]
+};
+
 export const videoRouter = createTRPCRouter({
   uploadVideo: protectedProcedure.mutation(async ({ ctx }) => {
     try {
@@ -53,12 +57,24 @@ export const videoRouter = createTRPCRouter({
 
       const azureResponse = { videoUrl: blockBlobClient.url };
 
-      await ctx.prisma.videos.create({
+      const analysedVideo: any = await axios.post("http://20.226.51.27/predict", {
+        url: azureResponse.videoUrl
+      })
+
+      console.log(analysedVideo)
+
+      const stringifyArray = JSON.stringify(analysedVideo.data)
+
+
+      const result = await ctx.prisma.videos.create({
         data: {
           videoUrl: azureResponse.videoUrl,
           userId: ctx.session?.user.id,
+          boundsArray: stringifyArray,
         },
       });
+
+      console.log(result)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-member-access
