@@ -190,6 +190,8 @@ def main(frame):
         
         if circles is not None:
             circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada)
+            if numeroFrame == 124: cv2.imwrite("Frame124.jpg", frame)
+            print("Circulo Detectado", circuloDetectado)
             #circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), 1), 0.2, True)
             if circuloDetectado is not None:
                 cv2.circle(imagen_recortada, (int(circuloDetectado[0]), int(circuloDetectado[1])), 50, (255, 255, 0), thickness = 2)
@@ -563,7 +565,9 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada):
             cnts_pts.append(contorno)
         else:
             x, y, radius = contorno
-            if abs(radius - pre_centro[1]) < 10 and count <= 0.5:
+            print("Contorno", contorno)
+            if numeroFrame == 124: cv2.imwrite("imagen_recortada124.png", imagen_recortada)
+            if abs(radius - pre_centro[1]) > 15 and count <= 0.5:
                 continue
             cv2.circle(imagen_recortada, (int(x), int(y)), int(radius + 20), (255, 255, 255), 5)
             cnts_pts.append(contorno)
@@ -852,6 +856,9 @@ pelotaEstaEnPerspectiva = None
 casiCentro = None
 
 recorteCerca = 200
+recorteCerca = 150
+recorteCerca = 100
+recorteCerca = 90
 
 radioDeteccionPorCirculo = 0
 
