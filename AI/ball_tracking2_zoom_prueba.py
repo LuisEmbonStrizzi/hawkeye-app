@@ -35,6 +35,7 @@ def main(frame):
     global velocidadFinal
     global casiCentro
     global numeroFrame
+    global radioDeteccionPorCirculo
 
     # Agrandamos el frame para ver más la pelota
     frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
@@ -69,9 +70,12 @@ def main(frame):
     # Aplicar operaciones de morfología
     kernel = np.ones((5, 5), np.uint8)
     # Eliminar los píxeles de los objetos que están en los bordes de las regiones.
-    mascara = cv2.erode(mascara, kernel, iterations=2)
+    #mascara = cv2.erode(mascara, kernel, iterations=2)
     # Dilatar los píxeles para que se vean mejor
     mascara = cv2.dilate(mascara, kernel, iterations=2)
+
+    #mascara = cv2.erode(mascara, None, iterations=2)
+    #mascara = cv2.dilate(mascara, None, iterations=2)
 
     # Encontrar los contornos en la máscara
     contornos, _ = cv2.findContours(mascara.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -125,7 +129,7 @@ def main(frame):
             # Si se detectó un centro hace menos de 0.3 segundos
             else:
                 # Corre la función tp_fix para determinar cual es el contorno detectado que está mas cerca de la pelota del frame anterior, es decir, encuentra la peltoa a través de su posición en el frame anterior
-                if preCentro is not None: casiCentro = tp_fix(contornos, preCentro, TiempoDeteccionUltimaPelota, False)
+                if preCentro is not None: casiCentro = tp_fix(contornos, preCentro, TiempoDeteccionUltimaPelota, False, None)
                 
                 # Encuentra la posición x, y del contorno más cercano a la pelota del frame anterior. Determina el centro de la pelota
                 if casiCentro is not None:
@@ -160,7 +164,6 @@ def main(frame):
         TiempoTresCentrosConsecutivos = 0
 
     if centro is None and preCentro is not None:
-        print("AAAAAAAAAAAAa")
         # Ajustar los puntos de recorte si están fuera de rango
         x1 = max(preCentro[0][0] - recorteCerca, 0)
         y1 = max(preCentro[0][1] - recorteCerca, 0)
@@ -186,7 +189,8 @@ def main(frame):
         circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=10, maxRadius=100)
         
         if circles is not None:
-            circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), 1), 0.2, True)
+            circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada)
+            #circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), 1), 0.2, True)
             if circuloDetectado is not None:
                 cv2.circle(imagen_recortada, (int(circuloDetectado[0]), int(circuloDetectado[1])), 50, (255, 255, 0), thickness = 2)
 
@@ -195,36 +199,50 @@ def main(frame):
                 rr = int(circuloDetectado[2] / 3)
 
                 cv2.circle(frame, (xr, yr), rr, (255, 255, 0), thickness = 2)
+                #print("Radio RR de la pelota", circuloDetectado[2] / 3)
 
                 centro = ((xr, yr), rr)
+                ultimosCentrosCirculo.appendleft(centro)
+                radioDeteccionPorCirculo = circuloDetectado[2] / 3
+                #TiempoDeteccionUltimaPelota = 0
+
+            else: radioDeteccionPorCirculo = radio
+
+        else: radioDeteccionPorCirculo = radio
+            
+        #if len(ultimosCentrosCirculo) == 5: print(seEstaMoviendo(ultimosCentrosCirculo))
 
         # Si se encuentran círculos, dibújalos en la imagen original
         if circles is not None:
             circles = np.round(circles[0, :]).astype(int)
             for (x, y, r) in circles:
+                #if abs(r - radioDeteccionPorCirculo * 3) < 10: cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
                 cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
             
-        # pausado = True
+        pausado = True
 
-        # while True:
-        #     # Verificar si se debe pausar la imagen
-        #     if pausado:
-        #         # Esperar hasta que se presione cualquier tecla
-        #         cv2.waitKey(0)
-        #         pausado = False
-        #     else:
-        #         # Esperar 1 milisegundo y obtener el código de tecla
-        #         key = cv2.waitKey(1)
-                
-        #         # Verificar si se debe pausar la imagen
-        #         if key == ord('p'):
-        #             pausado = True
-        #         # Verificar si se debe salir del bucle
-        #         elif key == ord('q'):
-        #             break
+        if numeroFrame > 100:
+            while True:
+                # Verificar si se debe pausar la imagen
+                if pausado:
+                    # Esperar hasta que se presione cualquier tecla
+                    cv2.waitKey(0)
+                    pausado = False
+                else:
+                    # Esperar 1 milisegundo y obtener el código de tecla
+                    key = cv2.waitKey(1)
+                    
+                    # Verificar si se debe pausar la imagen
+                    if key == ord('p'):
+                        pausado = True
+                    # Verificar si se debe salir del bucle
+                    elif key == ord('q'):
+                        break
 
         imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
         cv2.imshow("Imagen recortada", imagen_recortada)
+
+    else: radioDeteccionPorCirculo = radio
 
     # if centro is None:
     #     if TiempoDeteccionUltimaPelota >= 0.3:
@@ -385,13 +403,16 @@ def main(frame):
         afterVelocidad = False
 
     if centro is not None: preCentro = centro
-    print("Radio de la pelota", radio)
+
+    print("Centro", centro)
+    #print("Radio de la pelota", radio)
+    print("Radio de la pelota de verdad", radioDeteccionPorCirculo)
     
     # Resizea el frame al tamaño original y lo muestra
     frame = imutils.resize(frame, anchoOG, altoOG)
     frame = imutils.resize(frame, height= 700)
     mascara = imutils.resize(mascara, anchoOG, altoOG)
-    mascara = imutils.resize(mascara, height= 740)
+    mascara = imutils.resize(mascara, height= 700)
     
     # También muestra la máscara
     cv2.imshow("Mascara Normal", mascara)
@@ -529,7 +550,7 @@ def seEstaMoviendo(ultCentros):
     return False
 
 # Función que arregla el problema de "la zapatilla verde"
-def tp_fix(contornos, pre_centro, count, circulo):
+def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada):
     cnts_pts = []
     medidorX = 100
     medidorY = 103
@@ -541,6 +562,10 @@ def tp_fix(contornos, pre_centro, count, circulo):
                 continue
             cnts_pts.append(contorno)
         else:
+            x, y, radius = contorno
+            if abs(radius - pre_centro[1]) < 10 and count <= 0.5:
+                continue
+            cv2.circle(imagen_recortada, (int(x), int(y)), int(radius + 20), (255, 255, 255), 5)
             cnts_pts.append(contorno)
     if cnts_pts != []:
         # Devuelve la función cualEstaMasCerca con los parametros obtenidos en la función
@@ -550,10 +575,12 @@ def tp_fix(contornos, pre_centro, count, circulo):
 def cualEstaMasCerca(punto, lista, circulo):
     suma = []
     suma2 = []
+    print("Punto", punto)
     for i in lista:
         # Obtenemos las diferencias entre el preCentro y el círculo a comparar que proviene del contorno.
         if circulo:
             xCenter, yCenter, radius = i
+            print("I", i)
         else: (xCenter, yCenter), radius = cv2.minEnclosingCircle(i)
         difEnX = abs(int(xCenter) - int(punto[0][0]))
         difEnY = abs(int(yCenter) - int(punto[0][1]))
@@ -562,6 +589,9 @@ def cualEstaMasCerca(punto, lista, circulo):
         # Guardamos los valores en listas
         suma.append(difEnX + difEnY + difRadio * 3)
         suma2.append(i)
+    print("Suma", suma)
+    #print("Suma2", suma2)
+    print("Return", suma2[suma.index(min(suma))])
     # Devolvemos el valor más chico que represeta el círculo a menor distancia del preCentro
     return suma2[suma.index(min(suma))]
 
@@ -782,6 +812,8 @@ TiempoTresCentrosConsecutivos = 0
 TiempoSegundosEmpezoVideo = 0
 
 ultimosCentros = deque(maxlen=5)
+ultimosCentrosCirculo = deque(maxlen=5)
+
 
 todosContornos = []
 contornosIgnorar = []
@@ -820,6 +852,8 @@ pelotaEstaEnPerspectiva = None
 casiCentro = None
 
 recorteCerca = 200
+
+radioDeteccionPorCirculo = 0
 
 start_time = time.time()
 previous_time = start_time
