@@ -80,8 +80,8 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
   };
 
   return (
-    <div className="mx-auto flex w-full  max-w-[450px] flex-col items-center gap-[24px]">
-      <h1 className="mb-[24px] text-h2 font-bold text-foreground-important">
+    <div className="mx-auto flex w-full  max-w-[450px] flex-col items-center gap-[24px] py-[48px]">
+      <h1 className="mb-[24px] text-[28px] sm:text-h2 font-bold text-foreground-important">
         {mode === "login" ? "Log In" : "Sign Up"}
       </h1>
       <form
@@ -242,14 +242,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
         />
       </div>
       {mode === "login" ? (
-        <p className="mt-[24px] text-sm text-foreground">
+        <p className="text-sm text-foreground">
           Do not have an account?{" "}
           <Link className="text-primary underline" href="/sign-up">
             Sign Up
           </Link>
         </p>
       ) : (
-        <p className="mt-[24px] text-sm text-foreground">
+        <p className="text-sm text-foreground">
           Have an account?{" "}
           <Link className="text-primary underline" href="/log-in">
             Log In
