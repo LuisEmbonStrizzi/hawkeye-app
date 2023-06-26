@@ -78,7 +78,7 @@ model Videos {
     typeOfAnalysis String?
     isFavorite     Boolean?
     matchDate      DateTime?
-    boundsArray    Json?
+    boundsArray    String?  @db.Text
     heatmapUrl     String?
     speeds         String?
     videoUrl       String?   @db.Text

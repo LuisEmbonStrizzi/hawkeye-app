@@ -26,20 +26,23 @@ const NewAnalysis: NextPage = () => {
           type="submit"
           className="rounded-md bg-blue-800 px-4 py-3 text-white"
         >
-          Submit
+          Llamar al ojo de halcón
         </button>
       </form>
       <br />
 
       {videos?.map((video) => (
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        <video
-          key={video.id}
+        <div key={video.id}>
+          <video
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           src={video.videoUrl!}
           height={800}
           width={800}
         ></video>
+
+        <pre> {video.boundsArray} </pre>
+        </div>
       ))}
     </>
   );
