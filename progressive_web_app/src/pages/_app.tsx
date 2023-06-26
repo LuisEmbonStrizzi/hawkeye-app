@@ -18,7 +18,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
 }) => {
   return (
     <SessionProvider session={session}>
-      <div className={`${sans.variable} font-hawkeye`}>
+      <div className={`${sans?.variable} font-hawkeye`}>
         <Component {...pageProps} />
         <Toaster
           position="top-center"

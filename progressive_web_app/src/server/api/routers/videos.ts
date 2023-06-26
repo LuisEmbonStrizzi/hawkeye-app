@@ -11,10 +11,6 @@ type cameraData = {
   };
 };
 
-type analysedVideo = {
-  piques_finales: string[][]
-};
-
 export const videoRouter = createTRPCRouter({
   uploadVideo: protectedProcedure.mutation(async ({ ctx }) => {
     try {
@@ -57,14 +53,14 @@ export const videoRouter = createTRPCRouter({
 
       const azureResponse = { videoUrl: blockBlobClient.url };
 
-      const analysedVideo: any = await axios.post("http://20.226.51.27/predict", {
-        url: azureResponse.videoUrl
-      })
+      const analysedVideo = await axios.post("http://20.226.51.27/predict", {
+        url: azureResponse.videoUrl,
+      });
 
-      console.log(analysedVideo)
+      console.log(analysedVideo);
 
-      const stringifyArray = JSON.stringify(analysedVideo.data)
-
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const stringifyArray = JSON.stringify(analysedVideo.data);
 
       const result = await ctx.prisma.videos.create({
         data: {
@@ -74,7 +70,7 @@ export const videoRouter = createTRPCRouter({
         },
       });
 
-      console.log(result)
+      console.log(result);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-member-access

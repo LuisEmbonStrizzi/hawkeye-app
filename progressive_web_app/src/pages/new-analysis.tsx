@@ -35,13 +35,13 @@ const NewAnalysis: NextPage = () => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         <div key={video.id}>
           <video
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          src={video.videoUrl!}
-          height={800}
-          width={800}
-        ></video>
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            src={video.videoUrl!}
+            height={800}
+            width={800}
+          ></video>
 
-        <pre> {video.boundsArray} </pre>
+          <pre> {video.boundsArray} </pre>
         </div>
       ))}
     </>

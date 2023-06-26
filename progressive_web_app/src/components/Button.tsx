@@ -1,5 +1,4 @@
 import clsx from "clsx";
-import Progress from "./Progress";
 
 type ButtonProps = {
   label?: string;
@@ -31,9 +30,10 @@ const Button: React.FC<ButtonProps> = ({
       className={clsx(
         "group flex cursor-pointer select-none items-center justify-center gap-[10px] px-[15px] py-[10px] text-sm font-bold transition-all duration-150 ease-out",
         roundedFull ? "rounded-full" : "rounded-lg",
-        style === "primary" && "bg-primary text-background hover:bg-primary/80 focus:ring-2 focus:ring-primary/30 ring-offset-background focus:ring-offset-2",
+        style === "primary" &&
+          "bg-primary text-background ring-offset-background hover:bg-primary/80 focus:ring-2 focus:ring-primary/30 focus:ring-offset-2",
         style === "secondary" &&
-          "border border-secondary-border bg-secondary-background hover:bg-tertiary-background hover:border-tertiary-border hover:text-foreground font-medium text-secondary-foreground focus:ring-2 focus:ring-secondary-foreground/30 ring-offset-background focus:ring-offset-2",
+          "border border-secondary-border bg-secondary-background font-medium text-secondary-foreground ring-offset-background hover:border-tertiary-border hover:bg-tertiary-background hover:text-foreground focus:ring-2 focus:ring-secondary-foreground/30 focus:ring-offset-2",
         disabled && "pointer-events-none cursor-default select-none opacity-25",
         iconPosition === "left" ? "flex-row" : "flex-row-reverse",
         iconBtn && "p-[10px]"
