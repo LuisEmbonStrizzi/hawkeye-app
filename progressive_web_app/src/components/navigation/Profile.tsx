@@ -1,6 +1,7 @@
 import React from "react";
 import { signOut, useSession } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 
 const Profile: React.FC = () => {
   const { data: sessionData } = useSession();
@@ -54,7 +55,7 @@ const Profile: React.FC = () => {
                 </svg>
                 Help
               </li>
-              <li className="group mx-[5px] flex cursor-pointer select-none items-center gap-[10px] rounded-md p-[10px] text-xs text-foreground-important transition-all duration-300 ease-in-out hover:bg-tertiary-hover/75">
+              <Link href={'/contribution'} className="group mx-[5px] flex cursor-pointer select-none items-center gap-[10px] rounded-md p-[10px] text-xs text-foreground-important transition-all duration-300 ease-in-out hover:bg-tertiary-hover/75">
                 <svg
                   width="20"
                   height="20"
@@ -68,7 +69,7 @@ const Profile: React.FC = () => {
                   />
                 </svg>
                 Contribute to Hawkeye
-              </li>
+              </Link>
               <div className="my-[5px] h-[1px] bg-tertiary-border"></div>
               <li
                 onClick={() => void signOut({ callbackUrl: "/log-in" })}
