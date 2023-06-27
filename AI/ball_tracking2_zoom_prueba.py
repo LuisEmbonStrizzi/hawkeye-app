@@ -186,12 +186,11 @@ def main(frame):
         # DP dice que si los círculos cercanos van a ser fusionados, o sea cuando el número aumenta es más probable que se fusionen. Tal vez haga que la posición del círculo no sea tan precisa. Suele variar entre 1, 1.2, 1.4
         # Param1 es la sensibilidad que tiene para encontrar círculos. Si es muy grande, no va a encontrar muchos círculos y si es muy chico va a encontrar muchos círculos. Hay que encontrar un punto medio.
         # Param2 es la precisión de la detección de círculos. Setea la cantidad de puntos del borde para que lo detectado sea considerado un círculo. Si es muy grande, no va a encontrar muchos círculos y si es muy chico va a encontrar muchos círculos. Hay que encontrar un punto medio.
-        circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=10, maxRadius=100)
+        circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=5, maxRadius=100)
         
         if circles is not None:
             circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada)
             if numeroFrame == 124: cv2.imwrite("Frame124.jpg", frame)
-            print("Circulo Detectado", circuloDetectado)
             #circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), 1), 0.2, True)
             if circuloDetectado is not None:
                 cv2.circle(imagen_recortada, (int(circuloDetectado[0]), int(circuloDetectado[1])), 50, (255, 255, 0), thickness = 2)
@@ -542,12 +541,12 @@ def seEstaMoviendo(ultCentros):
         restaD = ultCentros[1][0][i] - ultCentros[0][0][i]
         if restaA + restaB + restaC + restaD >= 15:
             movimiento = True
+            break
         else:
             movimiento = False
-            break
     
     # Devuelve True o False dependiendo de si la pelota se mueve o no
-    if movimiento: 
+    if movimiento:
         return True
     return False
 
@@ -565,7 +564,7 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada):
             cnts_pts.append(contorno)
         else:
             x, y, radius = contorno
-            print("Contorno", contorno)
+            #print("Contorno", contorno)
             if numeroFrame == 124: cv2.imwrite("imagen_recortada124.png", imagen_recortada)
             if abs(radius - pre_centro[1]) > 15 and count <= 0.5:
                 continue
@@ -579,12 +578,12 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada):
 def cualEstaMasCerca(punto, lista, circulo):
     suma = []
     suma2 = []
-    print("Punto", punto)
+    #print("Punto", punto)
     for i in lista:
         # Obtenemos las diferencias entre el preCentro y el círculo a comparar que proviene del contorno.
         if circulo:
             xCenter, yCenter, radius = i
-            print("I", i)
+            #print("I", i)
         else: (xCenter, yCenter), radius = cv2.minEnclosingCircle(i)
         difEnX = abs(int(xCenter) - int(punto[0][0]))
         difEnY = abs(int(yCenter) - int(punto[0][1]))
@@ -593,9 +592,9 @@ def cualEstaMasCerca(punto, lista, circulo):
         # Guardamos los valores en listas
         suma.append(difEnX + difEnY + difRadio * 3)
         suma2.append(i)
-    print("Suma", suma)
+    #print("Suma", suma)
     #print("Suma2", suma2)
-    print("Return", suma2[suma.index(min(suma))])
+    #print("Return", suma2[suma.index(min(suma))])
     # Devolvemos el valor más chico que represeta el círculo a menor distancia del preCentro
     return suma2[suma.index(min(suma))]
 
