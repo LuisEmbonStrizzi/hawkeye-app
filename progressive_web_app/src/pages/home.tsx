@@ -10,6 +10,10 @@ const Home: NextPage = () => {
     <main className="min-h-screen bg-background">
       <Sidebar/>
       <Searchbar/>
+      {/*Áca el mt del div del content debe tener la misma cantidad de pixeles como altura tenga el searchbar*/}
+      <div className="ml-[280px] pt-[86px] pb-8">
+
+      </div>
     </main>
   );
 };
