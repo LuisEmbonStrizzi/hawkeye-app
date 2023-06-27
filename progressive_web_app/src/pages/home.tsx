@@ -2,27 +2,17 @@ import { type NextPage } from "next";
 import {getSession } from "next-auth/react";
 import type { GetServerSidePropsContext } from "next/types";
 import Profile from "~/components/Profile";
+import Searchbar from "~/components/navigation/Searchbar";
+import Sidebar from "~/components/navigation/Sidebar";
 
 const Home: NextPage = () => {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-[24px] bg-background bg-no-repeat px-[32px] ">
-      <Profile />
+    <main className="min-h-screen bg-background">
+      <Sidebar/>
+      <Searchbar/>
     </main>
   );
 };
-
-/*
-
-            {sessionData && (
-              <Button
-                style="primary"
-                label="Sign out"
-                onClick={() => void signOut({ callbackUrl: "/log-in" })}
-              />
-            )}
-
-*/
-
 
 export default Home;
 

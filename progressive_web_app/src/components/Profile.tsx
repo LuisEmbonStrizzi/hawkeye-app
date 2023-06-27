@@ -19,7 +19,7 @@ const Profile: React.FC = () => {
   }, []);
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative flex flex-col">
       {open && (
         <div className="absolute bottom-full left-0 z-20 mb-[10px] w-full rounded-md border border-tertiary-border bg-tertiary-background py-[5px]  shadow-lg backdrop-blur-[8px]">
           <nav role="none">
@@ -70,7 +70,10 @@ const Profile: React.FC = () => {
                 Contribute to Hawkeye
               </li>
               <div className="my-[5px] h-[1px] bg-tertiary-border"></div>
-              <li onClick={() => void signOut({ callbackUrl: "/log-in" })} className="group mx-[5px] flex cursor-pointer select-none items-center gap-[10px] rounded-md p-[10px] text-xs text-foreground-important transition-all duration-300 ease-in-out hover:bg-tertiary-hover/75">
+              <li
+                onClick={() => void signOut({ callbackUrl: "/log-in" })}
+                className="group mx-[5px] flex cursor-pointer select-none items-center gap-[10px] rounded-md p-[10px] text-xs text-foreground-important transition-all duration-300 ease-in-out hover:bg-tertiary-hover/75"
+              >
                 <svg
                   width="20"
                   height="20"
@@ -93,22 +96,21 @@ const Profile: React.FC = () => {
         onClick={() => {
           setOpen(!open);
         }}
-        className="group flex items-center justify-between rounded-md p-[10px] transition-all duration-300 ease-in-out hover:bg-secondary-background"
+        className="group flex items-center gap-[10px] overflow-hidden rounded-md p-[10px] transition-all duration-300 ease-in-out hover:bg-secondary-background"
       >
-        <div className="mr-[10px] flex items-center gap-[10px]">
-          <span className="flex h-6 w-6 select-none items-center justify-center rounded-[3px] bg-primary text-[10px] font-bold">
-            {sessionData?.user.email?.slice(0, 2).toUpperCase()}
-          </span>
-          <p className="select-none text-sm font-normal text-foreground-important">
-            {sessionData?.user.email}
-          </p>
-        </div>
+        <span className="flex-shrink-0 flex h-6 w-6 select-none items-center justify-center rounded-[3px] bg-primary text-[10px] font-bold text-background">
+          {sessionData?.user.email?.slice(0, 2).toUpperCase()}
+        </span>
+        <p className="flex-grow overflow-hidden text-left whitespace-nowrap select-none text-ellipsis text-sm font-normal text-foreground-important">
+          {sessionData?.user.email}
+        </p>
         <svg
           width="24"
           height="24"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
+          className="flex-shrink-0"
         >
           <path
             d="M6.46155 13C6.18655 13 5.95113 12.9021 5.7553 12.7063C5.55946 12.5104 5.46155 12.275 5.46155 12C5.46155 11.725 5.55946 11.4896 5.7553 11.2938C5.95113 11.0979 6.18655 11 6.46155 11C6.73656 11 6.97199 11.0979 7.16782 11.2938C7.36366 11.4896 7.46157 11.725 7.46157 12C7.46157 12.275 7.36366 12.5104 7.16782 12.7063C6.97199 12.9021 6.73656 13 6.46155 13ZM12 13C11.725 13 11.4896 12.9021 11.2938 12.7063C11.0979 12.5104 11 12.275 11 12C11 11.725 11.0979 11.4896 11.2938 11.2938C11.4896 11.0979 11.725 11 12 11C12.275 11 12.5104 11.0979 12.7063 11.2938C12.9021 11.4896 13 11.725 13 12C13 12.275 12.9021 12.5104 12.7063 12.7063C12.5104 12.9021 12.275 13 12 13ZM17.5385 13C17.2635 13 17.0281 12.9021 16.8322 12.7063C16.6364 12.5104 16.5385 12.275 16.5385 12C16.5385 11.725 16.6364 11.4896 16.8322 11.2938C17.0281 11.0979 17.2635 11 17.5385 11C17.8135 11 18.0489 11.0979 18.2447 11.2938C18.4406 11.4896 18.5385 11.725 18.5385 12C18.5385 12.275 18.4406 12.5104 18.2447 12.7063C18.0489 12.9021 17.8135 13 17.5385 13Z"
