@@ -7,7 +7,7 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import bcrypt from "bcrypt";
 import { Resend } from "resend";
-import { EmailTemplate } from "~/components/email-template";
+import { EmailTemplate } from "~/components/EmailTemplate";
 
 const hash = async (password: string) => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call

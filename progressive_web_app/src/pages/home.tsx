@@ -1,40 +1,20 @@
 import { type NextPage } from "next";
-import { signOut, useSession, getSession } from "next-auth/react";
+import {getSession } from "next-auth/react";
 import type { GetServerSidePropsContext } from "next/types";
-import Button from "~/components/Button";
-import { api } from "~/utils/api";
+import Profile from "~/components/Profile";
+import Searchbar from "~/components/navigation/Searchbar";
+import Sidebar from "~/components/navigation/Sidebar";
 
 const Home: NextPage = () => {
-  const { data: sessionData } = useSession();
-
-  const { data: secretMessage } = api.example.getSecretMessage.useQuery(
-    undefined, // no input
-    { enabled: sessionData?.user !== undefined }
-  );
   return (
-    <>
-      <div className="w-1/4 bg-secondary-background">
-        <div className="flex flex-col gap-[20px] p-20 text-center">
-          <p className="flex flex-col gap-[10px] text-center text-xl text-gray-500 ">
-            {sessionData && (
-              <span>
-                Logged in as{" "}
-                {sessionData.user?.name ||
-                  sessionData.user.email?.split("@")[0]}
-              </span>
-            )}
-            {secretMessage && <span> {secretMessage}</span>}
-            {sessionData && (
-              <Button
-                style="primary"
-                label="Sign out"
-                onClick={() => void signOut({ callbackUrl: "/log-in" })}
-              />
-            )}
-          </p>
-        </div>
+    <main className="min-h-screen bg-background">
+      <Sidebar/>
+      <Searchbar/>
+      {/*Áca el mt del div del content debe tener la misma cantidad de pixeles como altura tenga el searchbar*/}
+      <div className="ml-[280px] pt-[86px] pb-8">
+
       </div>
-    </>
+    </main>
   );
 };
 
