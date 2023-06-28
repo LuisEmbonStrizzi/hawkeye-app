@@ -163,90 +163,16 @@ def main(frame):
         TiempoDeteccionUltimaPelota += 1/fps
         TiempoTresCentrosConsecutivos = 0
 
+    if numeroFrame == 117: cv2.imwrite("Frame117.jpg", frame)
+
     if centro is None and preCentro is not None:
-        # Ajustar los puntos de recorte si están fuera de rango
-        x1 = max(preCentro[0][0] - recorteCerca, 0)
-        y1 = max(preCentro[0][1] - recorteCerca, 0)
-        x2 = min(preCentro[0][0] + recorteCerca, anchoOG * 3)
-        y2 = min(preCentro[0][1] + recorteCerca, altoOG * 3)
+        centro = deteccionPorCirculos(preCentro, frame)
 
-        # Recortar la región de interés de la imagen original
-        imagen_recortada = frame[y1:y2, x1:x2]
-
-        # Agrandamos el frame para ver más la pelota
-        imagen_recortada = imutils.resize(imagen_recortada, imagen_recortada.shape[1] * resizer, imagen_recortada.shape[0] * resizer)
-
-        # Convertir la imagen a escala de grises
-        imagen_gris = cv2.cvtColor(imagen_recortada, cv2.COLOR_BGR2GRAY)
-
-        # Aplicar un suavizado si es necesario
-        blurred = cv2.GaussianBlur(imagen_gris, (11, 11), 0)
-
-        # Busca los círculos en la imagen utilizando HoughCircles
-        # DP dice que si los círculos cercanos van a ser fusionados, o sea cuando el número aumenta es más probable que se fusionen. Tal vez haga que la posición del círculo no sea tan precisa. Suele variar entre 1, 1.2, 1.4
-        # Param1 es la sensibilidad que tiene para encontrar círculos. Si es muy grande, no va a encontrar muchos círculos y si es muy chico va a encontrar muchos círculos. Hay que encontrar un punto medio.
-        # Param2 es la precisión de la detección de círculos. Setea la cantidad de puntos del borde para que lo detectado sea considerado un círculo. Si es muy grande, no va a encontrar muchos círculos y si es muy chico va a encontrar muchos círculos. Hay que encontrar un punto medio.
-        
-        #circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=1, maxRadius=100)
-        #circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=3, maxRadius=100)
-        circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=5, maxRadius=100)
-
-        if circles is not None:
-            circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada)
-            if numeroFrame == 53: cv2.imwrite("Frame53.jpg", frame)
-            if circuloDetectado is not None:
-                cv2.circle(imagen_recortada, (int(circuloDetectado[0]), int(circuloDetectado[1])), 50, (255, 255, 0), thickness = 2)
-
-                xr = int(x1 + circuloDetectado[0] / 3)
-                yr = int(y1 + circuloDetectado[1] / 3)
-                rr = int(circuloDetectado[2] / 3)
-
-                cv2.circle(frame, (xr, yr), rr, (255, 255, 0), thickness = 2)
-
-                centro = ((xr, yr), rr)
-                ultimosCentrosCirculo.appendleft(centro)
-                radioDeteccionPorCirculo = circuloDetectado[2] / 3
-                TiempoDeteccionUltimaPelota = 0
-
-            else: radioDeteccionPorCirculo = radio
-
-        else: radioDeteccionPorCirculo = radio
-            
         if len(ultimosCentrosCirculo) == 5:
             if seEstaMoviendo(ultimosCentrosCirculo) == False:
                 primeraVez = True
                 ultimosCentrosCirculo.clear()
-
-        # Si se encuentran círculos, dibújalos en la imagen original
-        if circles is not None:
-            circles = np.round(circles[0, :]).astype(int)
-            for (x, y, r) in circles:
-                #if abs(r - radioDeteccionPorCirculo * 3) < 10: cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
-                cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
-            
-        # pausado = True
-
-        # if numeroFrame > 40:
-        #     while True:
-        #         # Verificar si se debe pausar la imagen
-        #         if pausado:
-        #             # Esperar hasta que se presione cualquier tecla
-        #             cv2.waitKey(0)
-        #             pausado = False
-        #         else:
-        #             # Esperar 1 milisegundo y obtener el código de tecla
-        #             key = cv2.waitKey(1)
-                  
-        #             # Verificar si se debe pausar la imagen
-        #             if key == ord('p'):
-        #                 pausado = True
-        #             # Verificar si se debe salir del bucle
-        #             elif key == ord('q'):
-        #                 break
-
-        imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
-        cv2.imshow("Imagen recortada", imagen_recortada)
-
+        
     else: radioDeteccionPorCirculo = radio
 
     # if centro is None:
@@ -568,8 +494,8 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada):
             cnts_pts.append(contorno)
         else:
             x, y, radius = contorno
-            print("Contorno", contorno)
-            if numeroFrame == 55: cv2.imwrite("imagen_recortada55.png", imagen_recortada)
+            #print("Contorno", contorno)
+            if numeroFrame == 53: cv2.imwrite("imagen_recortada53.png", imagen_recortada)
             if abs(radius - pre_centro[1]) > 15 and count <= 0.5:
                 continue
             cv2.circle(imagen_recortada, (int(x), int(y)), int(radius + 20), (255, 255, 255), 5)
@@ -587,7 +513,7 @@ def cualEstaMasCerca(punto, lista, circulo):
         # Obtenemos las diferencias entre el preCentro y el círculo a comparar que proviene del contorno.
         if circulo:
             xCenter, yCenter, radius = i
-            print("I", i)
+            #print("I", i)
         else: (xCenter, yCenter), radius = cv2.minEnclosingCircle(i)
         difEnX = abs(int(xCenter) - int(punto[0][0]))
         difEnY = abs(int(yCenter) - int(punto[0][1]))
@@ -596,9 +522,9 @@ def cualEstaMasCerca(punto, lista, circulo):
         # Guardamos los valores en listas
         suma.append(difEnX + difEnY + difRadio * 3)
         suma2.append(i)
-    print("Suma", suma)
+    #print("Suma", suma)
     #print("Suma2", suma2)
-    print("Return", suma2[suma.index(min(suma))])
+    #print("Return", suma2[suma.index(min(suma))])
     # Devolvemos el valor más chico que represeta el círculo a menor distancia del preCentro
     return suma2[suma.index(min(suma))]
 
@@ -760,6 +686,100 @@ def estaEnCancha(centro_pelota, perspectiva):
         return False
     return None
 
+def deteccionPorCirculos(preCentro, frame):
+    global primeraVez
+    global TiempoDeteccionUltimaPelota
+    global radioDeteccionPorCirculo
+    global centro
+    global ultimosCentrosCirculo
+
+    #greenLower2 = np.array([29, 15, 100], dtype=np.uint8)
+    #greenUpper2 = np.array([200, 255, 255], dtype=np.uint8)
+
+    # Ajustar los puntos de recorte si están fuera de rango
+    x1 = max(preCentro[0][0] - recorteCerca, 0)
+    y1 = max(preCentro[0][1] - recorteCerca, 0)
+    x2 = min(preCentro[0][0] + recorteCerca, anchoOG * 3)
+    y2 = min(preCentro[0][1] + recorteCerca, altoOG * 3)
+
+    # Recortar la región de interés de la imagen original
+    imagen_recortada = frame[y1:y2, x1:x2]
+
+    # Agrandamos el frame para ver más la pelota
+    imagen_recortada = imutils.resize(imagen_recortada, imagen_recortada.shape[1] * resizer, imagen_recortada.shape[0] * resizer)
+
+    # Convertir la imagen a escala de grises
+    imagen_gris = cv2.cvtColor(imagen_recortada, cv2.COLOR_BGR2GRAY)
+
+    # Aplicar un suavizado si es necesario
+    blurred = cv2.GaussianBlur(imagen_gris, (11, 11), 0)
+
+    # Busca los círculos en la imagen utilizando HoughCircles
+    # DP dice que si los círculos cercanos van a ser fusionados, o sea cuando el número aumenta es más probable que se fusionen. Tal vez haga que la posición del círculo no sea tan precisa. Suele variar entre 1, 1.2, 1.4
+    # Param1 es la sensibilidad que tiene para encontrar círculos. Si es muy grande, no va a encontrar muchos círculos y si es muy chico va a encontrar muchos círculos. Hay que encontrar un punto medio.
+    # Param2 es la precisión de la detección de círculos. Setea la cantidad de puntos del borde para que lo detectado sea considerado un círculo. Si es muy grande, no va a encontrar muchos círculos y si es muy chico va a encontrar muchos círculos. Hay que encontrar un punto medio.
+    
+    #circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=1, maxRadius=100)
+    #circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=3, maxRadius=100)
+    circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius=5, maxRadius=100)
+
+    centro = None
+
+    if circles is not None:
+        circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada)
+        if numeroFrame == 53: cv2.imwrite("Frame53.jpg", frame)
+        if circuloDetectado is not None:
+            cv2.circle(imagen_recortada, (int(circuloDetectado[0]), int(circuloDetectado[1])), 50, (255, 255, 0), thickness = 2)
+
+            xr = int(x1 + circuloDetectado[0] / 3)
+            yr = int(y1 + circuloDetectado[1] / 3)
+            rr = int(circuloDetectado[2] / 3)
+
+            cv2.circle(frame, (xr, yr), rr, (255, 255, 0), thickness = 2)
+
+            centro = ((xr, yr), rr)
+            ultimosCentrosCirculo.appendleft(centro)
+            radioDeteccionPorCirculo = circuloDetectado[2] / 3
+            TiempoDeteccionUltimaPelota = 0
+
+        else: radioDeteccionPorCirculo = radio
+
+    else: radioDeteccionPorCirculo = radio
+
+    # Si se encuentran círculos, dibújalos en la imagen original
+    if circles is not None:
+        circles = np.round(circles[0, :]).astype(int)
+        for (x, y, r) in circles:
+            #if abs(r - radioDeteccionPorCirculo * 3) < 10: cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
+            cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
+        
+    pausado = True
+
+    if numeroFrame > 40:
+        while True:
+            # Verificar si se debe pausar la imagen
+            if pausado:
+                # Esperar hasta que se presione cualquier tecla
+                cv2.waitKey(0)
+                pausado = False
+            else:
+                # Esperar 1 milisegundo y obtener el código de tecla
+                key = cv2.waitKey(1)
+                
+                # Verificar si se debe pausar la imagen
+                if key == ord('p'):
+                    pausado = True
+                # Verificar si se debe salir del bucle
+                elif key == ord('q'):
+                    break
+
+    imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
+    cv2.imshow("Imagen recortada", imagen_recortada)
+
+    if centro is not None:
+        return centro
+    return None
+
 # Toma la cámara si no recibe video
 if not args.get("video", False):
     vs = cv2.VideoCapture(0)
@@ -859,7 +879,7 @@ recorteCerca = 200
 recorteCerca = 150
 recorteCerca = 100
 recorteCerca = 90
-#recorteCerca = 200
+recorteCerca = 200
 
 radioDeteccionPorCirculo = 0
 
