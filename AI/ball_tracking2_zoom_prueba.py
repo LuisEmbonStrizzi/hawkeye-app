@@ -186,12 +186,14 @@ def main(frame):
         # DP dice que si los círculos cercanos van a ser fusionados, o sea cuando el número aumenta es más probable que se fusionen. Tal vez haga que la posición del círculo no sea tan precisa. Suele variar entre 1, 1.2, 1.4
         # Param1 es la sensibilidad que tiene para encontrar círculos. Si es muy grande, no va a encontrar muchos círculos y si es muy chico va a encontrar muchos círculos. Hay que encontrar un punto medio.
         # Param2 es la precisión de la detección de círculos. Setea la cantidad de puntos del borde para que lo detectado sea considerado un círculo. Si es muy grande, no va a encontrar muchos círculos y si es muy chico va a encontrar muchos círculos. Hay que encontrar un punto medio.
-        circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=5, maxRadius=100)
         
+        #circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=1, maxRadius=100)
+        #circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=3, maxRadius=100)
+        circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=5, maxRadius=100)
+
         if circles is not None:
             circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada)
-            if numeroFrame == 124: cv2.imwrite("Frame124.jpg", frame)
-            #circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), 1), 0.2, True)
+            if numeroFrame == 53: cv2.imwrite("Frame53.jpg", frame)
             if circuloDetectado is not None:
                 cv2.circle(imagen_recortada, (int(circuloDetectado[0]), int(circuloDetectado[1])), 50, (255, 255, 0), thickness = 2)
 
@@ -200,18 +202,20 @@ def main(frame):
                 rr = int(circuloDetectado[2] / 3)
 
                 cv2.circle(frame, (xr, yr), rr, (255, 255, 0), thickness = 2)
-                #print("Radio RR de la pelota", circuloDetectado[2] / 3)
 
                 centro = ((xr, yr), rr)
                 ultimosCentrosCirculo.appendleft(centro)
                 radioDeteccionPorCirculo = circuloDetectado[2] / 3
-                #TiempoDeteccionUltimaPelota = 0
+                TiempoDeteccionUltimaPelota = 0
 
             else: radioDeteccionPorCirculo = radio
 
         else: radioDeteccionPorCirculo = radio
             
-        #if len(ultimosCentrosCirculo) == 5: print(seEstaMoviendo(ultimosCentrosCirculo))
+        if len(ultimosCentrosCirculo) == 5: 
+            if seEstaMoviendo(ultimosCentrosCirculo) == False:
+                primeraVez = True
+                ultimosCentrosCirculo.clear()
 
         # Si se encuentran círculos, dibújalos en la imagen original
         if circles is not None:
@@ -222,7 +226,7 @@ def main(frame):
             
         pausado = True
 
-        if numeroFrame > 100:
+        if numeroFrame > 40:
             while True:
                 # Verificar si se debe pausar la imagen
                 if pausado:
@@ -535,10 +539,10 @@ def seEstaMoviendo(ultCentros):
     movimiento = False
     # Si la suma de las restas de los últimos centros es mayor a 15, significa que la pelota se está moviendo, de lo contrario no lo está.
     for i in range(2):
-        restaA = ultCentros[4][0][i] - ultCentros[3][0][i]
-        restaB = ultCentros[3][0][i] - ultCentros[2][0][i]
-        restaC = ultCentros[2][0][i] - ultCentros[1][0][i]
-        restaD = ultCentros[1][0][i] - ultCentros[0][0][i]
+        restaA = abs(ultCentros[4][0][i] - ultCentros[3][0][i])
+        restaB = abs(ultCentros[3][0][i] - ultCentros[2][0][i])
+        restaC = abs(ultCentros[2][0][i] - ultCentros[1][0][i])
+        restaD = abs(ultCentros[1][0][i] - ultCentros[0][0][i])
         if restaA + restaB + restaC + restaD >= 15:
             movimiento = True
             break
@@ -841,9 +845,6 @@ TiempoDifVelocidad = 0
 # TiempoDifPiques cuenta cuanto tiempo pasa desde que se encontró un pique hasta que se encuentra el siguiente
 TiempoDifPiques = 0
 
-# El número del Frame del video
-numeroFrame = 0
-
 punto1Velocidad = None
 velocidad = False
 diferente = False
@@ -858,14 +859,26 @@ recorteCerca = 200
 recorteCerca = 150
 recorteCerca = 100
 recorteCerca = 90
+#recorteCerca = 200
 
 radioDeteccionPorCirculo = 0
 
 start_time = time.time()
 previous_time = start_time
 
+aSaltear = 100
+aSaltear = 0
+
+frames_recortados = deque(maxlen=6)
+
+for _ in range(aSaltear):
+    vs.read()
+
+# El número del Frame del video
+numeroFrame = aSaltear
+
 # Se corre el for la cantidad de frames que contiene el video
-for _ in range(frame_count):
+for _ in range(frame_count - aSaltear):
     numeroFrame += 1
     print("Numero de Frame: ", numeroFrame)
 
@@ -875,7 +888,7 @@ for _ in range(frame_count):
     frame = vs.read()
     frame = frame[1] if args.get("video", False) else frame
 
-    if numeroFrame == 1:
+    if numeroFrame == aSaltear + 1:
         # Ancho y alto de la imagen
         altoOG, anchoOG = frame.shape[:2]
 
