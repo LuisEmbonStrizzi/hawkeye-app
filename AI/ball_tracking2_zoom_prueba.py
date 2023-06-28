@@ -114,6 +114,7 @@ def main(frame):
         if len(contornos) > 0:
             # Cuando empezó el video o pasaron 0.3 segundos desde que no se encuentra la pelota
             if primeraVez:
+                print("AAAAAAAAAAAAAAAAAAAAa")
                 # Busca el contorno más grande y encuentra su posición (x, y). Determina el centro de la pelota
                 casiCentro = max(contornos, key=cv2.contourArea)
                 ((x, y), radio) = cv2.minEnclosingCircle(casiCentro)
@@ -212,7 +213,7 @@ def main(frame):
 
         else: radioDeteccionPorCirculo = radio
             
-        if len(ultimosCentrosCirculo) == 5: 
+        if len(ultimosCentrosCirculo) == 5:
             if seEstaMoviendo(ultimosCentrosCirculo) == False:
                 primeraVez = True
                 ultimosCentrosCirculo.clear()
@@ -224,25 +225,25 @@ def main(frame):
                 #if abs(r - radioDeteccionPorCirculo * 3) < 10: cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
                 cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
             
-        pausado = True
+        # pausado = True
 
-        if numeroFrame > 40:
-            while True:
-                # Verificar si se debe pausar la imagen
-                if pausado:
-                    # Esperar hasta que se presione cualquier tecla
-                    cv2.waitKey(0)
-                    pausado = False
-                else:
-                    # Esperar 1 milisegundo y obtener el código de tecla
-                    key = cv2.waitKey(1)
+        # if numeroFrame > 40:
+        #     while True:
+        #         # Verificar si se debe pausar la imagen
+        #         if pausado:
+        #             # Esperar hasta que se presione cualquier tecla
+        #             cv2.waitKey(0)
+        #             pausado = False
+        #         else:
+        #             # Esperar 1 milisegundo y obtener el código de tecla
+        #             key = cv2.waitKey(1)
                     
-                    # Verificar si se debe pausar la imagen
-                    if key == ord('p'):
-                        pausado = True
-                    # Verificar si se debe salir del bucle
-                    elif key == ord('q'):
-                        break
+        #             # Verificar si se debe pausar la imagen
+        #             if key == ord('p'):
+        #                 pausado = True
+        #             # Verificar si se debe salir del bucle
+        #             elif key == ord('q'):
+        #                 break
 
         imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
         cv2.imshow("Imagen recortada", imagen_recortada)
@@ -598,7 +599,7 @@ def cualEstaMasCerca(punto, lista, circulo):
         suma2.append(i)
     #print("Suma", suma)
     #print("Suma2", suma2)
-    #print("Return", suma2[suma.index(min(suma))])
+    print("Return", suma2[suma.index(min(suma))])
     # Devolvemos el valor más chico que represeta el círculo a menor distancia del preCentro
     return suma2[suma.index(min(suma))]
 
