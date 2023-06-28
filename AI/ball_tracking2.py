@@ -94,60 +94,60 @@ def main(frame):
     #     for (x, y, r) in circles:
     #         cv2.circle(frame, (x, y), r, (0, 255, 0), 2)
     
-    if preCentro is not None:
+    # if preCentro is not None:
 
-        greenLower2 = np.array([29, 15, 100])
-        greenUpper2 = np.array([200, 255, 255])
+    #     greenLower2 = np.array([29, 15, 100])
+    #     greenUpper2 = np.array([200, 255, 255])
 
-        # Ajustar los puntos de recorte si están fuera de rango
-        x1 = max(preCentro[0][0] - recorteCerca, 0)
-        y1 = max(preCentro[0][1] - recorteCerca, 0)
-        x2 = min(preCentro[0][0] + recorteCerca, anchoOG * 3)
-        y2 = min(preCentro[0][1] + recorteCerca, altoOG * 3)
+    #     # Ajustar los puntos de recorte si están fuera de rango
+    #     x1 = max(preCentro[0][0] - recorteCerca, 0)
+    #     y1 = max(preCentro[0][1] - recorteCerca, 0)
+    #     x2 = min(preCentro[0][0] + recorteCerca, anchoOG * 3)
+    #     y2 = min(preCentro[0][1] + recorteCerca, altoOG * 3)
 
-        # Recortar la región de interés de la imagen original
-        imagen_recortada = frame[y1:y2, x1:x2]
+    #     # Recortar la región de interés de la imagen original
+    #     imagen_recortada = frame[y1:y2, x1:x2]
 
-        # Agrandamos el frame para ver más la pelota
-        imagen_recortada = imutils.resize(imagen_recortada, imagen_recortada.shape[1] * resizer, imagen_recortada.shape[0] * resizer)
+    #     # Agrandamos el frame para ver más la pelota
+    #     imagen_recortada = imutils.resize(imagen_recortada, imagen_recortada.shape[1] * resizer, imagen_recortada.shape[0] * resizer)
 
-        # Convertir la imagen a escala de grises
-        imagen_gris = cv2.cvtColor(imagen_recortada, cv2.COLOR_BGR2GRAY)
+    #     # Convertir la imagen a escala de grises
+    #     imagen_gris = cv2.cvtColor(imagen_recortada, cv2.COLOR_BGR2GRAY)
 
-        # Aplicar un suavizado si es necesario
-        blurred = cv2.GaussianBlur(imagen_gris, (11, 11), 0)
-        #thresh = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY)[1]
+    #     # Aplicar un suavizado si es necesario
+    #     blurred = cv2.GaussianBlur(imagen_gris, (11, 11), 0)
+    #     #thresh = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY)[1]
 
-        # Convertir la imagen a HSV
-        # hsv = cv2.cvtColor(imagen_recortada, cv2.COLOR_BGR2HSV)
+    #     # Convertir la imagen a HSV
+    #     # hsv = cv2.cvtColor(imagen_recortada, cv2.COLOR_BGR2HSV)
 
-        # # Filtrar los tonos verdes de la imagen
-        # mask = cv2.inRange(hsv, greenLower2, greenUpper2)
+    #     # # Filtrar los tonos verdes de la imagen
+    #     # mask = cv2.inRange(hsv, greenLower2, greenUpper2)
 
-        # # Aplicar operaciones de morfología para eliminar ruido
-        # kernel = np.ones((5, 5), np.uint8)
-        # mask = cv2.erode(mask, kernel, iterations=2)
-        # mask = cv2.dilate(mask, kernel, iterations=2)
+    #     # # Aplicar operaciones de morfología para eliminar ruido
+    #     # kernel = np.ones((5, 5), np.uint8)
+    #     # mask = cv2.erode(mask, kernel, iterations=2)
+    #     # mask = cv2.dilate(mask, kernel, iterations=2)
 
-        #contours, _ = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        #cv2.drawContours(imagen_recortada, contours, -1, (255), thickness=cv2.FILLED)
+    #     #contours, _ = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    #     #cv2.drawContours(imagen_recortada, contours, -1, (255), thickness=cv2.FILLED)
 
-        # Busca los círculos en la imagen utilizando HoughCircles
+    #     # Busca los círculos en la imagen utilizando HoughCircles
 
-        # DP dice que si los círculos cercanos van a ser fusionados, o sea cuando el número aumenta es más probable que se fusionen. Tal vez haga que la posición del círculo no sea tan precisa. Suele variar entre 1, 1.2, 1.4
-        # Param1 es la sensibilidad que tiene para encontrar círculos. Si es muy grande, no va a encontrar muchos círculos y si es muy chico va a encontrar muchos círculos. Hay que encontrar un punto medio.
-        # Param2 es la precisión de la detección de círculos. Setea la cantidad de puntos del borde para que lo detectado sea considerado un círculo. Si es muy grande, no va a encontrar muchos círculos y si es muy chico va a encontrar muchos círculos. Hay que encontrar un punto medio.
-        circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=10, maxRadius=100)
+    #     # DP dice que si los círculos cercanos van a ser fusionados, o sea cuando el número aumenta es más probable que se fusionen. Tal vez haga que la posición del círculo no sea tan precisa. Suele variar entre 1, 1.2, 1.4
+    #     # Param1 es la sensibilidad que tiene para encontrar círculos. Si es muy grande, no va a encontrar muchos círculos y si es muy chico va a encontrar muchos círculos. Hay que encontrar un punto medio.
+    #     # Param2 es la precisión de la detección de círculos. Setea la cantidad de puntos del borde para que lo detectado sea considerado un círculo. Si es muy grande, no va a encontrar muchos círculos y si es muy chico va a encontrar muchos círculos. Hay que encontrar un punto medio.
+    #     circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=10, maxRadius=100)
 
-        # Si se encuentran círculos, dibújalos en la imagen original
-        if circles is not None:
-            circles = np.round(circles[0, :]).astype(int)
-            for (x, y, r) in circles:
-                cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
-                print("R", r)
+    #     # Si se encuentran círculos, dibújalos en la imagen original
+    #     if circles is not None:
+    #         circles = np.round(circles[0, :]).astype(int)
+    #         for (x, y, r) in circles:
+    #             cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
+    #             print("R", r)
 
-        cv2.imshow("Frame recortado", imagen_recortada)
-        #cv2.imshow("Mask Frame recortado", mask)
+    #     cv2.imshow("Frame recortado", imagen_recortada)
+    #     #cv2.imshow("Mask Frame recortado", mask)
 
     centro = None
     
@@ -161,9 +161,9 @@ def main(frame):
         if len(ultimosCentros) == 5 and seEstaMoviendo(ultimosCentros) == False:
             contornos = ignorarContornosQuietos(contornos, contornosIgnorar)
 
-        mascara2 = np.zeros(frame.shape[:2], dtype="uint8")
-        mascara2 = contornos.copy()
-        cv2.imshow("Mascara2", mascara2)
+        #mascara2 = np.zeros(frame.shape[:2], dtype="uint8")
+        #mascara2 = contornos.copy()
+        #cv2.imshow("Mascara2", mascara2)
 
         if len(contornos) > 0:
             # Cuando empezó el video o pasaron 0.3 segundos desde que no se encuentra la pelota

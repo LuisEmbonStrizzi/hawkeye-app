@@ -114,7 +114,6 @@ def main(frame):
         if len(contornos) > 0:
             # Cuando empezó el video o pasaron 0.3 segundos desde que no se encuentra la pelota
             if primeraVez:
-                print("AAAAAAAAAAAAAAAAAAAAa")
                 # Busca el contorno más grande y encuentra su posición (x, y). Determina el centro de la pelota
                 casiCentro = max(contornos, key=cv2.contourArea)
                 ((x, y), radio) = cv2.minEnclosingCircle(casiCentro)
@@ -237,7 +236,7 @@ def main(frame):
         #         else:
         #             # Esperar 1 milisegundo y obtener el código de tecla
         #             key = cv2.waitKey(1)
-                    
+                  
         #             # Verificar si se debe pausar la imagen
         #             if key == ord('p'):
         #                 pausado = True
@@ -569,8 +568,8 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada):
             cnts_pts.append(contorno)
         else:
             x, y, radius = contorno
-            #print("Contorno", contorno)
-            if numeroFrame == 124: cv2.imwrite("imagen_recortada124.png", imagen_recortada)
+            print("Contorno", contorno)
+            if numeroFrame == 55: cv2.imwrite("imagen_recortada55.png", imagen_recortada)
             if abs(radius - pre_centro[1]) > 15 and count <= 0.5:
                 continue
             cv2.circle(imagen_recortada, (int(x), int(y)), int(radius + 20), (255, 255, 255), 5)
@@ -588,7 +587,7 @@ def cualEstaMasCerca(punto, lista, circulo):
         # Obtenemos las diferencias entre el preCentro y el círculo a comparar que proviene del contorno.
         if circulo:
             xCenter, yCenter, radius = i
-            #print("I", i)
+            print("I", i)
         else: (xCenter, yCenter), radius = cv2.minEnclosingCircle(i)
         difEnX = abs(int(xCenter) - int(punto[0][0]))
         difEnY = abs(int(yCenter) - int(punto[0][1]))
@@ -597,7 +596,7 @@ def cualEstaMasCerca(punto, lista, circulo):
         # Guardamos los valores en listas
         suma.append(difEnX + difEnY + difRadio * 3)
         suma2.append(i)
-    #print("Suma", suma)
+    print("Suma", suma)
     #print("Suma2", suma2)
     print("Return", suma2[suma.index(min(suma))])
     # Devolvemos el valor más chico que represeta el círculo a menor distancia del preCentro
