@@ -1,11 +1,11 @@
 import { type NextPage } from "next";
 import { api } from "~/utils/api";
-
 const NewAnalysis: NextPage = () => {
-  const uploadVideo = api.videos.uploadVideo.useMutation({
-    onSuccess: () => {
-      void refetchVideos();
-    },
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+  const uploadVideo = api.videos.uploadVideo.useMutation();
+  const { data: videos } = api.videos.getVideo.useQuery(undefined, {
+    refetchInterval: 3000,
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -14,9 +14,6 @@ const NewAnalysis: NextPage = () => {
     e.preventDefault();
     uploadVideo.mutate();
   };
-
-  const { data: videos, refetch: refetchVideos } =
-    api.videos.getVideo.useQuery();
 
   return (
     <>
