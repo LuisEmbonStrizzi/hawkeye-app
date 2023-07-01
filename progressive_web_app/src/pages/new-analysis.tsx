@@ -1,16 +1,13 @@
 import { type NextPage } from "next";
+import React from "react";
 import { api } from "~/utils/api";
 const NewAnalysis: NextPage = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-
   const uploadVideo = api.videos.uploadVideo.useMutation();
   const { data: videos } = api.videos.getVideo.useQuery(undefined, {
     refetchInterval: 3000,
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleSubmit = (e: any) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     uploadVideo.mutate();
   };
@@ -29,15 +26,8 @@ const NewAnalysis: NextPage = () => {
       <br />
 
       {videos?.map((video) => (
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         <div key={video.id}>
-          <video
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            src={video.videoUrl!}
-            height={800}
-            width={800}
-          ></video>
-
+          <video src={video.videoUrl!} height={800} width={800}></video>
           <pre> {video.boundsArray} </pre>
         </div>
       ))}

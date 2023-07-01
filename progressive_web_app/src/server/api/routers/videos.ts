@@ -43,7 +43,7 @@ export const videoRouter = createTRPCRouter({
       const response = await axios.get(cameraData.data.video, {
         responseType: "stream",
       });
-      //console.log(response);
+
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const uploadResponse = await blockBlobClient.uploadStream(response.data);
       console.log(
@@ -59,7 +59,6 @@ export const videoRouter = createTRPCRouter({
 
       console.log(analysedVideo);
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       const stringifyArray = JSON.stringify(analysedVideo.data);
 
       const result = await ctx.prisma.videos.create({
@@ -71,10 +70,8 @@ export const videoRouter = createTRPCRouter({
       });
 
       console.log(result);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-member-access
-      console.log(`Error: ${err.message}`);
+    } catch (err: unknown) {
+      console.log(err);
     }
   }),
 
