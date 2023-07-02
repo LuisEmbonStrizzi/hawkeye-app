@@ -118,13 +118,15 @@ def main(frame):
                 casiCentro = max(contornos, key=cv2.contourArea)
                 ((x, y), radio) = cv2.minEnclosingCircle(casiCentro)
                 M = cv2.moments(casiCentro)
-                if M["m00"] > 0: centro = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), int(radio)
+                if M["m00"] > 0: 
+                    centro = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), int(radio)
+                    centroConDecimales = (M["m10"] / M["m00"], M["m01"] / M["m00"]), radio
                 primeraVez = False
                 #preCentro = centro
                 TiempoDeteccionUltimaPelota = 0
                 TiempoTresCentrosConsecutivos = 0
 
-                if centro is not None: ultimosCentros.appendleft(centro)
+                if centro is not None: ultimosCentros.appendleft(centroConDecimales)
 
             # Si se detectó un centro hace menos de 0.3 segundos
             else:
@@ -135,11 +137,13 @@ def main(frame):
                 if casiCentro is not None:
                     ((x, y), radio) = cv2.minEnclosingCircle(casiCentro)
                     M = cv2.moments(casiCentro)
-                    if M["m00"] > 0: centro = [int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])], int(radio)
+                    if M["m00"] > 0: 
+                        centro = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), int(radio)
+                        centroConDecimales = (M["m10"] / M["m00"], M["m01"] / M["m00"]), radio
                     #preCentro = centro
                     TiempoTresCentrosConsecutivos += TiempoDeteccionUltimaPelota
                     TiempoDeteccionUltimaPelota = 0
-                    if centro is not None: ultimosCentros.appendleft(centro)
+                    if centro is not None: ultimosCentros.appendleft(centroConDecimales)
                 
                 # Si no se encuentra la pelota, se cambian algunas variables para poder determinar mejor su posición en los siguientes frame
                 else:
@@ -165,6 +169,8 @@ def main(frame):
 
     if numeroFrame == 117: cv2.imwrite("Frame117.jpg", frame)
 
+    ultFrames.appendleft(imutils.resize(frame, anchoOG, altoOG))
+
     if centro is None and preCentro is not None:
         centro = deteccionPorCirculos(preCentro, frame)
 
@@ -172,6 +178,7 @@ def main(frame):
             if seEstaMoviendo(ultimosCentrosCirculo) == False:
                 primeraVez = True
                 ultimosCentrosCirculo.clear()
+                cv2.imshow("6 Frames Antes", ultFrames[4])
         
     else: radioDeteccionPorCirculo = radio
 
@@ -738,7 +745,8 @@ def deteccionPorCirculos(preCentro, frame):
             cv2.circle(frame, (xr, yr), rr, (255, 255, 0), thickness = 2)
 
             centro = ((xr, yr), rr)
-            ultimosCentrosCirculo.appendleft(centro)
+            centroConDecimales = ((x1 + circuloDetectado[0] / 3, y1+ circuloDetectado[1] / 3), circuloDetectado[2] / 3)
+            ultimosCentrosCirculo.appendleft(centroConDecimales)
             radioDeteccionPorCirculo = circuloDetectado[2] / 3
             TiempoDeteccionUltimaPelota = 0
 
@@ -775,10 +783,26 @@ def deteccionPorCirculos(preCentro, frame):
 
     imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
     cv2.imshow("Imagen recortada", imagen_recortada)
+    
+    return centro
 
-    if centro is not None:
-        return centro
-    return None
+def deteccionNoEsLaPelota(ultCentros):
+    sumaRadios = 0
+    for i in range(len(ultCentros - 1)):
+        sumaRadios += abs(ultCentros[i][1] - ultCentros[i + 1][1])
+
+    if sumaRadios <= 0.5:
+        return True
+    
+    sumaEjeY = 0
+    for i in range(len(ultCentros - 1)):
+        sumaEjeY += abs(ultCentros[i][0][1] - ultCentros[i + 1][0][1])
+    
+    if sumaEjeY <= 15:
+        return True
+    
+    return False
+
 
 # Toma la cámara si no recibe video
 if not args.get("video", False):
@@ -820,6 +844,7 @@ pts_pelota_pers = deque(maxlen=args["buffer"])
 preCentro = None
 primeraVez = True
 centro = None
+centroConDecimales = None
 
 # Fps, frames totales y duración del video en segundos
 fps = int(vs.get(cv2.CAP_PROP_FPS))
@@ -889,7 +914,7 @@ previous_time = start_time
 aSaltear = 100
 aSaltear = 0
 
-frames_recortados = deque(maxlen=6)
+ultFrames = deque(maxlen=5)
 
 for _ in range(aSaltear):
     vs.read()
@@ -911,7 +936,6 @@ for _ in range(frame_count - aSaltear):
     if numeroFrame == aSaltear + 1:
         # Ancho y alto de la imagen
         altoOG, anchoOG = frame.shape[:2]
-
         
         ############ VER DE BORRAR ESTO
         estaCercaX = anchoOG * 10/100
