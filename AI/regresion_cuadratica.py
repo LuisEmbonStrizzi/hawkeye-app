@@ -145,24 +145,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-from numpy.polynomial import Polynomial
 
 # Función cuadrática
 def quadratic_func(x, a, b, c):
     return a * x ** 2 + b * x + c
 
 # Puntos de datos
-x_data = np.array([2901, 2800, 2730, 2690, 2656, 2656, 2633, 2616, 2605, 2605])
-y_data = np.array([1007, 956, 928, 906, 899, 899, 899, 898, 905, 887])
-
-
-# Ajustar una función cuadrática a los datos
-coefs = Polynomial.fit(range(len(x_data)), x_data, deg=2).convert().coef
-
-# Obtener el siguiente valor extrapolando la función cuadrática
-next_x = coefs[0] * len(x_data)**2 + coefs[1] * len(x_data) + coefs[2]
-
-print("Siguiente valor en el eje X:", next_x)
+x_data = np.array([2901, 2800, 2730, 2690, 2656, 2656, 2633, 2616, 2605])
+y_data = np.array([1007, 956, 928, 906, 899, 899, 899, 898, 905])
 
 # Ajuste de la curva cuadrática
 params, _ = curve_fit(quadratic_func, x_data, y_data)
@@ -183,7 +173,7 @@ for x, y_est in zip(x_data, y_estimated):
     print(f"({x}, {y_est})")
 
 # Predecir el siguiente valor
-next_x = x_data[-1] + 1
+next_x = x_data[-1] + (x_data[-1] - x_data[-2])
 next_y = quadratic_func(next_x, a, b, c)
 print(f"\nSiguiente valor estimado: ({next_x}, {next_y})")
 

@@ -5,6 +5,7 @@ import cv2
 import imutils
 import time
 from tqdm import tqdm
+from scipy.optimize import curve_fit
 
 # Argumentos del programa
 ap = argparse.ArgumentParser()
@@ -169,14 +170,16 @@ def main(frame):
 
     if numeroFrame == 117: cv2.imwrite("Frame117.jpg", frame)
 
-    ultFrames.appendleft(imutils.resize(frame, anchoOG, altoOG))
+    #ultFrames.appendleft(imutils.resize(frame, anchoOG, altoOG))
+    ultFrames.appendleft(frame)
 
     if centro is None and preCentro is not None:
         centro = deteccionPorCirculos(preCentro, frame)
 
         if len(ultimosCentrosCirculo) == 5:
             if seEstaMoviendo(ultimosCentrosCirculo) == False:
-                primeraVez = True
+                print("No se esta moviendo", ultimosCentrosCirculo)
+                #primeraVez = True
                 ultimosCentrosCirculo.clear()
                 cv2.imshow("6 Frames Antes", ultFrames[4])
         
@@ -745,7 +748,8 @@ def deteccionPorCirculos(preCentro, frame):
             cv2.circle(frame, (xr, yr), rr, (255, 255, 0), thickness = 2)
 
             centro = ((xr, yr), rr)
-            centroConDecimales = ((x1 + circuloDetectado[0] / 3, y1+ circuloDetectado[1] / 3), circuloDetectado[2] / 3)
+            centroConDecimales = ((x1 + circuloDetectado[0] / 3, y1 + circuloDetectado[1] / 3), circuloDetectado[2] / 3)
+            print("Centro con decimales", centroConDecimales)
             ultimosCentrosCirculo.appendleft(centroConDecimales)
             radioDeteccionPorCirculo = circuloDetectado[2] / 3
             TiempoDeteccionUltimaPelota = 0
@@ -803,6 +807,29 @@ def deteccionNoEsLaPelota(ultCentros):
     
     return False
 
+# Función cuadrática
+def quadratic_func(x, a, b, c):
+        return a * x ** 2 + b * x + c
+
+def regresionCuadratica(ultCentros):
+    # Puntos de datos
+    #x_data = np.array([2901, 2800, 2730, 2690, 2656, 2656, 2633, 2616, 2605, 2605])
+    #y_data = np.array([1007, 956, 928, 906, 899, 899, 899, 898, 905, 887])
+
+    x_data = np.array(sublista[0][0] for sublista in ultCentros)
+    y_data = np.array(sublista[0][1] for sublista in ultCentros)
+
+    # Ajuste de la curva cuadrática
+    params, _ = curve_fit(quadratic_func, x_data, y_data)
+
+    # Parámetros de la regresión cuadrática
+    a, b, c = params
+
+    # Predecir el siguiente valor
+    next_x = x_data[-1] + (x_data[-1] - x_data[-2])
+    next_y = quadratic_func(next_x, a, b, c)
+
+    return next_x, next_y
 
 # Toma la cámara si no recibe video
 if not args.get("video", False):
