@@ -178,7 +178,7 @@ def main(frame):
 
         if len(ultimosCentrosCirculo) == 5:
             if seEstaMoviendo(ultimosCentrosCirculo) == False:
-                print("No se esta moviendo", ultimosCentrosCirculo)
+                #print("No se esta moviendo", ultimosCentrosCirculo)
                 #primeraVez = True
                 ultimosCentrosCirculo.clear()
                 cv2.imshow("6 Frames Antes", ultFrames[4])
@@ -505,9 +505,15 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada):
         else:
             x, y, radius = contorno
             #print("Contorno", contorno)
-            if numeroFrame == 53: cv2.imwrite("imagen_recortada53.png", imagen_recortada)
-            if abs(radius - pre_centro[1]) > 15 and count <= 0.5:
-                continue
+            if numeroFrame > 52 and numeroFrame < 57: 
+                cv2.imwrite("imagen_recortada55.png", imagen_recortada)
+                print("X, y, radius", x, y, radius)
+                if abs(radius - 15) > 15 and count <= 0.5:
+                    continue
+            else:
+                if abs(radius - pre_centro[1]) > 15 and count <= 0.5:
+                    continue
+            print("X, y, radius", x, y, radius)
             cv2.circle(imagen_recortada, (int(x), int(y)), int(radius + 20), (255, 255, 255), 5)
             cnts_pts.append(contorno)
     if cnts_pts != []:
@@ -787,7 +793,7 @@ def deteccionPorCirculos(preCentro, frame):
 
     imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
     cv2.imshow("Imagen recortada", imagen_recortada)
-    
+
     return centro
 
 def deteccionNoEsLaPelota(ultCentros):
