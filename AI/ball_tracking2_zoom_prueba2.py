@@ -37,27 +37,29 @@ def main(frame):
     global casiCentro
     global numeroFrame
     global radioDeteccionPorCirculo
+    global circulosAIgnorar
 
     # Agrandamos el frame para ver más la pelota
     frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
 
-    if (numeroFrame == 1 or numeroFrame == 2 or numeroFrame == 3 or numeroFrame == 4 or numeroFrame == 5):
-        # Hacemos una copia del frame
-        frame2 = frame
+    if circulosAIgnorar is None:
+        if (numeroFrame == 1 or numeroFrame == 2 or numeroFrame == 3 or numeroFrame == 4 or numeroFrame == 5):
+            # Hacemos una copia del frame
+            frame2 = frame
 
-        # Agrandamos el frame para ver más la pelota
-        frame2 = imutils.resize(frame2, frame2.shape[1] * resizer, frame2.shape[0] * resizer)
+            # Agrandamos el frame para ver más la pelota
+            frame2 = imutils.resize(frame2, frame2.shape[1] * resizer, frame2.shape[0] * resizer)
 
-        # Convertir la imagen a escala de grises
-        imagen_gris2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+            # Convertir la imagen a escala de grises
+            imagen_gris2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
 
-        # Aplicar un suavizado si es necesario
-        blurred2 = cv2.GaussianBlur(imagen_gris2, (11, 11), 0)
+            # Aplicar un suavizado si es necesario
+            blurred2 = cv2.GaussianBlur(imagen_gris2, (11, 11), 0)
 
-        # Buscamos los círculos en la imágen
-        circles = cv2.HoughCircles(blurred2, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius=5, maxRadius=100)
+            # Buscamos los círculos en la imágen
+            circles = cv2.HoughCircles(blurred2, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius=5, maxRadius=100)
 
-        circulosInmoviles(circles)
+            circulosInmoviles(circles)
 
     # Cámara lenta para mayor análisis
     #cv2.waitKey(100)
@@ -881,7 +883,7 @@ def circulosInmoviles(circles):
         for circulo in circles[0]:
             if circulo in listaCirculosNoSeMueven1 and circulo in listaCirculosNoSeMueven2 and circulo in listaCirculosNoSeMueven3 and circulo in listaCirculosNoSeMueven4:
                 circulosGlobalesInmoviles.append(circulo)
-                cv2.circle(frame, (circulo[0] // resizer, circulo[1] // resizer), circulo[2] // resizer, (0, 0, 255), thickness = 2)
+                cv2.circle(frame, (int(circulo[0] / resizer), int(circulo[1] / resizer)), int(circulo[2] / resizer), (0, 0, 255), thickness = 2)
         for circulo in circulosGlobalesInmoviles:
             print(circulo)
         listaCirculosNoSeMueven1 = []
@@ -1032,6 +1034,18 @@ listaCirculosNoSeMueven3 = []
 listaCirculosNoSeMueven4 = []
 
 circulosGlobalesInmoviles = []
+
+ruta_archivo = "circulosIgnorarInkedInked.txt"
+
+circulosAIgnorar = []
+
+# Abrir el archivo en modo de lectura
+with open(ruta_archivo, "r") as archivo:
+    # Leer el contenido del archivo
+    contenido = archivo.read()
+    
+    # Procesar el contenido y asignarlo a la lista
+    circulosAIgnorar = contenido.splitlines()  # Suponiendo que cada línea del archivo corresponde a un elemento de la lista
 
 # Se corre el for la cantidad de frames que contiene el video
 for _ in range(frame_count - aSaltear):
