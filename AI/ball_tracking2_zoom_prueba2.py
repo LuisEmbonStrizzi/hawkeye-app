@@ -42,6 +42,23 @@ def main(frame):
     # Agrandamos el frame para ver más la pelota
     frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
 
+    if numeroFrame == 52:
+        # Agrandamos el frame para ver más la pelota
+        frame2 = frame
+        frame2 = imutils.resize(frame2, frame2.shape[1] * resizer, frame.shape[0] * resizer)
+
+        # Convertir la imagen a escala de grises
+        imagen_gris = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+
+        # Aplicar un suavizado si es necesario
+        blurred = cv2.GaussianBlur(imagen_gris, (11, 11), 0)
+
+        # Buscamos los círculos en la imágen
+        circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius=5, maxRadius=100)
+
+        for circle in circles[0]:
+            cv2.circle(frame, (int(circle[0] / resizer), int(circle[1] / resizer)), int(circle[2] / resizer), (255, 255, 255), 2)
+
     if circulosAIgnorar is None:
         if (numeroFrame == 1 or numeroFrame == 2 or numeroFrame == 3 or numeroFrame == 4 or numeroFrame == 5):
             # Hacemos una copia del frame
@@ -789,22 +806,6 @@ def deteccionPorCirculos(preCentro, frame):
 
     else: radioDeteccionPorCirculo = radio
 
-    if numeroFrame == 52:
-        # Agrandamos el frame para ver más la pelota
-        frame = imutils.resize(frame, frame.shape[1] * resizer, frame.shape[0] * resizer)
-
-        # Convertir la imagen a escala de grises
-        imagen_gris = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-        # Aplicar un suavizado si es necesario
-        blurred = cv2.GaussianBlur(imagen_gris, (11, 11), 0)
-
-        # Buscamos los círculos en la imágen
-        circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius=5, maxRadius=100)
-
-        for circle in circles[0]:
-            cv2.circle(frame, (int(circle[0] / resizer), int(circle[1] / resizer)), int(circle[2] / resizer), (255, 255, 255), 2)
-
     # Si se encuentran círculos, dibújalos en la imagen original
     if circles is not None:
         circles = np.round(circles[0, :]).astype(int)
@@ -890,23 +891,17 @@ def circulosInmoviles(circles):
     
     if numeroFrame == 1:
         listaCirculosNoSeMueven1 = circles
-        print("Lista 1", listaCirculosNoSeMueven1)
     elif numeroFrame == 2:
         listaCirculosNoSeMueven2 = circles
-        print("Lista 2", listaCirculosNoSeMueven2)
     elif numeroFrame == 3:
         listaCirculosNoSeMueven3 = circles
-        print("Lista 3", listaCirculosNoSeMueven3)
     elif numeroFrame == 4:
         listaCirculosNoSeMueven4 = circles
-        print("Lista 4", listaCirculosNoSeMueven4)
     else: 
         for circulo in circles[0]:
             if circulo in listaCirculosNoSeMueven1 and circulo in listaCirculosNoSeMueven2 and circulo in listaCirculosNoSeMueven3 and circulo in listaCirculosNoSeMueven4:
                 circulosGlobalesInmoviles.append(circulo)
                 cv2.circle(frame, (int(circulo[0] / resizer), int(circulo[1] / resizer)), int(circulo[2] / resizer), (0, 0, 255), thickness = 2)
-        for circulo in circulosGlobalesInmoviles:
-            print(circulo)
         listaCirculosNoSeMueven1 = []
         listaCirculosNoSeMueven2 = []
         listaCirculosNoSeMueven3 = []
