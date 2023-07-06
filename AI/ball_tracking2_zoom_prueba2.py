@@ -152,7 +152,7 @@ def main(frame):
             # Si se detectó un centro hace menos de 0.3 segundos
             else:
                 # Corre la función tp_fix para determinar cual es el contorno detectado que está mas cerca de la pelota del frame anterior, es decir, encuentra la peltoa a través de su posición en el frame anterior
-                if preCentro is not None: casiCentro = tp_fix(contornos, preCentro, TiempoDeteccionUltimaPelota, False, None)
+                if preCentro is not None: casiCentro = tp_fix(contornos, preCentro, TiempoDeteccionUltimaPelota, False, None, None)
                 
                 # Encuentra la posición x, y del contorno más cercano a la pelota del frame anterior. Determina el centro de la pelota
                 if casiCentro is not None:
@@ -511,7 +511,7 @@ def seEstaMoviendo(ultCentros):
     return False
 
 # Función que arregla el problema de "la zapatilla verde"
-def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada):
+def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada, xy1):
     cnts_pts = []
     medidorX = 100
     medidorY = 103
@@ -523,11 +523,13 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada):
                 continue
             cnts_pts.append(contorno)
         else:
-            print("Contorno", contorno)
-            #print("Ciruclos Ignorar", circulosAIgnorar)
-            if contorno not in circulosAIgnorar:
-                x, y, radius = contorno
-                #print("Contorno", contorno)
+            x, y, radius = contorno
+            ignorar = False
+            for circulo in circulosAIgnorar:
+                if xy1[0] + x / resizer == circulo[0] and xy1[1] + y / resizer == circulo[1] and radius / resizer == circulo[2]: 
+                    ignorar = True
+                    break
+            if not ignorar:
                 if numeroFrame > 52 and numeroFrame < 57: 
                     cv2.imwrite("imagen_recortada55.png", imagen_recortada)
                     #print("X, y, radius", x, y, radius)
@@ -765,14 +767,14 @@ def deteccionPorCirculos(preCentro, frame):
     centro = None
 
     if circles is not None:
-        circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada)
+        circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada, (x1, y1))
         if numeroFrame == 53: cv2.imwrite("Frame53.jpg", frame)
         if circuloDetectado is not None:
             cv2.circle(imagen_recortada, (int(circuloDetectado[0]), int(circuloDetectado[1])), 50, (255, 255, 0), thickness = 2)
 
-            xr = int(x1 + circuloDetectado[0] / 3)
-            yr = int(y1 + circuloDetectado[1] / 3)
-            rr = int(circuloDetectado[2] / 3)
+            xr = int(x1 + circuloDetectado[0] / resizer)
+            yr = int(y1 + circuloDetectado[1] / resizer)
+            rr = int(circuloDetectado[2] / resizer)
 
             cv2.circle(frame, (xr, yr), rr, (255, 255, 0), thickness = 2)
 
@@ -787,6 +789,22 @@ def deteccionPorCirculos(preCentro, frame):
 
     else: radioDeteccionPorCirculo = radio
 
+    if numeroFrame == 52:
+        # Agrandamos el frame para ver más la pelota
+        frame = imutils.resize(frame, frame.shape[1] * resizer, frame.shape[0] * resizer)
+
+        # Convertir la imagen a escala de grises
+        imagen_gris = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        # Aplicar un suavizado si es necesario
+        blurred = cv2.GaussianBlur(imagen_gris, (11, 11), 0)
+
+        # Buscamos los círculos en la imágen
+        circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius=5, maxRadius=100)
+
+        for circle in circles[0]:
+            cv2.circle(frame, (int(circle[0] / resizer), int(circle[1] / resizer)), int(circle[2] / resizer), (255, 255, 255), 2)
+
     # Si se encuentran círculos, dibújalos en la imagen original
     if circles is not None:
         circles = np.round(circles[0, :]).astype(int)
@@ -794,7 +812,7 @@ def deteccionPorCirculos(preCentro, frame):
             #if abs(r - radioDeteccionPorCirculo * 3) < 10: cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
             cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
         
-    a = False
+    a = True
     
     if a:
         pausado = True
@@ -1046,9 +1064,18 @@ circulosAIgnorar = []
 with open(ruta_archivo, "r") as archivo:
     # Leer el contenido del archivo
     contenido = archivo.read()
-    
+
     # Procesar el contenido y asignarlo a la lista
-    circulosAIgnorar = contenido.splitlines()  # Suponiendo que cada línea del archivo corresponde a un elemento de la lista
+    circulosAIgnorar1 = contenido.splitlines()  # Suponiendo que cada línea del archivo corresponde a un elemento de la lista
+
+    for i in circulosAIgnorar1:
+        i = i.strip("[]")  # Elimina los corchetes del inicio y el final de la cadena
+
+        lista_str = i.split()  # Divide la cadena en una lista de strings
+
+        lista_enteros = [float(num) for num in lista_str]  # Convierte cada string en un float y luego en un entero
+
+        circulosAIgnorar.append(lista_enteros)
 
 # Se corre el for la cantidad de frames que contiene el video
 for _ in range(frame_count - aSaltear):
@@ -1060,6 +1087,9 @@ for _ in range(frame_count - aSaltear):
     # Toma el frame del video
     frame = vs.read()
     frame = frame[1] if args.get("video", False) else frame
+
+    #for circulo in circulosAIgnorar:
+        #cv2.circle(frame, (int(circulo[0] / resizer), int(circulo[1] / resizer)), int(circulo[2] / resizer), (255, 255, 255), 2)
 
     if numeroFrame == aSaltear + 1:
         # Ancho y alto de la imagen
