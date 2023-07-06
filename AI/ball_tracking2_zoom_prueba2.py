@@ -523,19 +523,22 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada):
                 continue
             cnts_pts.append(contorno)
         else:
-            x, y, radius = contorno
-            #print("Contorno", contorno)
-            if numeroFrame > 52 and numeroFrame < 57: 
-                cv2.imwrite("imagen_recortada55.png", imagen_recortada)
+            print("Contorno", contorno)
+            #print("Ciruclos Ignorar", circulosAIgnorar)
+            if contorno not in circulosAIgnorar:
+                x, y, radius = contorno
+                #print("Contorno", contorno)
+                if numeroFrame > 52 and numeroFrame < 57: 
+                    cv2.imwrite("imagen_recortada55.png", imagen_recortada)
+                    #print("X, y, radius", x, y, radius)
+                    if abs(radius - 15) > 15 and count <= 0.5:
+                        continue
+                else:
+                    if abs(radius - pre_centro[1]) > 15 and count <= 0.5:
+                        continue
                 #print("X, y, radius", x, y, radius)
-                if abs(radius - 15) > 15 and count <= 0.5:
-                    continue
-            else:
-                if abs(radius - pre_centro[1]) > 15 and count <= 0.5:
-                    continue
-            #print("X, y, radius", x, y, radius)
-            cv2.circle(imagen_recortada, (int(x), int(y)), int(radius + 20), (255, 255, 255), 5)
-            cnts_pts.append(contorno)
+                cv2.circle(imagen_recortada, (int(x), int(y)), int(radius + 20), (255, 255, 255), 5)
+                cnts_pts.append(contorno)
     if cnts_pts != []:
         # Devuelve la función cualEstaMasCerca con los parametros obtenidos en la función
         return cualEstaMasCerca(pre_centro, cnts_pts, circulo)
