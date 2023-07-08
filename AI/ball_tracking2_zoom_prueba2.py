@@ -42,22 +42,24 @@ def main(frame):
     # Agrandamos el frame para ver más la pelota
     frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
 
-    if numeroFrame == 52:
+    if numeroFrame == 2:
         # Agrandamos el frame para ver más la pelota
-        frame2 = frame
-        frame2 = imutils.resize(frame2, frame2.shape[1] * resizer, frame.shape[0] * resizer)
+        frame3 = frame
+        frame3 = imutils.resize(frame3, frame3.shape[1] * resizer, frame3.shape[0] * resizer)
 
         # Convertir la imagen a escala de grises
-        imagen_gris = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+        imagen_gris3 = cv2.cvtColor(frame3, cv2.COLOR_BGR2GRAY)
 
         # Aplicar un suavizado si es necesario
-        blurred = cv2.GaussianBlur(imagen_gris, (11, 11), 0)
+        blurred3 = cv2.GaussianBlur(imagen_gris3, (11, 11), 0)
 
         # Buscamos los círculos en la imágen
-        circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius=5, maxRadius=100)
+        circles3 = cv2.HoughCircles(blurred3, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius=5, maxRadius=100)
 
-        for circle in circles[0]:
-            cv2.circle(frame, (int(circle[0] / resizer), int(circle[1] / resizer)), int(circle[2] / resizer), (255, 255, 255), 2)
+        for circle in circles3[0]:
+            cv2.circle(frame3, (int(circle[0]), int(circle[1])), int(circle[2]), (255, 255, 255), 2)
+        
+        cv2.imwrite("Todos_Circulos_Frame_2.jpg", frame3)
 
     if circulosAIgnorar is None:
         if (numeroFrame == 1 or numeroFrame == 2 or numeroFrame == 3 or numeroFrame == 4 or numeroFrame == 5):
@@ -813,7 +815,7 @@ def deteccionPorCirculos(preCentro, frame):
             #if abs(r - radioDeteccionPorCirculo * 3) < 10: cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
             cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
         
-    a = True
+    a = False
     
     if a:
         pausado = True
