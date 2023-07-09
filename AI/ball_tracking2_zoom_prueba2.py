@@ -42,7 +42,7 @@ def main(frame):
     # Agrandamos el frame para ver más la pelota
     frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
 
-    if numeroFrame == 2:
+    if numeroFrame == 100:
         # Agrandamos el frame para ver más la pelota
         frame3 = frame
         frame3 = imutils.resize(frame3, frame3.shape[1] * resizer, frame3.shape[0] * resizer)
@@ -59,7 +59,15 @@ def main(frame):
         for circle in circles3[0]:
             cv2.circle(frame3, (int(circle[0]), int(circle[1])), int(circle[2]), (255, 255, 255), 2)
         
-        cv2.imwrite("Todos_Circulos_Frame_2.jpg", frame3)
+        cv2.imwrite("Todos_Circulos_Frame_5.jpg", frame3)
+
+    if numeroFrame == 1:
+        frame3 = frame
+        frame3 = imutils.resize(frame3, frame3.shape[1] * resizer, frame3.shape[0] * resizer)
+        for circle in circulosAIgnorar:
+            cv2.circle(frame3, (int(circle[0]), int(circle[1])), int(circle[2]), (255, 255, 255), 2)
+        cv2.imwrite("Todos_Circulos.jpg", frame3)
+
 
     if circulosAIgnorar is None:
         if (numeroFrame == 1 or numeroFrame == 2 or numeroFrame == 3 or numeroFrame == 4 or numeroFrame == 5):
