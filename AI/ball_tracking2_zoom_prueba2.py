@@ -553,7 +553,7 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada, xy1):
             x, y, radius = contorno
             ignorar = False
             for circulo in circulosAIgnorar:
-                if xy1[0] + x / resizer == circulo[0] and xy1[1] + y / resizer == circulo[1] and radius / resizer == circulo[2]: 
+                if xy1[0] + x == circulo[0] and xy1[1] + y == circulo[1] and radius == circulo[2]: 
                     ignorar = True
                     break
             if not ignorar:
