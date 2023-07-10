@@ -38,6 +38,8 @@ def main(frame):
     global numeroFrame
     global radioDeteccionPorCirculo
     global circulosAIgnorar
+    global preCentroConDecimales
+    global centroConDecimales
 
     # Agrandamos el frame para ver más la pelota
     frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
@@ -152,11 +154,17 @@ def main(frame):
     # Cada 5 segundos elimina los contornos que no son tan frecuentes, es decir, los contornos parecidos que no aparecen tanto a lo largo del video
     if (TiempoSegundosEmpezoVideo % 5 == 0):
         eliminarContornosInservibles(todosContornos)
+
+    if len(ultimosCentros) == 10 and deteccionNoEsLaPelota(ultimosCentros):
+        primeraVez = True
+        preCentro = None
+        TiempoDeteccionUltimaPelota += 1/fps
+        TiempoTresCentrosConsecutivos = 0
     
     if len(contornos) > 0:
         # Vemos cuales son los contornos casi inmóviles y si lo que considera que es la pelota no se está moviendo (o sea no es la pelota) se ignoran estos contornos.
         contornosQuietos(contornos, todosContornos, contornosIgnorar)
-        if len(ultimosCentros) == 5 and seEstaMoviendo(ultimosCentros) == False:
+        if len(ultimosCentros) >= 5 and seEstaMoviendo(ultimosCentros) == False:
             contornos = ignorarContornosQuietos(contornos, contornosIgnorar)
 
         if len(contornos) > 0:
@@ -228,7 +236,7 @@ def main(frame):
                 #print("No se esta moviendo", ultimosCentrosCirculo)
                 #primeraVez = True
                 ultimosCentrosCirculo.clear()
-                cv2.imshow("6 Frames Antes", ultFrames[4])
+                #cv2.imshow("6 Frames Antes", ultFrames[4])
         
     else: radioDeteccionPorCirculo = radio
 
@@ -390,7 +398,9 @@ def main(frame):
     if afterVelocidad and centro is not None:
         afterVelocidad = False
 
-    if centro is not None: preCentro = centro
+    if centro is not None: 
+        preCentro = centro
+        preCentroConDecimales = centroConDecimales
 
     print("Centro", centro)
     #print("Radio de la pelota", radio)
@@ -553,18 +563,18 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada, xy1):
             x, y, radius = contorno
             ignorar = False
             for circulo in circulosAIgnorar:
-                if xy1[0] + x == circulo[0] and xy1[1] + y == circulo[1] and radius == circulo[2]: 
+                if xy1[0] * resizer + x == circulo[0] and xy1[1] * resizer + y == circulo[1] and radius == circulo[2]:
                     ignorar = True
                     break
             if not ignorar:
-                if numeroFrame > 52 and numeroFrame < 57: 
-                    cv2.imwrite("imagen_recortada55.png", imagen_recortada)
+                #if numeroFrame > 52 and numeroFrame < 57: 
+                    #cv2.imwrite("imagen_recortada55.png", imagen_recortada)
                     #print("X, y, radius", x, y, radius)
-                    if abs(radius - 15) > 15 and count <= 0.5:
-                        continue
-                else:
-                    if abs(radius - pre_centro[1]) > 15 and count <= 0.5:
-                        continue
+                    #if abs(radius - 15) > 15 and count <= 0.5:
+                        #continue
+                #else:
+                if abs(radius - pre_centro[1]) > 15 and count <= 0.5:
+                    continue
                 #print("X, y, radius", x, y, radius)
                 cv2.circle(imagen_recortada, (int(x), int(y)), int(radius + 20), (255, 255, 255), 5)
                 cnts_pts.append(contorno)
@@ -760,6 +770,9 @@ def deteccionPorCirculos(preCentro, frame):
     global radioDeteccionPorCirculo
     global centro
     global ultimosCentrosCirculo
+    global centroConDecimales
+
+    if numeroFrame == 52: cv2.imwrite("Frame52aa.jpg", frame)
 
     #greenLower2 = np.array([29, 15, 100], dtype=np.uint8)
     #greenUpper2 = np.array([200, 255, 255], dtype=np.uint8)
@@ -795,7 +808,7 @@ def deteccionPorCirculos(preCentro, frame):
 
     if circles is not None:
         circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada, (x1, y1))
-        if numeroFrame == 53: cv2.imwrite("Frame53.jpg", frame)
+        if numeroFrame == 52: cv2.imwrite("Frame52.jpg", frame)
         if circuloDetectado is not None:
             cv2.circle(imagen_recortada, (int(circuloDetectado[0]), int(circuloDetectado[1])), 50, (255, 255, 0), thickness = 2)
 
@@ -822,6 +835,7 @@ def deteccionPorCirculos(preCentro, frame):
         for (x, y, r) in circles:
             #if abs(r - radioDeteccionPorCirculo * 3) < 10: cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
             cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
+        if numeroFrame == 52: cv2.imwrite("imagen_recortada52.png", imagen_recortada)
         
     a = False
     
@@ -853,14 +867,14 @@ def deteccionPorCirculos(preCentro, frame):
 
 def deteccionNoEsLaPelota(ultCentros):
     sumaRadios = 0
-    for i in range(len(ultCentros - 1)):
+    for i in range(len(ultCentros) - 1):
         sumaRadios += abs(ultCentros[i][1] - ultCentros[i + 1][1])
 
     if sumaRadios <= 0.5:
         return True
     
     sumaEjeY = 0
-    for i in range(len(ultCentros - 1)):
+    for i in range(len(ultCentros) - 1):
         sumaEjeY += abs(ultCentros[i][0][1] - ultCentros[i + 1][0][1])
     
     if sumaEjeY <= 15:
@@ -974,6 +988,7 @@ pts_pelota_pers = deque(maxlen=args["buffer"])
 
 # preCentro es el centro de la pelota del frame anterior
 preCentro = None
+preCentroConDecimales = None
 primeraVez = True
 centro = None
 centroConDecimales = None
@@ -995,7 +1010,7 @@ TiempoTresCentrosConsecutivos = 0
 # TiempoSegundosEmpezoVideo cuenta cuanto tiempo pasó en segundos desde que empezó el video 
 TiempoSegundosEmpezoVideo = 0
 
-ultimosCentros = deque(maxlen=5)
+ultimosCentros = deque(maxlen=10)
 ultimosCentrosCirculo = deque(maxlen=5)
 
 
