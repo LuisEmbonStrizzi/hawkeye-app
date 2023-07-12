@@ -1,6 +1,7 @@
 #include <iostream>
 #include <opencv4/opencv2/highgui.hpp>
 #include <opencv4/opencv2/imgproc/imgproc.hpp>
+#include <immintrin.h>
 
 extern "C"
 {
@@ -33,6 +34,27 @@ extern "C"
 
         // Copiar los datos de la imagen modificada al nuevo bloque de memoria
         std::memcpy(imagen_modificada_data, mask.data, alto_OG * resizer * ancho_OG * resizer);
+
+        // Utilizar instrucciones AVX2 para copiar los datos de manera eficiente
+        int rows = mask.rows;
+        int cols = mask.cols;
+        int dstStep = cols;
+        int srcStep = mask.step;
+
+        for (int i = 0; i < rows; ++i)
+        {
+            const uchar *srcData = mask.ptr<uchar>(i);
+            uchar *dstData = imagen_modificada_data + i * dstStep;
+
+            for (int j = 0; j < cols; j += 32)
+            {
+                // Carga de 32 píxeles de la imagen mask
+                __m256i pixels = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(srcData + j));
+
+                // Almacena los resultados en imagen_modificada_data
+                _mm256_storeu_si256(reinterpret_cast<__m256i*>(dstData + j), pixels);
+            }
+        }
 
         return imagen_modificada_data;
     }

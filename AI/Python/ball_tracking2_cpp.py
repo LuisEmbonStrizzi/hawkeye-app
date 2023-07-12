@@ -648,4 +648,4 @@ def tracking(url):
     return pts_piques_finales
 
 if __name__ == '__main__':
-    tracking("./InkedInkedTennisBrothersVideo1080p.mp4")
+    tracking("../InkedInkedTennisBrothersVideo1080p.mp4")
