@@ -3,7 +3,7 @@ import numpy as np
 import ctypes
 
 def analizarFrame (frame):
-    cpplibrary = ctypes.CDLL("./cpplibrary.so", winmode=0)
+    cpplibrary = ctypes.CDLL("../C++/cpplibrary.so", winmode=0)
     
     resizer = 3
 
