@@ -163,6 +163,14 @@ def main(frame):
         TiempoTresCentrosConsecutivos = 0
     
     if len(contornos) > 0:
+        for contorno in contornos:
+            ((x, y), radio) = cv2.minEnclosingCircle(contorno)
+            M = cv2.moments(contorno)
+            if M["m00"] > 0: centroConDecimales = (M["m10"] / M["m00"], M["m01"] / M["m00"]), radio
+            deteccionColorEsteFrame.append(centroConDecimales)
+        
+        deteccionColorUltimosFrames.append([deteccionColorEsteFrame])
+
         # Vemos cuales son los contornos casi inmóviles y si lo que considera que es la pelota no se está moviendo (o sea no es la pelota) se ignoran estos contornos.
         contornosQuietos(contornos, todosContornos, contornosIgnorar)
         if len(ultimosCentros) >= 5 and seEstaMoviendo(ultimosCentros) == False:
@@ -235,14 +243,12 @@ def main(frame):
     if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frame))
 
     if centro is None and preCentro is not None:
-        centro = deteccionPorCirculos(preCentro, frame, 200)
+        centro = deteccionPorCirculos(preCentro, frame, recorteCerca, False)
 
         if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frame))
 
         if len(ultimosCentrosGlobales) == 12 and len(ultimosCentrosCirculo) >= 5:
             if seEstaMoviendo(ultimosCentrosCirculo) == False or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5):
-                print("SeEstaMoviendo", seEstaMoviendo(ultimosCentrosCirculo))
-                print("DeteccionNoEsLaPelota", deteccionNoEsLaPelota(ultimosCentrosCirculo, 5))
                 corregirPosicionPelota(ultimosCentrosGlobales)
                 #primeraVez = True
                 ultimosCentrosCirculo.clear()
@@ -591,7 +597,7 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada, xy1):
                     #print("X, y, radius", x, y, radius)
                     #if abs(radius - 15) > 15 and count <= 0.5:
                         #continue
-                #else:
+                #else:  
                 if abs(radius - pre_centro[1]) > 15 and count <= 0.5:
                     continue
                 cv2.circle(imagen_recortada, (int(x), int(y)), int(radius + 20), (255, 255, 255), 5)
@@ -782,7 +788,7 @@ def estaEnCancha(centro_pelota, perspectiva):
         return False
     return None
 
-def deteccionPorCirculos(preCentro, frame, recorteCerca):
+def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     global primeraVez
     global TiempoDeteccionUltimaPelota
     global radioDeteccionPorCirculo
@@ -804,7 +810,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca):
     y2 = min(preCentro[0][1] + recorteCerca, altoOG * 3)
 
     # Recortar la región de interés de la imagen original
-    imagen_recortada = frame[y1:y2, x1:x2]
+    imagen_recortada = frame[int(y1):int(y2), int(x1):int(x2)]
 
     # Agrandamos el frame para ver más la pelota
     imagen_recortada = imutils.resize(imagen_recortada, imagen_recortada.shape[1] * resizer, imagen_recortada.shape[0] * resizer)
@@ -823,6 +829,8 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca):
     #circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=1, maxRadius=100)
     #circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=3, maxRadius=100)
     circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius=5, maxRadius=100)
+
+    if correccion: return circles
 
     centro = None
 
@@ -851,13 +859,13 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca):
             radioDeteccionPorCirculo = radio
             if not checkRecorteCerca:
                 checkRecorteCerca = True
-                deteccionPorCirculos(preCentro, frame, 300)
+                deteccionPorCirculos(preCentro, frame, recorteCerca + 100, False)
 
     else: 
         radioDeteccionPorCirculo = radio
         if not checkRecorteCerca:
             checkRecorteCerca = True
-            deteccionPorCirculos(preCentro, frame, 300)
+            deteccionPorCirculos(preCentro, frame, recorteCerca + 100, False)
 
     # Si se encuentran círculos, dibújalos en la imagen original
     if circles is not None:
@@ -987,7 +995,11 @@ def corregirPosicionPelota(ultCentrosGlobales):
         diferenciaY = abs(centro1[0][1] - centro2[0][1])
     
     print("NumeroFramePelotaIncorrecta", numeroFramePelotaIncorrecta)
-
+    contador2 = numeroFramePelotaIncorrecta
+    for i in range(1, len(ultCentrosGlobales) - numeroFramePelotaIncorrecta + 1):
+        correccionUltimosCirculos.append([deteccionPorCirculos(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0], ultCentrosGlobales[contador2][2], i * 200, True)])
+        contador2 += 1
+        
 # Toma la cámara si no recibe video
 if not args.get("video", False):
     vs = cv2.VideoCapture(0)
@@ -1121,6 +1133,11 @@ ruta_archivo = "circulosIgnorarInkedInked.txt"
 circulosAIgnorar = []
 
 deteccionPorColor = None
+
+deteccionColorUltimosFrames = deque(maxlen=11)
+deteccionColorEsteFrame = []
+
+correccionUltimosCirculos = deque(maxlen=11)
 
 # Abrir el archivo en modo de lectura
 with open(ruta_archivo, "r") as archivo:
