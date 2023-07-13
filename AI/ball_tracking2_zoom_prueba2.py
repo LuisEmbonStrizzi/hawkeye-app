@@ -232,11 +232,17 @@ def main(frame):
     #ultFrames.appendleft(imutils.resize(frame, anchoOG, altoOG))
     ultFrames.appendleft(frame)
 
+    if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frame))
+
     if centro is None and preCentro is not None:
-        centro = deteccionPorCirculos(preCentro, frame, 90)
+        centro = deteccionPorCirculos(preCentro, frame, 200)
+
+        if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frame))
 
         if len(ultimosCentrosGlobales) == 12 and len(ultimosCentrosCirculo) >= 5:
             if seEstaMoviendo(ultimosCentrosCirculo) == False or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5):
+                print("SeEstaMoviendo", seEstaMoviendo(ultimosCentrosCirculo))
+                print("DeteccionNoEsLaPelota", deteccionNoEsLaPelota(ultimosCentrosCirculo, 5))
                 corregirPosicionPelota(ultimosCentrosGlobales)
                 #primeraVez = True
                 ultimosCentrosCirculo.clear()
@@ -414,7 +420,6 @@ def main(frame):
     if centro is not None: 
         preCentro = centro
         preCentroConDecimales = centroConDecimales
-        ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frame))
 
     print("Centro", centro)
     #print("Radio de la pelota", radio)
@@ -589,7 +594,6 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada, xy1):
                 #else:
                 if abs(radius - pre_centro[1]) > 15 and count <= 0.5:
                     continue
-                #print("X, y, radius", x, y, radius)
                 cv2.circle(imagen_recortada, (int(x), int(y)), int(radius + 20), (255, 255, 255), 5)
                 cnts_pts.append(contorno)
     if cnts_pts != []:
@@ -847,13 +851,13 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca):
             radioDeteccionPorCirculo = radio
             if not checkRecorteCerca:
                 checkRecorteCerca = True
-                deteccionPorCirculos(preCentro, frame, 200)
+                deteccionPorCirculos(preCentro, frame, 300)
 
     else: 
         radioDeteccionPorCirculo = radio
         if not checkRecorteCerca:
             checkRecorteCerca = True
-            deteccionPorCirculos(preCentro, frame, 200)
+            deteccionPorCirculos(preCentro, frame, 300)
 
     # Si se encuentran círculos, dibújalos en la imagen original
     if circles is not None:
@@ -871,7 +875,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca):
     if a:
         pausado = True
 
-        if numeroFrame > 0:
+        if numeroFrame > 40:
             while True:
                 # Verificar si se debe pausar la imagen
                 if pausado:
@@ -953,43 +957,36 @@ def circulosInmoviles(circles):
                 circulosGlobalesInmoviles.append(circulo)
                 cv2.circle(frame, (int(circulo[0] / resizer), int(circulo[1] / resizer)), int(circulo[2] / resizer), (0, 0, 255), thickness = 2)
 
-        pausado = True
-
-        while True:
-            # Verificar si se debe pausar la imagen
-            if pausado:
-                # Esperar hasta que se presione cualquier tecla
-                cv2.waitKey(0)
-                pausado = False
-            else:
-                # Esperar 1 milisegundo y obtener el código de tecla
-                key = cv2.waitKey(1)
-                
-                # Verificar si se debe pausar la imagen
-                if key == ord('p'):
-                    pausado = True
-                # Verificar si se debe salir del bucle
-                elif key == ord('q'):
-                    break
-
 def corregirPosicionPelota(ultCentrosGlobales):
     ultCentrosGlobales = list(ultCentrosGlobales)
     diferenciaX = abs(ultCentrosGlobales[0][0][0][0] - ultCentrosGlobales[1][0][0][0])
     diferenciaY = abs(ultCentrosGlobales[0][0][0][1] - ultCentrosGlobales[1][0][0][1])
     ultCentrosGlobales.pop(0)
 
+    contador = 0
+    for centro, deteccionPorColor, _ in ultCentrosGlobales:
+        contador += 1
+        print(contador, ": Centro", centro, "DetecionPorColor", deteccionPorColor)
+
     numeroFramePelotaIncorrecta = 0
+    # Intentamos detectar si el algortimo se rompió con respecto al círculo2 (centro2, deteciiionPorColor2, frame2)
     for (centro1, deteccionPorColor1, frame1), (centro2, deteccionPorColor2, frame2) in zip(ultCentrosGlobales, ultCentrosGlobales[1:]):
         numeroFramePelotaIncorrecta += 1
-        if abs(centro1[0][0] - centro2[0][0]) < 5 and diferenciaX > 5 and deteccionPorColor2 == False:
+        if abs(centro1[0][0] - centro2[0][0]) < 3 and diferenciaX > 5 and deteccionPorColor2 == False:
+            print("Centro1", centro1)
+            print("Centro2", centro2)
             break
-        elif abs(centro1[0][1] - centro2[0][1]) < 5 and diferenciaY > 5 and deteccionPorColor2 == False:
+        elif abs(centro1[0][1] - centro2[0][1]) < 3 and diferenciaY > 5 and deteccionPorColor2 == False:
             break
-        elif abs(centro1[0][0] - centro2[0][0]) - diferenciaX < 5 and deteccionPorColor2 == False:
+        elif abs(abs(centro1[0][0] - centro2[0][0]) - diferenciaX) > 50 and deteccionPorColor2 == False:
             break
-        elif abs(centro1[0][1] - centro2[0][1]) - diferenciaY < 5 and deteccionPorColor2 == False:
+        elif abs(abs(centro1[0][1] - centro2[0][1]) - diferenciaY) > 50 and deteccionPorColor2 == False:
             break
-        
+
+        diferenciaX = abs(centro1[0][0] - centro2[0][0])
+        diferenciaY = abs(centro1[0][1] - centro2[0][1])
+    
+    print("NumeroFramePelotaIncorrecta", numeroFramePelotaIncorrecta)
 
 # Toma la cámara si no recibe video
 if not args.get("video", False):
@@ -1092,7 +1089,7 @@ recorteCerca = 200
 recorteCerca = 150
 recorteCerca = 100
 recorteCerca = 90
-#recorteCerca = 200
+recorteCerca = 200
 
 checkRecorteCerca = False
 
