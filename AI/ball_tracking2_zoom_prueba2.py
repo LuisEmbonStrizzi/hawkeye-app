@@ -977,7 +977,7 @@ def corregirPosicionPelota(ultCentrosGlobales):
         print(contador, ": Centro", centro, "DetecionPorColor", deteccionPorColor)
 
     numeroFramePelotaIncorrecta = 0
-    # Intentamos detectar si el algortimo se rompió con respecto al círculo2 (centro2, deteciiionPorColor2, frame2)
+    # Intentamos detectar si el algortimo se rompió con respecto al círculo2 (centro2, deteccionPorColor2, frame2)
     for (centro1, deteccionPorColor1, frame1), (centro2, deteccionPorColor2, frame2) in zip(ultCentrosGlobales, ultCentrosGlobales[1:]):
         numeroFramePelotaIncorrecta += 1
         if abs(centro1[0][0] - centro2[0][0]) < 3 and diferenciaX > 5 and deteccionPorColor2 == False:
@@ -994,11 +994,16 @@ def corregirPosicionPelota(ultCentrosGlobales):
         diferenciaX = abs(centro1[0][0] - centro2[0][0])
         diferenciaY = abs(centro1[0][1] - centro2[0][1])
     
-    print("NumeroFramePelotaIncorrecta", numeroFramePelotaIncorrecta)
+    print("NumeroFramePelotaIncorrecta", numeroFramePelotaIncorrecta + 1)
     contador2 = numeroFramePelotaIncorrecta
     for i in range(1, len(ultCentrosGlobales) - numeroFramePelotaIncorrecta + 1):
         correccionUltimosCirculos.append([deteccionPorCirculos(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0], ultCentrosGlobales[contador2][2], i * 200, True)])
         contador2 += 1
+
+    print("len correcciónUltimosCirculos[0]", len(correccionUltimosCirculos[0][0][0]))
+    for i in correccionUltimosCirculos[0][0]:
+        print("I", i)
+    print("correcciónUltimosCirculos", correccionUltimosCirculos[0][0][0])
         
 # Toma la cámara si no recibe video
 if not args.get("video", False):
