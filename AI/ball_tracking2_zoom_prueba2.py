@@ -600,7 +600,7 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada, xy1):
                 #else:  
                 if abs(radius - pre_centro[1]) > 15 and count <= 0.5:
                     continue
-                cv2.circle(imagen_recortada, (int(x), int(y)), int(radius + 20), (255, 255, 255), 5)
+                if imagen_recortada is not None: cv2.circle(imagen_recortada, (int(x), int(y)), int(radius + 20), (255, 255, 255), 5)
                 cnts_pts.append(contorno)
     if cnts_pts != []:
         # Devuelve la función cualEstaMasCerca con los parametros obtenidos en la función
@@ -627,7 +627,7 @@ def cualEstaMasCerca(punto, lista, circulo):
     #print("Suma", suma)
     #print("Suma2", suma2)
     #print("Return", suma2[suma.index(min(suma))])
-    # Devolvemos el valor más chico que represeta el círculo a menor distancia del preCentro
+    # Devolvemos el valor más chico que representa el círculo a menor distancia del preCentro
     return suma2[suma.index(min(suma))]
 
 # Función que determina si es un pique o un golpe
@@ -830,7 +830,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     #circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=3, maxRadius=100)
     circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius=5, maxRadius=100)
 
-    if correccion: return circles
+    if correccion: return circles, (x1, y1)
 
     centro = None
 
@@ -1000,10 +1000,15 @@ def corregirPosicionPelota(ultCentrosGlobales):
         correccionUltimosCirculos.append([deteccionPorCirculos(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0], ultCentrosGlobales[contador2][2], i * 200, True)])
         contador2 += 1
 
-    print("len correcciónUltimosCirculos[0]", len(correccionUltimosCirculos[0][0][0]))
-    for i in correccionUltimosCirculos[0][0]:
-        print("I", i)
-    print("correcciónUltimosCirculos", correccionUltimosCirculos[0][0][0])
+    print("len correcciónUltimosCirculos[0]", len(correccionUltimosCirculos[0][0][0][0]))
+    #for i in correccionUltimosCirculos[0][0]:
+        #print("I", i)
+    #print("correcciónUltimosCirculos", correccionUltimosCirculos[0][0])
+
+    circulosAnalizarCorrecion = correccionUltimosCirculos[0][0][0][0]
+    print("CirculosAnalizarCorreccion", circulosAnalizarCorrecion)
+    print(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0])
+    tp_fix(circulosAnalizarCorrecion, ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0])
         
 # Toma la cámara si no recibe video
 if not args.get("video", False):
