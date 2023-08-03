@@ -7,6 +7,18 @@ import time
 from tqdm import tqdm
 from scipy.optimize import curve_fit
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 # Argumentos del programa
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", # Dirección del video a analizar
@@ -1003,17 +1015,29 @@ def corregirPosicionPelota(ultCentrosGlobales):
     for i in range(1, len(ultCentrosGlobales) - numeroFramePelotaIncorrecta + 1):
         correccionUltimosCirculos.append([deteccionPorCirculos(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0], ultCentrosGlobales[contador2][2], i * 200, True)])
         contador2 += 1
+    
+    print("AAAAAAAAAAAAAAAAAAAAAAAAAAA", correccionUltimosCirculos[0])
+    print("AAAAAAAAAAAAAAAAAAAAAAAAAAA", correccionUltimosCirculos[0][0])
+    print("AAAAAAAAAAAAAAAAAAAAAAAAAAA", correccionUltimosCirculos[0][0][0])
+    print("AAAAAAAAAAAAAAAAAAAAAAAAAAA", correccionUltimosCirculos[0][0][0][0])
+    print("AAAAAAAAAAAAAAAAAAAAAAAAAAA", correccionUltimosCirculos[0][0][0][1])
+    print("AAAAAAAAAAAAAAAAAAAAAAAAAAA", correccionUltimosCirculos[0][0][0][0][0])
+    print("AAAAAAAAAAAAAAAAAAAAAAAAAAA", correccionUltimosCirculos[0][0][0][1][0])
+    #print("Len correcuinUltimosCIrculos", len(correccionUltimosCirculos))
+    #print("len(correccionUltimosCirculos[h][0])", len(correccionUltimosCirculos[0][0][0]))
+
 
     for h in range(len(correccionUltimosCirculos)):
         x1 = max(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0][0][0] - ((h + 1) * 200), 0)
         y1 = max(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0][0][1]- ((h + 1) * 200), 0)
-        for j in range(len(correccionUltimosCirculos[h][0])):
+        for j in range(len(correccionUltimosCirculos[h][0][0])):
             #correccionUltimosCirculos[h][0][j][0] += x1
             #correccionUltimosCirculos[h][0][j][1] += y1
-            correccionUltimosCirculos[h][0][j][0] = correccionUltimosCirculos[h][0][j][0] / 3 + x1
-            correccionUltimosCirculos[h][0][j][1] = correccionUltimosCirculos[h][0][j][1] / 3 + y1
-        print("BBBBBBBBBBBBBBBBBBBB", correccionUltimosCirculos)
-        print("AAAAAAAAAAAAAAAAAAA", correccionUltimosCirculos[i-1][h][0])
+            print(f"{bcolors.FAIL}Warning: No active frommets remain. Continue?{bcolors.ENDC}")
+            correccionUltimosCirculos[h][0][0][j][0] = correccionUltimosCirculos[h][0][0][j][0] / 3 + x1
+            correccionUltimosCirculos[h][0][0][j][1] = correccionUltimosCirculos[h][0][0][j][1] / 3 + y1
+    
+    print("BBBBBBBBBBBBBBBBBBBB", correccionUltimosCirculos[0])
 
     print("len correcciónUltimosCirculos[0]", len(correccionUltimosCirculos[0][0][0][0]))
     #for i in correccionUltimosCirculos[0][0]:
