@@ -830,7 +830,8 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     #circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=3, maxRadius=100)
     circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius=5, maxRadius=100)
 
-    if correccion: return circles, (x1, y1)
+    #if correccion: return circles, (x1, y1)
+    if correccion: return circles
 
     centro = None
 
@@ -996,15 +997,30 @@ def corregirPosicionPelota(ultCentrosGlobales):
     
     print("NumeroFramePelotaIncorrecta", numeroFramePelotaIncorrecta + 1)
     contador2 = numeroFramePelotaIncorrecta
+    #x2 = min(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0][0][0] + ((len(ultCentrosGlobales) - numeroFramePelotaIncorrecta) * 200), anchoOG * 3)
+    #y2 = min(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0][0][1] + ((len(ultCentrosGlobales) - numeroFramePelotaIncorrecta) * 200), altoOG * 3)
+    
     for i in range(1, len(ultCentrosGlobales) - numeroFramePelotaIncorrecta + 1):
         correccionUltimosCirculos.append([deteccionPorCirculos(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0], ultCentrosGlobales[contador2][2], i * 200, True)])
         contador2 += 1
+
+    for h in range(len(correccionUltimosCirculos)):
+        x1 = max(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0][0][0] - ((h + 1) * 200), 0)
+        y1 = max(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0][0][1]- ((h + 1) * 200), 0)
+        for j in range(len(correccionUltimosCirculos[h][0])):
+            #correccionUltimosCirculos[h][0][j][0] += x1
+            #correccionUltimosCirculos[h][0][j][1] += y1
+            correccionUltimosCirculos[h][0][j][0] = correccionUltimosCirculos[h][0][j][0] / 3 + x1
+            correccionUltimosCirculos[h][0][j][1] = correccionUltimosCirculos[h][0][j][1] / 3 + y1
+        print("BBBBBBBBBBBBBBBBBBBB", correccionUltimosCirculos)
+        print("AAAAAAAAAAAAAAAAAAA", correccionUltimosCirculos[i-1][h][0])
 
     print("len correcciónUltimosCirculos[0]", len(correccionUltimosCirculos[0][0][0][0]))
     #for i in correccionUltimosCirculos[0][0]:
         #print("I", i)
     #print("correcciónUltimosCirculos", correccionUltimosCirculos[0][0])
 
+    print("CCCCCCCCCCc", correccionUltimosCirculos[0][0][0])
     circulosAnalizarCorrecion = correccionUltimosCirculos[0][0][0][0]
     print("CirculosAnalizarCorreccion", circulosAnalizarCorrecion)
     print(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0])
