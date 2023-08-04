@@ -209,7 +209,7 @@ def main(frame):
             # Si se detectó un centro hace menos de 0.3 segundos
             else:
                 # Corre la función tp_fix para determinar cual es el contorno detectado que está mas cerca de la pelota del frame anterior, es decir, encuentra la peltoa a través de su posición en el frame anterior
-                if preCentro is not None: casiCentro = tp_fix(contornos, preCentro, TiempoDeteccionUltimaPelota, False, None, None)
+                if preCentro is not None: casiCentro = tp_fix(contornos, preCentro, TiempoDeteccionUltimaPelota, False, None, None, False)
                 
                 # Encuentra la posición x, y del contorno más cercano a la pelota del frame anterior. Determina el centro de la pelota
                 if casiCentro is not None:
@@ -247,7 +247,7 @@ def main(frame):
         TiempoDeteccionUltimaPelota += 1/fps
         TiempoTresCentrosConsecutivos = 0
 
-    if numeroFrame == 117: cv2.imwrite("Frame117.jpg", frame)
+    if numeroFrame == 48: cv2.imwrite("Frame48.jpg", frame)
 
     #ultFrames.appendleft(imutils.resize(frame, anchoOG, altoOG))
     ultFrames.appendleft(frame)
@@ -585,7 +585,7 @@ def seEstaMoviendo(ultCentros):
     return False
 
 # Función que arregla el problema de "la zapatilla verde"
-def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada, xy1):
+def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada, xy1, correcion):
     cnts_pts = []
     medidorX = 100
     medidorY = 103
@@ -596,6 +596,7 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada, xy1):
             if x - pre_centro[0][0] > medidorX * resizer or pre_centro[0][0] - x > medidorX * resizer or y - pre_centro[0][1] > medidorY * resizer or pre_centro[0][1] - y > medidorY * resizer and count <= 0.5:
                 continue
             cnts_pts.append(contorno)
+        elif correcion: cnts_pts.append(contorno)
         else:
             x, y, radius = contorno
             ignorar = False
@@ -622,12 +623,10 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada, xy1):
 def cualEstaMasCerca(punto, lista, circulo):
     suma = []
     suma2 = []
-    #print("Punto", punto)
     for i in lista:
         # Obtenemos las diferencias entre el preCentro y el círculo a comparar que proviene del contorno.
         if circulo:
             xCenter, yCenter, radius = i
-            #print("I", i)
         else: (xCenter, yCenter), radius = cv2.minEnclosingCircle(i)
         difEnX = abs(int(xCenter) - int(punto[0][0]))
         difEnY = abs(int(yCenter) - int(punto[0][1]))
@@ -636,9 +635,6 @@ def cualEstaMasCerca(punto, lista, circulo):
         # Guardamos los valores en listas
         suma.append(difEnX + difEnY + difRadio * 3)
         suma2.append(i)
-    #print("Suma", suma)
-    #print("Suma2", suma2)
-    #print("Return", suma2[suma.index(min(suma))])
     # Devolvemos el valor más chico que representa el círculo a menor distancia del preCentro
     return suma2[suma.index(min(suma))]
 
@@ -848,8 +844,8 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     centro = None
 
     if circles is not None:
-        circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada, (x1, y1))
-        if numeroFrame == 52: cv2.imwrite("Frame52.jpg", frame)
+        circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada, (x1, y1), False)
+        if numeroFrame == 51: cv2.imwrite("Frame51.jpg", frame)
         if circuloDetectado is not None:
             cv2.circle(imagen_recortada, (int(circuloDetectado[0]), int(circuloDetectado[1])), 50, (255, 255, 0), thickness = 2)
 
@@ -1009,46 +1005,31 @@ def corregirPosicionPelota(ultCentrosGlobales):
     
     print("NumeroFramePelotaIncorrecta", numeroFramePelotaIncorrecta + 1)
     contador2 = numeroFramePelotaIncorrecta
-    #x2 = min(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0][0][0] + ((len(ultCentrosGlobales) - numeroFramePelotaIncorrecta) * 200), anchoOG * 3)
-    #y2 = min(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0][0][1] + ((len(ultCentrosGlobales) - numeroFramePelotaIncorrecta) * 200), altoOG * 3)
     
     for i in range(1, len(ultCentrosGlobales) - numeroFramePelotaIncorrecta + 1):
         correccionUltimosCirculos.append([deteccionPorCirculos(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0], ultCentrosGlobales[contador2][2], i * 200, True)])
         contador2 += 1
-    
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAA", correccionUltimosCirculos[0])
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAA", correccionUltimosCirculos[0][0])
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAA", correccionUltimosCirculos[0][0][0])
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAA", correccionUltimosCirculos[0][0][0][0])
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAA", correccionUltimosCirculos[0][0][0][1])
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAA", correccionUltimosCirculos[0][0][0][0][0])
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAA", correccionUltimosCirculos[0][0][0][1][0])
-    #print("Len correcuinUltimosCIrculos", len(correccionUltimosCirculos))
-    #print("len(correccionUltimosCirculos[h][0])", len(correccionUltimosCirculos[0][0][0]))
-
 
     for h in range(len(correccionUltimosCirculos)):
         x1 = max(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0][0][0] - ((h + 1) * 200), 0)
         y1 = max(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0][0][1]- ((h + 1) * 200), 0)
         for j in range(len(correccionUltimosCirculos[h][0][0])):
-            #correccionUltimosCirculos[h][0][j][0] += x1
-            #correccionUltimosCirculos[h][0][j][1] += y1
-            print(f"{bcolors.FAIL}Warning: No active frommets remain. Continue?{bcolors.ENDC}")
             correccionUltimosCirculos[h][0][0][j][0] = correccionUltimosCirculos[h][0][0][j][0] / 3 + x1
             correccionUltimosCirculos[h][0][0][j][1] = correccionUltimosCirculos[h][0][0][j][1] / 3 + y1
-    
+            correccionUltimosCirculos[h][0][0][j][2] = correccionUltimosCirculos[h][0][0][j][2] / 3
+
+    print(f"{bcolors.FAIL}Warning: No active frommets remain. Continue?{bcolors.ENDC}")
     print("BBBBBBBBBBBBBBBBBBBB", correccionUltimosCirculos[0])
-
-    print("len correcciónUltimosCirculos[0]", len(correccionUltimosCirculos[0][0][0][0]))
-    #for i in correccionUltimosCirculos[0][0]:
-        #print("I", i)
-    #print("correcciónUltimosCirculos", correccionUltimosCirculos[0][0])
-
     print("CCCCCCCCCCc", correccionUltimosCirculos[0][0][0])
-    circulosAnalizarCorrecion = correccionUltimosCirculos[0][0][0][0]
-    print("CirculosAnalizarCorreccion", circulosAnalizarCorrecion)
-    print(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0])
-    tp_fix(circulosAnalizarCorrecion, ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0])
+
+    for i in range(len(ultCentrosGlobales) - numeroFramePelotaIncorrecta):
+        if i == 0: preCentroCorrecion = ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0]
+        if type(preCentroCorrecion) is not tuple: preCentroCorrecion = ((preCentroCorrecion[0], preCentroCorrecion[1]), preCentroCorrecion[2])
+        print("preCentroCorrecion", preCentroCorrecion)
+        preCentroCorrecion = tp_fix(correccionUltimosCirculos[i][0][0], preCentroCorrecion, 0.2, True, None, None, True)
+        #if i == 0: aBorrarCorrecion = preCentroCorrecion
+        #print("ABorrarCorrecion", aBorrarCorrecion)
+        if i == 4: break
         
 # Toma la cámara si no recibe video
 if not args.get("video", False):
