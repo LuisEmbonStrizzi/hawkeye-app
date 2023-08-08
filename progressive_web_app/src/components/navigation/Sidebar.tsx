@@ -13,7 +13,9 @@ const Sidebar: React.FC<SidebarItemProps> = ({ activeItem }) => {
   return (
     <div className="fixed left-0 top-0 flex h-full w-[280px] flex-col justify-between border-r border-background-border bg-background p-4">
       <nav className="flex flex-col">
-        <Button style="primary" label="New analysis" />
+        <Link href={"/new-analysis"} className="flex flex-col">
+          <Button style="primary" label="New analysis" />
+        </Link>
         <div className="my-4 h-[1px] bg-background-border"></div>
         <Link
           href="/home"
