@@ -57,6 +57,8 @@ def main(frame):
     # Agrandamos el frame para ver más la pelota
     frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
 
+    frameCopia = frame
+
     # if numeroFrame == 100:
     #     # Agrandamos el frame para ver más la pelota
     #     frame3 = frame
@@ -252,12 +254,12 @@ def main(frame):
     #ultFrames.appendleft(imutils.resize(frame, anchoOG, altoOG))
     ultFrames.appendleft(frame)
 
-    if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frame))
+    if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia))
 
     if centro is None and preCentro is not None:
         centro = deteccionPorCirculos(preCentro, frame, recorteCerca, False)
 
-        if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frame))
+        if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia))
 
         if len(ultimosCentrosGlobales) == 12 and len(ultimosCentrosCirculo) >= 5:
             if seEstaMoviendo(ultimosCentrosCirculo) == False or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5):
@@ -796,6 +798,8 @@ def estaEnCancha(centro_pelota, perspectiva):
         return False
     return None
 
+contadorCorreccion = 0
+
 def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     global primeraVez
     global TiempoDeteccionUltimaPelota
@@ -805,6 +809,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     global centroConDecimales
     global deteccionPorColor
     global checkRecorteCerca
+    global contadorCorreccion
 
     if numeroFrame == 52: cv2.imwrite("Frame52aa.jpg", frame)
 
@@ -839,7 +844,12 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius=5, maxRadius=100)
 
     #if correccion: return circles, (x1, y1)
-    if correccion: return circles
+    if correccion:
+        #contadorCorreccion += 1
+        #for i in circles[0]:
+            #cv2.circle(imagen_recortada, (int(i[0]), int(i[1])), int(i[2]), (255, 255, 255), thickness = 2)
+            #cv2.imwrite("imagen_recortada" + str(contadorCorreccion) + ".png", imagen_recortada)
+        return circles
 
     centro = None
 
@@ -1019,8 +1029,8 @@ def corregirPosicionPelota(ultCentrosGlobales):
             correccionUltimosCirculos[h][0][0][j][2] = correccionUltimosCirculos[h][0][0][j][2] / 3
 
     print(f"{bcolors.FAIL}Warning: No active frommets remain. Continue?{bcolors.ENDC}")
-    print("BBBBBBBBBBBBBBBBBBBB", correccionUltimosCirculos[0])
-    print("CCCCCCCCCCc", correccionUltimosCirculos[0][0][0])
+    #print("BBBBBBBBBBBBBBBBBBBB", correccionUltimosCirculos[0])
+    #print("CCCCCCCCCCc", correccionUltimosCirculos[0][0][0])
 
     for i in range(len(ultCentrosGlobales) - numeroFramePelotaIncorrecta):
         if i == 0: preCentroCorrecion = ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0]
