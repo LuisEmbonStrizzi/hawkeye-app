@@ -57,7 +57,7 @@ def main(frame):
     # Agrandamos el frame para ver más la pelota
     frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
 
-    frameCopia = frame
+    frameCopia = frame.copy()
 
     # if numeroFrame == 100:
     #     # Agrandamos el frame para ver más la pelota
@@ -254,11 +254,15 @@ def main(frame):
     #ultFrames.appendleft(imutils.resize(frame, anchoOG, altoOG))
     ultFrames.appendleft(frame)
 
+    if numeroFrame == 54: cv2.imwrite("FrameCopia54.jpg", frameCopia)
     if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia))
 
     if centro is None and preCentro is not None:
         centro = deteccionPorCirculos(preCentro, frame, recorteCerca, False)
 
+        if numeroFrame == 54: 
+            cv2.imwrite("FrameCopia54a.jpg", frameCopia)
+            cv2.imwrite("FrameCopia54b.jpg", frame)
         if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia))
 
         if len(ultimosCentrosGlobales) == 12 and len(ultimosCentrosCirculo) >= 5:
@@ -845,10 +849,12 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
 
     #if correccion: return circles, (x1, y1)
     if correccion:
-        #contadorCorreccion += 1
+        contadorCorreccion += 1
         #for i in circles[0]:
             #cv2.circle(imagen_recortada, (int(i[0]), int(i[1])), int(i[2]), (255, 255, 255), thickness = 2)
             #cv2.imwrite("imagen_recortada" + str(contadorCorreccion) + ".png", imagen_recortada)
+        #cv2.imwrite("imagen_recortada" + str(contadorCorreccion) + ".png", imagen_recortada)
+        #cv2.imwrite("Frame" + str(contadorCorreccion) + ".png", frame)
         return circles
 
     centro = None
@@ -986,6 +992,7 @@ def circulosInmoviles(circles):
 
 def corregirPosicionPelota(ultCentrosGlobales):
     ultCentrosGlobales = list(ultCentrosGlobales)
+    cv2.imwrite("frame1.png", ultCentrosGlobales[0][2])
     diferenciaX = abs(ultCentrosGlobales[0][0][0][0] - ultCentrosGlobales[1][0][0][0])
     diferenciaY = abs(ultCentrosGlobales[0][0][0][1] - ultCentrosGlobales[1][0][0][1])
     ultCentrosGlobales.pop(0)
@@ -1014,11 +1021,13 @@ def corregirPosicionPelota(ultCentrosGlobales):
         diferenciaY = abs(centro1[0][1] - centro2[0][1])
     
     print("NumeroFramePelotaIncorrecta", numeroFramePelotaIncorrecta + 1)
-    contador2 = numeroFramePelotaIncorrecta
     
+    contador2 = numeroFramePelotaIncorrecta
     for i in range(1, len(ultCentrosGlobales) - numeroFramePelotaIncorrecta + 1):
         correccionUltimosCirculos.append([deteccionPorCirculos(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0], ultCentrosGlobales[contador2][2], i * 200, True)])
         contador2 += 1
+
+    print("CorrecionUltimosCirculos", correccionUltimosCirculos[0])
 
     for h in range(len(correccionUltimosCirculos)):
         x1 = max(ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0][0][0] - ((h + 1) * 200), 0)
