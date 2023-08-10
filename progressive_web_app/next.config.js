@@ -23,4 +23,5 @@ module.exports = withPWA({
   images: {
     domains: ["storage.googleapis.com", "storage.cloud.google.com"],
   },
+  output: "standalone",
 });
