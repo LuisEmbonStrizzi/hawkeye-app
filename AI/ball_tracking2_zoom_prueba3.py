@@ -579,10 +579,10 @@ def seEstaMoviendo(ultCentros, rango):
         restaB = abs(ultCentros[3][0][i] - ultCentros[2][0][i])
         restaC = abs(ultCentros[2][0][i] - ultCentros[1][0][i])
         restaD = abs(ultCentros[1][0][i] - ultCentros[0][0][i])
-        print("Resta A: ", restaA)
-        print("Resta B: ", restaB)
-        print("Resta C: ", restaC)
-        print("Resta D: ", restaD)
+        #print("Resta A: ", restaA)
+        #print("Resta B: ", restaB)
+        #print("Resta C: ", restaC)
+        #print("Resta D: ", restaD)
         if restaA + restaB + restaC + restaD >= rango:
             movimiento = True
             break
@@ -856,9 +856,10 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     #if correccion: return circles, (x1, y1)
     if correccion:
         contadorCorreccion += 1
+        if contadorCorreccion == 6: contadorCorreccion = 1
         #for i in circles[0]:
-            #cv2.circle(imagen_recortada, (int(i[0]), int(i[1])), int(i[2]), (255, 255, 255), thickness = 2)
-            #cv2.imwrite("imagen_recortada" + str(contadorCorreccion) + ".png", imagen_recortada)
+        #    cv2.circle(imagen_recortada, (int(i[0]), int(i[1])), int(i[2]), (255, 255, 255), thickness = 2)
+        #    cv2.imwrite("imagen_recortada" + str(contadorCorreccion) + ".png", imagen_recortada)
         #cv2.imwrite("imagen_recortada" + str(contadorCorreccion) + ".png", imagen_recortada)
         #cv2.imwrite("Frame" + str(contadorCorreccion) + ".png", frame)
         return circles
@@ -1062,7 +1063,9 @@ def corregirPosicionPelota(ultCentrosGlobales):
     correccion = False
 
     while correccion == False:
-        for i in range(len(ultCentrosGlobales) - numeroFramePelotaIncorrecta):              
+        contador2 = numeroFramePelotaIncorrecta
+        for i in range(len(ultCentrosGlobales) - numeroFramePelotaIncorrecta):
+            #if primerosCirculosCorreccion is not None: continue
             if i == 0:
                 preCentroCorrecion = ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0]
                 print("preCentroCorrecion", preCentroCorrecion)
@@ -1078,23 +1081,38 @@ def corregirPosicionPelota(ultCentrosGlobales):
                     correccionUltimosCirculos[0][h][1] = correccionUltimosCirculos[0][h][1] / 3 + y1
                     correccionUltimosCirculos[0][h][2] = correccionUltimosCirculos[0][h][2] / 3
 
-                if i == 0: 
+                if i == 0 and len(primerosCirculosCorreccion) is 0:
                     primerosCirculosCorreccion = correccionUltimosCirculos.tolist()
                     primerosCirculosCorreccion = primerosCirculosCorreccion[0]
-                    print("PrimerosCirculosCorreccion", primerosCirculosCorreccion)
-                    
-                preCentroCorrecion = tp_fix(correccionUltimosCirculos[0], preCentroCorrecion, 0.2, True, None, (1,0), True)
+                
+                if i == 0: 
+                    print("len PrimerosCirculosCorreccion", len(primerosCirculosCorreccion))
+                    #print("PrimerosCirculosCorreccion", primerosCirculosCorreccion)
+
+                if i == 0 and len(primerosCirculosCorreccion) is 0: preCentroCorrecion = tp_fix(correccionUltimosCirculos[0], preCentroCorrecion, 0.2, True, None, (1,0), True)
+                elif i == 0 and len(primerosCirculosCorreccion) is not 0: preCentroCorrecion = tp_fix(primerosCirculosCorreccion, preCentroCorrecion, 0.2, True, None, (1,0), True)
+                else: preCentroCorrecion = tp_fix(correccionUltimosCirculos[0], preCentroCorrecion, 0.2, True, None, (1,0), True)
+
+                #print("preCentroCorrecion1", preCentroCorrecion)
                 if preCentroCorrecion is not None: preCentrosCorrecion.append(((preCentroCorrecion[0], preCentroCorrecion[1]), preCentroCorrecion[2]))
-                print("PreCentroCorrecion", ((preCentroCorrecion[0], preCentroCorrecion[1]), preCentroCorrecion[2]))
+                print("PreCentroCorrecion2", ((preCentroCorrecion[0], preCentroCorrecion[1]), preCentroCorrecion[2]))
             #if i == 5: break
             if i == 4:
-                if seEstaMoviendo(preCentrosCorrecion, 25) == False or deteccionNoEsLaPelota(preCentroCorrecion, 5, True):
+                if seEstaMoviendo(preCentrosCorrecion, 25) == False or deteccionNoEsLaPelota(preCentrosCorrecion, 5, True):
+                    #print("ABorrar", [preCentrosCorrecion[0][0][0], preCentrosCorrecion[0][0][1], preCentrosCorrecion[0][1]])
+                    #print("primerosCirculosCorreccion", primerosCirculosCorreccion)
+                    #print("AAAAAAAAAAAAAAAAAA", [preCentrosCorrecion[0][0][0], preCentrosCorrecion[0][0][1], preCentrosCorrecion[0][1]] in primerosCirculosCorreccion)
                     primerosCirculosCorreccion.remove([preCentrosCorrecion[0][0][0], preCentrosCorrecion[0][0][1], preCentrosCorrecion[0][1]])
-                    print("PreCentrosCorrecion", preCentrosCorrecion)
+                    #print("PreCentrosCorrecion", preCentrosCorrecion)
                     print("SeEstaMoviendo", seEstaMoviendo(preCentrosCorrecion, 25))
-                    print("primerosCirculosCorreccion", primerosCirculosCorreccion)
+                    #print("primerosCirculosCorreccion", primerosCirculosCorreccion)
                     preCentrosCorrecion = []
                     correccion = False
+                    if len(primerosCirculosCorreccion) == 0: numeroFramePelotaIncorrecta += 1
+                    break
+                else: 
+                    correccion = True
+                    break
             contador2 += 1
         
 # Toma la cámara si no recibe video
