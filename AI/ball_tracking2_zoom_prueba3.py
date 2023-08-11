@@ -170,7 +170,7 @@ def main(frame):
     if (TiempoSegundosEmpezoVideo % 5 == 0):
         eliminarContornosInservibles(todosContornos)
 
-    if len(ultimosCentros) == 10 and deteccionNoEsLaPelota(ultimosCentros, 15):
+    if len(ultimosCentros) == 10 and deteccionNoEsLaPelota(ultimosCentros, 15, False):
         primeraVez = True
         preCentro = None
         TiempoDeteccionUltimaPelota += 1/fps
@@ -187,7 +187,7 @@ def main(frame):
 
         # Vemos cuales son los contornos casi inmóviles y si lo que considera que es la pelota no se está moviendo (o sea no es la pelota) se ignoran estos contornos.
         contornosQuietos(contornos, todosContornos, contornosIgnorar)
-        if len(ultimosCentros) >= 5 and seEstaMoviendo(ultimosCentros) == False:
+        if len(ultimosCentros) >= 5 and seEstaMoviendo(ultimosCentros, 15) == False:
             contornos = ignorarContornosQuietos(contornos, contornosIgnorar)
 
         if len(contornos) > 0:
@@ -266,12 +266,12 @@ def main(frame):
         if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia))
 
         if len(ultimosCentrosGlobales) == 12 and len(ultimosCentrosCirculo) >= 5:
-            if seEstaMoviendo(ultimosCentrosCirculo) == False or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5):
+            if seEstaMoviendo(ultimosCentrosCirculo, 15) == False or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5, False):
                 corregirPosicionPelota(ultimosCentrosGlobales)
                 #primeraVez = True
                 ultimosCentrosCirculo.clear()
         
-        elif len(ultimosCentrosCirculo) >= 5 and seEstaMoviendo(ultimosCentrosCirculo) == False or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5):
+        elif len(ultimosCentrosCirculo) >= 5 and seEstaMoviendo(ultimosCentrosCirculo, 15) == False or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5, False):
             primeraVez = True
             preCentro = None
             TiempoDeteccionUltimaPelota += 1/fps
@@ -571,7 +571,7 @@ def ignorarContornosQuietos(cnts, contornosIgnorar):
     return new_cnts
 
 # Fución que determina si la pelota se está moviendo
-def seEstaMoviendo(ultCentros):
+def seEstaMoviendo(ultCentros, rango):
     movimiento = False
     # Si la suma de las restas de los últimos centros es mayor a 15, significa que la pelota se está moviendo, de lo contrario no lo está.
     for i in range(2):
@@ -579,7 +579,11 @@ def seEstaMoviendo(ultCentros):
         restaB = abs(ultCentros[3][0][i] - ultCentros[2][0][i])
         restaC = abs(ultCentros[2][0][i] - ultCentros[1][0][i])
         restaD = abs(ultCentros[1][0][i] - ultCentros[0][0][i])
-        if restaA + restaB + restaC + restaD >= 15:
+        print("Resta A: ", restaA)
+        print("Resta B: ", restaB)
+        print("Resta C: ", restaC)
+        print("Resta D: ", restaD)
+        if restaA + restaB + restaC + restaD >= rango:
             movimiento = True
             break
         else:
@@ -847,6 +851,8 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     #circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=3, maxRadius=100)
     circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius=5, maxRadius=100)
 
+    #if numeroFrame == 51 or correccion: print("Circles: ", circles)
+
     #if correccion: return circles, (x1, y1)
     if correccion:
         contadorCorreccion += 1
@@ -861,7 +867,9 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
 
     if circles is not None:
         circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada, (x1, y1), False)
-        if numeroFrame == 51: cv2.imwrite("Frame51.jpg", frame)
+        if numeroFrame == 51: 
+            cv2.imwrite("Frame51.jpg", frame)
+            #print("Circulo detectado: ", circuloDetectado)
         if circuloDetectado is not None:
             cv2.circle(imagen_recortada, (int(circuloDetectado[0]), int(circuloDetectado[1])), 50, (255, 255, 0), thickness = 2)
 
@@ -928,13 +936,14 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
 
     return centro
 
-def deteccionNoEsLaPelota(ultCentros, valorSumaEjeY):
-    sumaRadios = 0
-    for i in range(len(ultCentros) - 1):
-        sumaRadios += abs(ultCentros[i][1] - ultCentros[i + 1][1])
+def deteccionNoEsLaPelota(ultCentros, valorSumaEjeY, correccion):
+    if correccion == False:
+        sumaRadios = 0
+        for i in range(len(ultCentros) - 1):
+            sumaRadios += abs(ultCentros[i][1] - ultCentros[i + 1][1])
 
-    if sumaRadios <= 0.5:
-        return True
+        if sumaRadios <= 0.5:
+            return True
     
     sumaEjeY = 0
     for i in range(len(ultCentros) - 1):
@@ -1047,32 +1056,46 @@ def corregirPosicionPelota(ultCentrosGlobales):
     #    if i == 4: break
 
     correccionUltimosCirculos = []
+    primerosCirculosCorreccion = []
+    preCentrosCorrecion = []
     contador2 = numeroFramePelotaIncorrecta
-    
-    for i in range(len(ultCentrosGlobales) - numeroFramePelotaIncorrecta):
-                
-        if i == 0: preCentroCorrecion = ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0]
-        if type(preCentroCorrecion) is not tuple: preCentroCorrecion = ((preCentroCorrecion[0], preCentroCorrecion[1]), preCentroCorrecion[2])
-        
-        print("preCentroCorrecion", preCentroCorrecion)
-        correccionUltimosCirculos = deteccionPorCirculos(preCentroCorrecion, ultCentrosGlobales[contador2][2], 200, True)
+    correccion = False
 
-        if correccionUltimosCirculos is not None:
-            x1 = max(preCentroCorrecion[0][0] - 200, 0)
-            y1 = max(preCentroCorrecion[0][1] - 200, 0)
-            for h in range(len(correccionUltimosCirculos[0])):
-                correccionUltimosCirculos[0][h][0] = correccionUltimosCirculos[0][h][0] / 3 + x1
-                correccionUltimosCirculos[0][h][1] = correccionUltimosCirculos[0][h][1] / 3 + y1
-                correccionUltimosCirculos[0][h][2] = correccionUltimosCirculos[0][h][2] / 3
+    while correccion == False:
+        for i in range(len(ultCentrosGlobales) - numeroFramePelotaIncorrecta):              
+            if i == 0:
+                preCentroCorrecion = ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0]
+                print("preCentroCorrecion", preCentroCorrecion)
+            if type(preCentroCorrecion) is not tuple: preCentroCorrecion = ((preCentroCorrecion[0], preCentroCorrecion[1]), preCentroCorrecion[2])
             
-            #print("CorreccionUltimosCirculos2", correccionUltimosCirculos)
-                
-            #print("preCentroCorrecion", preCentroCorrecion)
-            #print("correcto", correccionUltimosCirculos[0])
-            #print("correccionUltimosCirculos", correccionUltimosCirculos)
-            preCentroCorrecion = tp_fix(correccionUltimosCirculos[0], preCentroCorrecion, 0.2, True, None, None, True)
-        if i == 4: break
-        contador2 += 1
+            correccionUltimosCirculos = deteccionPorCirculos(preCentroCorrecion, ultCentrosGlobales[contador2][2], 200, True)
+
+            if correccionUltimosCirculos is not None:
+                x1 = max(preCentroCorrecion[0][0] - 200, 0)
+                y1 = max(preCentroCorrecion[0][1] - 200, 0)
+                for h in range(len(correccionUltimosCirculos[0])):
+                    correccionUltimosCirculos[0][h][0] = correccionUltimosCirculos[0][h][0] / 3 + x1
+                    correccionUltimosCirculos[0][h][1] = correccionUltimosCirculos[0][h][1] / 3 + y1
+                    correccionUltimosCirculos[0][h][2] = correccionUltimosCirculos[0][h][2] / 3
+
+                if i == 0: 
+                    primerosCirculosCorreccion = correccionUltimosCirculos.tolist()
+                    primerosCirculosCorreccion = primerosCirculosCorreccion[0]
+                    print("PrimerosCirculosCorreccion", primerosCirculosCorreccion)
+                    
+                preCentroCorrecion = tp_fix(correccionUltimosCirculos[0], preCentroCorrecion, 0.2, True, None, (1,0), True)
+                if preCentroCorrecion is not None: preCentrosCorrecion.append(((preCentroCorrecion[0], preCentroCorrecion[1]), preCentroCorrecion[2]))
+                print("PreCentroCorrecion", ((preCentroCorrecion[0], preCentroCorrecion[1]), preCentroCorrecion[2]))
+            #if i == 5: break
+            if i == 4:
+                if seEstaMoviendo(preCentrosCorrecion, 25) == False or deteccionNoEsLaPelota(preCentroCorrecion, 5, True):
+                    primerosCirculosCorreccion.remove([preCentrosCorrecion[0][0][0], preCentrosCorrecion[0][0][1], preCentrosCorrecion[0][1]])
+                    print("PreCentrosCorrecion", preCentrosCorrecion)
+                    print("SeEstaMoviendo", seEstaMoviendo(preCentrosCorrecion, 25))
+                    print("primerosCirculosCorreccion", primerosCirculosCorreccion)
+                    preCentrosCorrecion = []
+                    correccion = False
+            contador2 += 1
         
 # Toma la cámara si no recibe video
 if not args.get("video", False):
