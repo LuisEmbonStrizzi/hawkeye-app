@@ -855,8 +855,8 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
 
     #if correccion: return circles, (x1, y1)
     if correccion:
-        contadorCorreccion += 1
-        if contadorCorreccion == 6: contadorCorreccion = 1
+        #contadorCorreccion += 1
+        #if contadorCorreccion == 6: contadorCorreccion = 1
         #for i in circles[0]:
         #    cv2.circle(imagen_recortada, (int(i[0]), int(i[1])), int(i[2]), (255, 255, 255), thickness = 2)
         #    cv2.imwrite("imagen_recortada" + str(contadorCorreccion) + ".png", imagen_recortada)
@@ -865,6 +865,24 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
         return circles
 
     centro = None
+
+    circulosTresFrames = []
+    circulosTresFrames.append(circles.tolist())
+    videoEliminarCirculosInservibles = cv2.VideoCapture(args["video"])
+
+    circles = []
+
+    for _ in range(numeroFrame):
+        videoEliminarCirculosInservibles.read()
+    
+    for _ in range(2):
+        _, frameEliminarCirculosInservibles = videoEliminarCirculosInservibles.read()
+        circulosTresFrames.append(deteccionPorCirculos(preCentro, frameEliminarCirculosInservibles, recorteCerca, True).tolist())
+    
+    for circulo in circulosTresFrames[0]:
+        if circulo in circulosTresFrames[1] and circulo in circulosTresFrames[2]:
+            continue
+        circles.append(circulo)
 
     if circles is not None:
         circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada, (x1, y1), False)
@@ -1081,7 +1099,7 @@ def corregirPosicionPelota(ultCentrosGlobales):
                     correccionUltimosCirculos[0][h][1] = correccionUltimosCirculos[0][h][1] / 3 + y1
                     correccionUltimosCirculos[0][h][2] = correccionUltimosCirculos[0][h][2] / 3
 
-                if i == 0 and len(primerosCirculosCorreccion) is 0:
+                if i == 0 and len(primerosCirculosCorreccion) == 0:
                     primerosCirculosCorreccion = correccionUltimosCirculos.tolist()
                     primerosCirculosCorreccion = primerosCirculosCorreccion[0]
                 
@@ -1089,8 +1107,8 @@ def corregirPosicionPelota(ultCentrosGlobales):
                     print("len PrimerosCirculosCorreccion", len(primerosCirculosCorreccion))
                     #print("PrimerosCirculosCorreccion", primerosCirculosCorreccion)
 
-                if i == 0 and len(primerosCirculosCorreccion) is 0: preCentroCorrecion = tp_fix(correccionUltimosCirculos[0], preCentroCorrecion, 0.2, True, None, (1,0), True)
-                elif i == 0 and len(primerosCirculosCorreccion) is not 0: preCentroCorrecion = tp_fix(primerosCirculosCorreccion, preCentroCorrecion, 0.2, True, None, (1,0), True)
+                if i == 0 and len(primerosCirculosCorreccion) == 0: preCentroCorrecion = tp_fix(correccionUltimosCirculos[0], preCentroCorrecion, 0.2, True, None, (1,0), True)
+                elif i == 0 and len(primerosCirculosCorreccion) != 0: preCentroCorrecion = tp_fix(primerosCirculosCorreccion, preCentroCorrecion, 0.2, True, None, (1,0), True)
                 else: preCentroCorrecion = tp_fix(correccionUltimosCirculos[0], preCentroCorrecion, 0.2, True, None, (1,0), True)
 
                 #print("preCentroCorrecion1", preCentroCorrecion)
