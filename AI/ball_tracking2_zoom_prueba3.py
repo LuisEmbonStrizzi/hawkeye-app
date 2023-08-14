@@ -277,7 +277,9 @@ def main(frame):
             TiempoDeteccionUltimaPelota += 1/fps
             TiempoTresCentrosConsecutivos = 0
         
-    else: radioDeteccionPorCirculo = radio
+    else: 
+        if radio is not None: 
+            radioDeteccionPorCirculo = radio
 
     #if len(ultimosCentrosGlobales) >= 10 and abs(ultimosCentrosGlobales[0][1] - ultimosCentrosGlobales[1][1]) > 2:
 
@@ -868,16 +870,11 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
 
     circulosTresFrames = []
     circulosTresFrames.append(circles.tolist())
-    videoEliminarCirculosInservibles = cv2.VideoCapture(args["video"])
 
     circles = []
-
-    for _ in range(numeroFrame):
-        videoEliminarCirculosInservibles.read()
     
-    for _ in range(2):
-        _, frameEliminarCirculosInservibles = videoEliminarCirculosInservibles.read()
-        circulosTresFrames.append(deteccionPorCirculos(preCentro, frameEliminarCirculosInservibles, recorteCerca, True).tolist())
+    for i in range(10, 12):
+        circulosTresFrames.append(deteccionPorCirculos(preCentro, ultimosCentrosGlobales[i][2], recorteCerca, True).tolist())
     
     for circulo in circulosTresFrames[0]:
         if circulo in circulosTresFrames[1] and circulo in circulosTresFrames[2]:
@@ -1181,6 +1178,9 @@ fps = int(vs.get(cv2.CAP_PROP_FPS))
 frame_count = int(vs.get(cv2.CAP_PROP_FRAME_COUNT))
 duracion = frame_count / fps
 
+print("FPS: ", fps)
+print("Duracion: ", duracion)
+
 time.sleep(2.0)
 
 # Indica el tiempo que pasó desde que se detectó la última pelota
@@ -1244,7 +1244,7 @@ start_time = time.time()
 previous_time = start_time
 
 aSaltear = 100
-aSaltear = 0
+aSaltear = 13485
 
 ultFrames = deque(maxlen=5)
 
@@ -1271,6 +1271,8 @@ deteccionColorUltimosFrames = deque(maxlen=11)
 deteccionColorEsteFrame = []
 
 correccionUltimosCirculos = deque(maxlen=11)
+
+radio = None
 
 # Abrir el archivo en modo de lectura
 with open(ruta_archivo, "r") as archivo:
