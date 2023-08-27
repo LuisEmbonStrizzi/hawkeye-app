@@ -446,10 +446,15 @@ def main(frame):
     if centro is not None: 
         preCentro = centro
         preCentroConDecimales = centroConDecimales
+    
+    ultimosFrames.append(frameCopia)
 
     print("Centro", centro)
     #print("Radio de la pelota", radio)
     print("Radio de la pelota de verdad", radioDeteccionPorCirculo)
+
+    #if numeroFrame == 14 or numeroFrame == 15 or numeroFrame == 16 or numeroFrame == 17 or numeroFrame == 18 or numeroFrame == 19 or numeroFrame == 20:
+    #    cv2.imwrite("Frame" + str(numeroFrame) + "---AAA" +".jpg", frame)
     
     # Resizea el frame al tamaño original y lo muestra
     frame = imutils.resize(frame, anchoOG, altoOG)
@@ -871,15 +876,27 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     circulosTresFrames = []
     circulosTresFrames.append(circles.tolist())
 
+    #print("Circles", circles)
     circles = []
     
-    for i in range(10, 12):
-        circulosTresFrames.append(deteccionPorCirculos(preCentro, ultimosCentrosGlobales[i][2], recorteCerca, True).tolist())
-    
-    for circulo in circulosTresFrames[0]:
-        if circulo in circulosTresFrames[1] and circulo in circulosTresFrames[2]:
+    #cv2.imwrite("Frame" + str(numeroFrame) + ".png", frame)
+    for i in range(-2, 0):
+        #cv2.imwrite("Frame" + str(numeroFrame + i) + ".jpg", ultimosFrames[i])
+        circulosTresFrames.append(deteccionPorCirculos(preCentro, ultimosFrames[i], recorteCerca, True).tolist())
+
+    #print("CirculosTresFrames[1]", circulosTresFrames[1])
+    contador = 0
+    for circulo in circulosTresFrames[0][0]:
+        contador += 1
+        #print("Circle", circulo)
+        if circulo in circulosTresFrames[1][0] and circulo in circulosTresFrames[2][0]:
             continue
         circles.append(circulo)
+    
+    circles = [circles]
+
+    print("len Circles 0", contador)
+    print("len Circles 1", len(circles[0]))
 
     if circles is not None:
         circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada, (x1, y1), False)
@@ -917,11 +934,13 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
             deteccionPorCirculos(preCentro, frame, recorteCerca + 100, False)
 
     # Si se encuentran círculos, dibújalos en la imagen original
+    circles = circles[0]
+    #print("Circles", circles)
     if circles is not None:
-        circles = np.round(circles[0, :]).astype(int)
+        #circles = np.round(circles[0]).astype(int)
         for (x, y, r) in circles:
             #if abs(r - radioDeteccionPorCirculo * 3) < 10: cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
-            cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
+            cv2.circle(imagen_recortada, (np.round(x).astype(int), np.round(y).astype(int)), np.round(r).astype(int), (0, 255, 0), 2)
         if numeroFrame == 52: cv2.imwrite("imagen_recortada52.png", imagen_recortada)
 
     imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
@@ -1196,6 +1215,7 @@ TiempoSegundosEmpezoVideo = 0
 ultimosCentros = deque(maxlen=10)
 ultimosCentrosCirculo = deque(maxlen=5)
 ultimosCentrosGlobales = deque(maxlen=12)
+ultimosFrames = deque(maxlen=3)
 
 todosContornos = []
 contornosIgnorar = []
@@ -1244,7 +1264,7 @@ start_time = time.time()
 previous_time = start_time
 
 aSaltear = 100
-aSaltear = 13485
+aSaltear = 0
 
 ultFrames = deque(maxlen=5)
 
