@@ -1,13 +1,10 @@
 import { type NextPage } from "next";
-import { api } from "~/utils/api";
 import { useState } from "react";
 import Button from "~/components/Button";
-import { set } from "react-hook-form";
 import Link from "next/link";
 
 const NewAnalysis: NextPage = () => {
   const [loading, setLoading] = useState<boolean>(true);
-  const [failure, setFailure] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
 
   return (
@@ -46,12 +43,12 @@ const NewAnalysis: NextPage = () => {
                 style="secondary"
                 onClick={() => {
                   setLoading(false);
-                  setFailure(true);
+                  setSuccess(false);
                 }}
               />
             </div>
           </>
-        ) : failure ? (
+        ) : success ? (<></>) : (
           <>
             <svg
               width="128"
@@ -79,13 +76,13 @@ const NewAnalysis: NextPage = () => {
                 label="Try again"
                 style="primary"
                 onClick={() => {
-                  setFailure(false);
+                  setSuccess(true);
                   setLoading(true);
                 }}
               />
             </div>
           </>
-        ) : null}
+        )}
       </div>
     </main>
   );
@@ -93,9 +90,7 @@ const NewAnalysis: NextPage = () => {
 
 export default NewAnalysis;
 
-/*
-
-* Esto es lo que había antes.
+/* Esto es lo que había antes.
 
 import { type NextPage } from "next";
 import { api } from "~/utils/api";
@@ -148,6 +143,4 @@ const NewAnalysis: NextPage = () => {
 };
 
 export default NewAnalysis;
-
-
 */
