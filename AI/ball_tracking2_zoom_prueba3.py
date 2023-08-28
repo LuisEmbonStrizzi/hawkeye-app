@@ -862,7 +862,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
 
     #if correccion: return circles, (x1, y1)
     if correccion:
-        #contadorCorreccion += 1
+        contadorCorreccion += 1
         #if contadorCorreccion == 6: contadorCorreccion = 1
         #for i in circles[0]:
         #    cv2.circle(imagen_recortada, (int(i[0]), int(i[1])), int(i[2]), (255, 255, 255), thickness = 2)
@@ -889,7 +889,9 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     for circulo in circulosTresFrames[0][0]:
         contador += 1
         #print("Circle", circulo)
-        if circulo in circulosTresFrames[1][0] and circulo in circulosTresFrames[2][0]:
+        #if circulo in circulosTresFrames[1][0] or circulo in circulosTresFrames[2][0] or circulo in circulosTresFrames[3][0]:
+        if circulo in circulosTresFrames[1][0] or circulo in circulosTresFrames[2][0]:
+        #if circulo in circulosTresFrames[1][0]: 
             continue
         circles.append(circulo)
     
@@ -941,7 +943,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
         for (x, y, r) in circles:
             #if abs(r - radioDeteccionPorCirculo * 3) < 10: cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
             cv2.circle(imagen_recortada, (np.round(x).astype(int), np.round(y).astype(int)), np.round(r).astype(int), (0, 255, 0), 2)
-        if numeroFrame == 52: cv2.imwrite("imagen_recortada52.png", imagen_recortada)
+        #if numeroFrame == 16: cv2.imwrite("imagen_recortada16.png", imagen_recortada)
 
     imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
     cv2.imshow("Imagen recortada", imagen_recortada)
