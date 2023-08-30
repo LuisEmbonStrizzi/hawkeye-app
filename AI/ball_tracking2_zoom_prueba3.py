@@ -171,13 +171,14 @@ def main(frame):
         eliminarContornosInservibles(todosContornos)
     
     if len(contornos) > 0:
+        deteccionColorEsteFrame = []
         for contorno in contornos:
             ((x, y), radio) = cv2.minEnclosingCircle(contorno)
             M = cv2.moments(contorno)
             if M["m00"] > 0: centroConDecimales = (M["m10"] / M["m00"], M["m01"] / M["m00"]), radio
             deteccionColorEsteFrame.append(centroConDecimales)
         
-        deteccionColorUltimosFrames.append([deteccionColorEsteFrame])
+        deteccionColorUltimosFrames.append(deteccionColorEsteFrame)
 
         # Vemos cuales son los contornos casi inmóviles y si lo que considera que es la pelota no se está moviendo (o sea no es la pelota) se ignoran estos contornos.
         contornosQuietos(contornos, todosContornos, contornosIgnorar)
@@ -209,7 +210,7 @@ def main(frame):
             # Si se detectó un centro hace menos de 0.3 segundos
             else:
                 # Corre la función tp_fix para determinar cual es el contorno detectado que está mas cerca de la pelota del frame anterior, es decir, encuentra la peltoa a través de su posición en el frame anterior
-                if preCentro is not None: casiCentro = tp_fix(contornos, preCentro, TiempoDeteccionUltimaPelota, False, None, None, False)
+                if preCentro is not None: casiCentro = tp_fix(contornos, preCentro, TiempoDeteccionUltimaPelota, False, None, None, False, False)
                 
                 # Encuentra la posición x, y del contorno más cercano a la pelota del frame anterior. Determina el centro de la pelota
                 if casiCentro is not None:
@@ -596,13 +597,14 @@ def seEstaMoviendo(ultCentros, rango):
     return False
 
 # Función que arregla el problema de "la zapatilla verde"
-def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada, xy1, correcion):
+def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada, xy1, correcion, verdeCerca):
     cnts_pts = []
     medidorX = 100
     medidorY = 103
     for contorno in contornos:
         if circulo == False:
-            ((x, y), _) = cv2.minEnclosingCircle(contorno)
+            if verdeCerca == False: ((x, y), _) = cv2.minEnclosingCircle(contorno)
+            else: ((x, y), _)
             # cnts_pts tiene aquellos contornos del frame actual que están cerca del pre_centro en las coordenadas x,y. 
             if x - pre_centro[0][0] > medidorX * resizer or pre_centro[0][0] - x > medidorX * resizer or y - pre_centro[0][1] > medidorY * resizer or pre_centro[0][1] - y > medidorY * resizer and count <= 0.5:
                 continue
@@ -629,6 +631,7 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada, xy1, correci
     if cnts_pts != []:
         # Devuelve la función cualEstaMasCerca con los parametros obtenidos en la función
         return cualEstaMasCerca(pre_centro, cnts_pts, circulo)
+    return None
 
 # Define qué candidato a pelota es el punto más cercano al anterior. Toma los puntos de tp_fix y analiza cual está mas cerca al pre_centro (centro anterior).
 def cualEstaMasCerca(punto, lista, circulo):
@@ -899,7 +902,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     #print("len Circles 1", len(circles[0]))
 
     if circles is not None:
-        circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada, (x1, y1), False)
+        circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada, (x1, y1), False, False)
         #if numeroFrame == 51: 
             #cv2.imwrite("Frame51.jpg", frame)
             #print("Circulo detectado: ", circuloDetectado)
@@ -951,7 +954,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     if a:
         pausado = True
 
-        if numeroFrame > 40:
+        if numeroFrame > 60:
             while True:
                 # Verificar si se debe pausar la imagen
                 if pausado:
@@ -1035,6 +1038,8 @@ def circulosInmoviles(circles):
                 cv2.circle(frame, (int(circulo[0] / resizer), int(circulo[1] / resizer)), int(circulo[2] / resizer), (0, 0, 255), thickness = 2)
 
 def corregirPosicionPelota(ultCentrosGlobales):
+    #global deteccionColorUltimosFrames
+
     ultCentrosGlobales = list(ultCentrosGlobales)
     #cv2.imwrite("frame1.png", ultCentrosGlobales[0][2])
     diferenciaX = abs(ultCentrosGlobales[0][0][0][0] - ultCentrosGlobales[1][0][0][0])
@@ -1119,13 +1124,19 @@ def corregirPosicionPelota(ultCentrosGlobales):
                     primerosCirculosCorreccion = correccionUltimosCirculos.tolist()
                     primerosCirculosCorreccion = primerosCirculosCorreccion[0]
                 
-                if i == 0: 
+                if i == 0:
                     print("len PrimerosCirculosCorreccion", len(primerosCirculosCorreccion))
                     #print("PrimerosCirculosCorreccion", primerosCirculosCorreccion)
 
-                if i == 0 and len(primerosCirculosCorreccion) == 0: preCentroCorrecion = tp_fix(correccionUltimosCirculos[0], preCentroCorrecion, 0.2, True, None, (1,0), True)
-                elif i == 0 and len(primerosCirculosCorreccion) != 0: preCentroCorrecion = tp_fix(primerosCirculosCorreccion, preCentroCorrecion, 0.2, True, None, (1,0), True)
-                else: preCentroCorrecion = tp_fix(correccionUltimosCirculos[0], preCentroCorrecion, 0.2, True, None, (1,0), True)
+                verdeCerca = tp_fix(deteccionColorUltimosFrames[contador2], preCentroCorrecion, 0.2, False, None, (1,0), False, True)
+                
+                if verdeCerca is not None:
+                    preCentroCorrecion = verdeCerca
+                
+                else:
+                    if i == 0 and len(primerosCirculosCorreccion) == 0: preCentroCorrecion = tp_fix(correccionUltimosCirculos[0], preCentroCorrecion, 0.2, True, None, (1,0), True, False)
+                    elif i == 0 and len(primerosCirculosCorreccion) != 0: preCentroCorrecion = tp_fix(primerosCirculosCorreccion, preCentroCorrecion, 0.2, True, None, (1,0), True, False)
+                    else: preCentroCorrecion = tp_fix(correccionUltimosCirculos[0], preCentroCorrecion, 0.2, True, None, (1,0), True, False)
 
                 #print("preCentroCorrecion1", preCentroCorrecion)
                 if preCentroCorrecion is not None: preCentrosCorrecion.append(((preCentroCorrecion[0], preCentroCorrecion[1]), preCentroCorrecion[2]))
@@ -1144,8 +1155,9 @@ def corregirPosicionPelota(ultCentrosGlobales):
                     correccion = False
                     if len(primerosCirculosCorreccion) == 0: numeroFramePelotaIncorrecta += 1
                     break
-                else: 
+                else:
                     correccion = True
+                    print("Deteccion Color Ultimos Frames", deteccionColorUltimosFrames)
                     break
             contador2 += 1
         
