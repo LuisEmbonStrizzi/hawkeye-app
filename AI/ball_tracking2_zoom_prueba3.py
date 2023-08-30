@@ -169,12 +169,6 @@ def main(frame):
     # Cada 5 segundos elimina los contornos que no son tan frecuentes, es decir, los contornos parecidos que no aparecen tanto a lo largo del video
     if (TiempoSegundosEmpezoVideo % 5 == 0):
         eliminarContornosInservibles(todosContornos)
-
-    if len(ultimosCentros) == 10 and deteccionNoEsLaPelota(ultimosCentros, 15, False):
-        primeraVez = True
-        preCentro = None
-        TiempoDeteccionUltimaPelota += 1/fps
-        TiempoTresCentrosConsecutivos = 0
     
     if len(contornos) > 0:
         for contorno in contornos:
@@ -187,8 +181,12 @@ def main(frame):
 
         # Vemos cuales son los contornos casi inmóviles y si lo que considera que es la pelota no se está moviendo (o sea no es la pelota) se ignoran estos contornos.
         contornosQuietos(contornos, todosContornos, contornosIgnorar)
-        if len(ultimosCentros) >= 5 and seEstaMoviendo(ultimosCentros, 15) == False:
+        if len(ultimosCentros) >= 5 and seEstaMoviendo(ultimosCentros, 15) == False or len(ultimosCentros) == 10 and deteccionNoEsLaPelota(ultimosCentros, 15, False):
             contornos = ignorarContornosQuietos(contornos, contornosIgnorar)
+            primeraVez = True
+            preCentro = None
+            TiempoDeteccionUltimaPelota += 1/fps
+            TiempoTresCentrosConsecutivos = 0
 
         if len(contornos) > 0:
             # Cuando empezó el video o pasaron 0.3 segundos desde que no se encuentra la pelota
@@ -249,20 +247,17 @@ def main(frame):
         TiempoDeteccionUltimaPelota += 1/fps
         TiempoTresCentrosConsecutivos = 0
 
-    if numeroFrame == 48: cv2.imwrite("Frame48.jpg", frame)
+    #if numeroFrame == 48: cv2.imwrite("Frame48.jpg", frame)
 
     #ultFrames.appendleft(imutils.resize(frame, anchoOG, altoOG))
     ultFrames.appendleft(frame)
 
-    if numeroFrame == 54: cv2.imwrite("FrameCopia54.jpg", frameCopia)
+    #if numeroFrame == 54: cv2.imwrite("FrameCopia54.jpg", frameCopia)
     if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia))
 
     if centro is None and preCentro is not None:
         centro = deteccionPorCirculos(preCentro, frame, recorteCerca, False)
 
-        if numeroFrame == 54: 
-            cv2.imwrite("FrameCopia54a.jpg", frameCopia)
-            cv2.imwrite("FrameCopia54b.jpg", frame)
         if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia))
 
         if len(ultimosCentrosGlobales) == 12 and len(ultimosCentrosCirculo) >= 5:
@@ -271,19 +266,18 @@ def main(frame):
                 #primeraVez = True
                 ultimosCentrosCirculo.clear()
         
-        elif len(ultimosCentrosCirculo) >= 5 and seEstaMoviendo(ultimosCentrosCirculo, 15) == False or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5, False):
-            primeraVez = True
-            preCentro = None
-            TiempoDeteccionUltimaPelota += 1/fps
-            TiempoTresCentrosConsecutivos = 0
+        elif len(ultimosCentrosCirculo) >= 5:
+            if seEstaMoviendo(ultimosCentrosCirculo, 15) == False or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5, False):
+                primeraVez = True
+                preCentro = None
+                TiempoDeteccionUltimaPelota += 1/fps
+                TiempoTresCentrosConsecutivos = 0
         
     else: 
         if radio is not None: 
             radioDeteccionPorCirculo = radio
 
     #if len(ultimosCentrosGlobales) >= 10 and abs(ultimosCentrosGlobales[0][1] - ultimosCentrosGlobales[1][1]) > 2:
-
-
 
     # if centro is None:
     #     if TiempoDeteccionUltimaPelota >= 0.3:
@@ -825,8 +819,9 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     global deteccionPorColor
     global checkRecorteCerca
     global contadorCorreccion
+    global frameSiguiente
 
-    if numeroFrame == 52: cv2.imwrite("Frame52aa.jpg", frame)
+    #if numeroFrame == 52: cv2.imwrite("Frame52aa.jpg", frame)
 
     #greenLower2 = np.array([29, 15, 100], dtype=np.uint8)
     #greenUpper2 = np.array([200, 255, 255], dtype=np.uint8)
@@ -873,37 +868,40 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
 
     centro = None
 
-    circulosTresFrames = []
-    circulosTresFrames.append(circles.tolist())
+    #circulosTresFrames = []
+    #circulosTresFrames.append(circles.tolist())
 
     #print("Circles", circles)
-    circles = []
+    #circles = []
     
     #cv2.imwrite("Frame" + str(numeroFrame) + ".png", frame)
-    for i in range(-2, 0):
-        #cv2.imwrite("Frame" + str(numeroFrame + i) + ".jpg", ultimosFrames[i])
-        circulosTresFrames.append(deteccionPorCirculos(preCentro, ultimosFrames[i], recorteCerca, True).tolist())
+    #for i in range(-1, 0):
+    #    #cv2.imwrite("Frame" + str(numeroFrame + i) + ".jpg", ultimosFrames[i])
+    #    circulosTresFrames.append(deteccionPorCirculos(preCentro, ultimosFrames[i], recorteCerca, True).tolist())
+    #circulosTresFrames.append(deteccionPorCirculos(preCentro, frameSiguiente, recorteCerca, True).tolist())
 
-    #print("CirculosTresFrames[1]", circulosTresFrames[1])
-    contador = 0
-    for circulo in circulosTresFrames[0][0]:
-        contador += 1
-        #print("Circle", circulo)
-        #if circulo in circulosTresFrames[1][0] or circulo in circulosTresFrames[2][0] or circulo in circulosTresFrames[3][0]:
-        if circulo in circulosTresFrames[1][0] or circulo in circulosTresFrames[2][0]:
-        #if circulo in circulosTresFrames[1][0]: 
-            continue
-        circles.append(circulo)
+    #print("CircleTresFrames[0]", circulosTresFrames[0])
+    #print("CirculosTresFrames[2]", circulosTresFrames[2])
     
-    circles = [circles]
+    #contador = 0
+    #for circulo in circulosTresFrames[0][0]:
+    #    contador += 1
+    #    #print("Circle", circulo)
+    #    #if circulo in circulosTresFrames[1][0] or circulo in circulosTresFrames[2][0] or circulo in circulosTresFrames[3][0]:
+    #    if circulo in circulosTresFrames[1][0] or circulo in circulosTresFrames[2][0]:
+    #    #if circulo in circulosTresFrames[1][0]: 
+    #        continue
+    #    circles.append(circulo)
+    
+    #circles = [circles]
 
-    print("len Circles 0", contador)
-    print("len Circles 1", len(circles[0]))
+    #print("len Circles 0", contador)
+    #print("len Circles 1", len(circles[0]))
 
     if circles is not None:
         circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada, (x1, y1), False)
-        if numeroFrame == 51: 
-            cv2.imwrite("Frame51.jpg", frame)
+        #if numeroFrame == 51: 
+            #cv2.imwrite("Frame51.jpg", frame)
             #print("Circulo detectado: ", circuloDetectado)
         if circuloDetectado is not None:
             cv2.circle(imagen_recortada, (int(circuloDetectado[0]), int(circuloDetectado[1])), 50, (255, 255, 0), thickness = 2)
@@ -936,14 +934,14 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
             deteccionPorCirculos(preCentro, frame, recorteCerca + 100, False)
 
     # Si se encuentran círculos, dibújalos en la imagen original
-    circles = circles[0]
     #print("Circles", circles)
     if circles is not None:
+        circles = circles[0]
         #circles = np.round(circles[0]).astype(int)
         for (x, y, r) in circles:
             #if abs(r - radioDeteccionPorCirculo * 3) < 10: cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
             cv2.circle(imagen_recortada, (np.round(x).astype(int), np.round(y).astype(int)), np.round(r).astype(int), (0, 255, 0), 2)
-        #if numeroFrame == 16: cv2.imwrite("imagen_recortada16.png", imagen_recortada)
+        #if numeroFrame == 16: cv2.imwrite("imagen_recortada16b.png", imagen_recortada)
 
     imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
     cv2.imshow("Imagen recortada", imagen_recortada)
@@ -1038,7 +1036,7 @@ def circulosInmoviles(circles):
 
 def corregirPosicionPelota(ultCentrosGlobales):
     ultCentrosGlobales = list(ultCentrosGlobales)
-    cv2.imwrite("frame1.png", ultCentrosGlobales[0][2])
+    #cv2.imwrite("frame1.png", ultCentrosGlobales[0][2])
     diferenciaX = abs(ultCentrosGlobales[0][0][0][0] - ultCentrosGlobales[1][0][0][0])
     diferenciaY = abs(ultCentrosGlobales[0][0][0][1] - ultCentrosGlobales[1][0][0][1])
     ultCentrosGlobales.pop(0)
@@ -1158,6 +1156,7 @@ if not args.get("video", False):
     # Toma video en caso de haber
 else:
     vs = cv2.VideoCapture(args["video"])
+    vs2 = cv2.VideoCapture(args["video"])
 
 # Rango de deteccion de verdes
 greenLower = np.array([29, 50, 110])
@@ -1313,6 +1312,8 @@ with open(ruta_archivo, "r") as archivo:
 
         circulosAIgnorar.append(lista_enteros)
 
+vs2.read()
+
 # Se corre el for la cantidad de frames que contiene el video
 for _ in range(frame_count - aSaltear):
     numeroFrame += 1
@@ -1323,6 +1324,9 @@ for _ in range(frame_count - aSaltear):
     # Toma el frame del video
     frame = vs.read()
     frame = frame[1] if args.get("video", False) else frame
+
+    frameSiguiente = vs2.read()
+    frameSiguiente = frameSiguiente[1] if args.get("video", False) else frameSiguiente
 
     #for circulo in circulosAIgnorar:
         #cv2.circle(frame, (int(circulo[0] / resizer), int(circulo[1] / resizer)), int(circulo[2] / resizer), (255, 255, 255), 2)
@@ -1335,6 +1339,8 @@ for _ in range(frame_count - aSaltear):
         estaCercaX = anchoOG * 10/100
         estaCercaY = altoOG * 10/100
         #################
+
+    frameSiguiente = imutils.resize(frameSiguiente, anchoOG * resizer, altoOG * resizer)
 
     # Cuando termina las iteraciones y no hay frames. Se usa al no saber la duración del video
     if frame is None:
@@ -1359,7 +1365,7 @@ for _ in range(frame_count - aSaltear):
         zoomed_area = cv2.resize(zoomed_area, (zoom_width, zoom_height))
 
         # Guardar el área de zoom como una imagen
-        cv2.imwrite('zoomed_image.jpg', zoomed_area)
+        #cv2.imwrite('zoomed_image.jpg', zoomed_area)
         #break
 
     main(frame)
