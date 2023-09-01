@@ -6,6 +6,7 @@ import imutils
 import time
 from tqdm import tqdm
 from scipy.optimize import curve_fit
+import math
 
 class bcolors:
     HEADER = '\033[95m'
@@ -53,6 +54,7 @@ def main(frame):
     global preCentroConDecimales
     global centroConDecimales
     global deteccionPorColor
+    global corregir
 
     # Agrandamos el frame para ver más la pelota
     frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
@@ -171,15 +173,6 @@ def main(frame):
         eliminarContornosInservibles(todosContornos)
     
     if len(contornos) > 0:
-        deteccionColorEsteFrame = []
-        for contorno in contornos:
-            ((x, y), radio) = cv2.minEnclosingCircle(contorno)
-            M = cv2.moments(contorno)
-            if M["m00"] > 0: centroConDecimales = (M["m10"] / M["m00"], M["m01"] / M["m00"]), radio
-            deteccionColorEsteFrame.append(centroConDecimales)
-        
-        deteccionColorUltimosFrames.append(deteccionColorEsteFrame)
-
         # Vemos cuales son los contornos casi inmóviles y si lo que considera que es la pelota no se está moviendo (o sea no es la pelota) se ignoran estos contornos.
         contornosQuietos(contornos, todosContornos, contornosIgnorar)
         if len(ultimosCentros) >= 5 and seEstaMoviendo(ultimosCentros, 15) == False or len(ultimosCentros) == 10 and deteccionNoEsLaPelota(ultimosCentros, 15, False):
@@ -190,6 +183,14 @@ def main(frame):
             TiempoTresCentrosConsecutivos = 0
 
         if len(contornos) > 0:
+            deteccionColorEsteFrame = []
+            for contorno in contornos:
+                ((x, y), radio) = cv2.minEnclosingCircle(contorno)
+                M = cv2.moments(contorno)
+                if M["m00"] > 0: centroConDecimales = (M["m10"] / M["m00"], M["m01"] / M["m00"]), radio
+                deteccionColorEsteFrame.append(centroConDecimales)
+            
+            deteccionColorUltimosFrames.append(deteccionColorEsteFrame)
             # Cuando empezó el video o pasaron 0.3 segundos desde que no se encuentra la pelota
             if primeraVez:
                 # Busca el contorno más grande y encuentra su posición (x, y). Determina el centro de la pelota
@@ -239,6 +240,15 @@ def main(frame):
                 # Dibuja el círculo en la pelota
                 cv2.circle(frame, (int(x), int(y)), int(radio), (0, 255, 255), 2)
                 cv2.circle(frame, (centro[0][0], centro[0][1]), 5, (0, 0, 255), -1)
+        
+        # Si no se encuentra la pelota, se cambian algunas variables para poder determinar mejor su posición en los siguientes frame
+        else:
+            if TiempoDeteccionUltimaPelota >= 0.3:
+                primeraVez = True
+                preCentro = None
+            TiempoDeteccionUltimaPelota += 1/fps
+            TiempoTresCentrosConsecutivos = 0
+            deteccionColorUltimosFrames.append(None)
     
     # Si no se encuentra la pelota, se cambian algunas variables para poder determinar mejor su posición en los siguientes frame
     else:
@@ -247,8 +257,9 @@ def main(frame):
             preCentro = None
         TiempoDeteccionUltimaPelota += 1/fps
         TiempoTresCentrosConsecutivos = 0
+        deteccionColorUltimosFrames.append(None)
 
-    #if numeroFrame == 48: cv2.imwrite("Frame48.jpg", frame)
+    if numeroFrame == 67: cv2.imwrite("Frame67.jpg", frame)
 
     #ultFrames.appendleft(imutils.resize(frame, anchoOG, altoOG))
     ultFrames.appendleft(frame)
@@ -261,11 +272,9 @@ def main(frame):
 
         if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia))
 
-        if len(ultimosCentrosGlobales) == 12 and len(ultimosCentrosCirculo) >= 5:
-            if seEstaMoviendo(ultimosCentrosCirculo, 15) == False or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5, False):
-                corregirPosicionPelota(ultimosCentrosGlobales)
-                #primeraVez = True
-                ultimosCentrosCirculo.clear()
+        if len(ultimosCentrosGlobales) == 14 and len(ultimosCentrosCirculo) >= 5:
+            if seEstaMoviendo(ultimosCentrosCirculo, 15) == False and corregir[1] == 0 or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5, False) and corregir[1] == 0:
+                corregir = (True, numeroFrame + 2)
         
         elif len(ultimosCentrosCirculo) >= 5:
             if seEstaMoviendo(ultimosCentrosCirculo, 15) == False or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5, False):
@@ -277,6 +286,12 @@ def main(frame):
     else: 
         if radio is not None: 
             radioDeteccionPorCirculo = radio
+    
+    if corregir[0] == True and numeroFrame == corregir[1]:
+        corregirPosicionPelota(ultimosCentrosGlobales)
+        corregir = (False, 0)
+        #primeraVez = True
+        ultimosCentrosCirculo.clear()
 
     #if len(ultimosCentrosGlobales) >= 10 and abs(ultimosCentrosGlobales[0][1] - ultimosCentrosGlobales[1][1]) > 2:
 
@@ -604,7 +619,7 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada, xy1, correci
     for contorno in contornos:
         if circulo == False:
             if verdeCerca == False: ((x, y), _) = cv2.minEnclosingCircle(contorno)
-            else: ((x, y), _)
+            else: ((x, y), _) = contorno
             # cnts_pts tiene aquellos contornos del frame actual que están cerca del pre_centro en las coordenadas x,y. 
             if x - pre_centro[0][0] > medidorX * resizer or pre_centro[0][0] - x > medidorX * resizer or y - pre_centro[0][1] > medidorY * resizer or pre_centro[0][1] - y > medidorY * resizer and count <= 0.5:
                 continue
@@ -629,19 +644,21 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada, xy1, correci
                 if imagen_recortada is not None: cv2.circle(imagen_recortada, (int(x), int(y)), int(radius + 20), (255, 255, 255), 5)
                 cnts_pts.append(contorno)
     if cnts_pts != []:
+        print("Len cnts_pts: ", len(cnts_pts))
         # Devuelve la función cualEstaMasCerca con los parametros obtenidos en la función
-        return cualEstaMasCerca(pre_centro, cnts_pts, circulo)
+        return cualEstaMasCerca(pre_centro, cnts_pts, circulo, verdeCerca)
     return None
 
 # Define qué candidato a pelota es el punto más cercano al anterior. Toma los puntos de tp_fix y analiza cual está mas cerca al pre_centro (centro anterior).
-def cualEstaMasCerca(punto, lista, circulo):
+def cualEstaMasCerca(punto, lista, circulo, verdeCerca):
     suma = []
     suma2 = []
     for i in lista:
         # Obtenemos las diferencias entre el preCentro y el círculo a comparar que proviene del contorno.
-        if circulo:
-            xCenter, yCenter, radius = i
-        else: (xCenter, yCenter), radius = cv2.minEnclosingCircle(i)
+        if circulo: xCenter, yCenter, radius = i
+        else: 
+            if verdeCerca: (xCenter, yCenter), radius = i 
+            else: (xCenter, yCenter), radius = cv2.minEnclosingCircle(i)
         difEnX = abs(int(xCenter) - int(punto[0][0]))
         difEnY = abs(int(yCenter) - int(punto[0][1]))
         difRadio = abs(int(radius) - int(punto[1]))
@@ -854,7 +871,13 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     
     #circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=1, maxRadius=100)
     #circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=3, maxRadius=100)
-    circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius=5, maxRadius=100)
+    #circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius=5, maxRadius=100)
+    
+    print("Radio deteccion por circulo: ", radioDeteccionPorCirculo)
+    radioMinimo = max(int(radioDeteccionPorCirculo * 3 - 15), 5)
+    radioMaximo = min(math.ceil(radioDeteccionPorCirculo * 3 + 15), 100)
+    #print("Radio minimo: ", radioMinimo, "Radio maximo: ", radioMaximo)
+    circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius= radioMinimo, maxRadius= radioMaximo)
 
     #if numeroFrame == 51 or correccion: print("Circles: ", circles)
 
@@ -944,7 +967,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
         for (x, y, r) in circles:
             #if abs(r - radioDeteccionPorCirculo * 3) < 10: cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
             cv2.circle(imagen_recortada, (np.round(x).astype(int), np.round(y).astype(int)), np.round(r).astype(int), (0, 255, 0), 2)
-        #if numeroFrame == 16: cv2.imwrite("imagen_recortada16b.png", imagen_recortada)
+        if numeroFrame == 67: cv2.imwrite("imagen_recortada67.png", imagen_recortada)
 
     imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
     cv2.imshow("Imagen recortada", imagen_recortada)
@@ -1128,28 +1151,36 @@ def corregirPosicionPelota(ultCentrosGlobales):
                     print("len PrimerosCirculosCorreccion", len(primerosCirculosCorreccion))
                     #print("PrimerosCirculosCorreccion", primerosCirculosCorreccion)
 
-                verdeCerca = tp_fix(deteccionColorUltimosFrames[contador2], preCentroCorrecion, 0.2, False, None, (1,0), False, True)
+                #print("deteccionColorUltimosFrames[contador2]", deteccionColorUltimosFrames[contador2])
+                #print("preCentroCorrecion", preCentroCorrecion)
                 
+                verdeCerca = None
+
+                if deteccionColorUltimosFrames[contador2] is not None: 
+                    verdeCerca = tp_fix(deteccionColorUltimosFrames[contador2], preCentroCorrecion, 0.2, False, None, (1,0), False, True)
+                    #print("Verde Cerca", verdeCerca)
+
                 if verdeCerca is not None:
                     preCentroCorrecion = verdeCerca
+                    preCentroCorrecion = (preCentroCorrecion[0][0], preCentroCorrecion[0][1], preCentroCorrecion[1])
                 
                 else:
                     if i == 0 and len(primerosCirculosCorreccion) == 0: preCentroCorrecion = tp_fix(correccionUltimosCirculos[0], preCentroCorrecion, 0.2, True, None, (1,0), True, False)
                     elif i == 0 and len(primerosCirculosCorreccion) != 0: preCentroCorrecion = tp_fix(primerosCirculosCorreccion, preCentroCorrecion, 0.2, True, None, (1,0), True, False)
                     else: preCentroCorrecion = tp_fix(correccionUltimosCirculos[0], preCentroCorrecion, 0.2, True, None, (1,0), True, False)
 
-                #print("preCentroCorrecion1", preCentroCorrecion)
+                print("preCentroCorrecion1", preCentroCorrecion)
                 if preCentroCorrecion is not None: preCentrosCorrecion.append(((preCentroCorrecion[0], preCentroCorrecion[1]), preCentroCorrecion[2]))
-                print("PreCentroCorrecion2", ((preCentroCorrecion[0], preCentroCorrecion[1]), preCentroCorrecion[2]))
+                #print("PreCentroCorrecion2", ((preCentroCorrecion[0], preCentroCorrecion[1]), preCentroCorrecion[2]))
             #if i == 5: break
-            if i == 4:
-                if seEstaMoviendo(preCentrosCorrecion, 25) == False or deteccionNoEsLaPelota(preCentrosCorrecion, 5, True):
+            if i == len(ultCentrosGlobales) - numeroFramePelotaIncorrecta - 1:
+                if seEstaMoviendo(preCentrosCorrecion[-5:], 25) == False or deteccionNoEsLaPelota(preCentrosCorrecion[-5:], 5, True):
                     #print("ABorrar", [preCentrosCorrecion[0][0][0], preCentrosCorrecion[0][0][1], preCentrosCorrecion[0][1]])
                     #print("primerosCirculosCorreccion", primerosCirculosCorreccion)
                     #print("AAAAAAAAAAAAAAAAAA", [preCentrosCorrecion[0][0][0], preCentrosCorrecion[0][0][1], preCentrosCorrecion[0][1]] in primerosCirculosCorreccion)
                     primerosCirculosCorreccion.remove([preCentrosCorrecion[0][0][0], preCentrosCorrecion[0][0][1], preCentrosCorrecion[0][1]])
                     #print("PreCentrosCorrecion", preCentrosCorrecion)
-                    print("SeEstaMoviendo", seEstaMoviendo(preCentrosCorrecion, 25))
+                    print("SeEstaMoviendo", seEstaMoviendo(preCentrosCorrecion[-5:], 25))
                     #print("primerosCirculosCorreccion", primerosCirculosCorreccion)
                     preCentrosCorrecion = []
                     correccion = False
@@ -1157,7 +1188,7 @@ def corregirPosicionPelota(ultCentrosGlobales):
                     break
                 else:
                     correccion = True
-                    print("Deteccion Color Ultimos Frames", deteccionColorUltimosFrames)
+                    #print("Deteccion Color Ultimos Frames", deteccionColorUltimosFrames)
                     break
             contador2 += 1
         
@@ -1227,7 +1258,7 @@ TiempoSegundosEmpezoVideo = 0
 
 ultimosCentros = deque(maxlen=10)
 ultimosCentrosCirculo = deque(maxlen=5)
-ultimosCentrosGlobales = deque(maxlen=12)
+ultimosCentrosGlobales = deque(maxlen=14)
 ultimosFrames = deque(maxlen=3)
 
 todosContornos = []
@@ -1300,12 +1331,14 @@ circulosAIgnorar = []
 
 deteccionPorColor = None
 
-deteccionColorUltimosFrames = deque(maxlen=11)
+deteccionColorUltimosFrames = deque(maxlen=13)
 deteccionColorEsteFrame = []
 
-correccionUltimosCirculos = deque(maxlen=11)
+#correccionUltimosCirculos = deque(maxlen=13)
 
 radio = None
+
+corregir = (False, 0)
 
 # Abrir el archivo en modo de lectura
 with open(ruta_archivo, "r") as archivo:
