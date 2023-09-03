@@ -181,6 +181,7 @@ def main(frame):
             preCentro = None
             TiempoDeteccionUltimaPelota += 1/fps
             TiempoTresCentrosConsecutivos = 0
+            print("Ultimos Centros", ultimosCentros)
 
         if len(contornos) > 0:
             deteccionColorEsteFrame = []
@@ -259,7 +260,7 @@ def main(frame):
         TiempoTresCentrosConsecutivos = 0
         deteccionColorUltimosFrames.append(None)
 
-    if numeroFrame == 67: cv2.imwrite("Frame67.jpg", frame)
+    if numeroFrame == 75: cv2.imwrite("Frame75.jpg", frame)
 
     #ultFrames.appendleft(imutils.resize(frame, anchoOG, altoOG))
     ultFrames.appendleft(frame)
@@ -644,7 +645,7 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada, xy1, correci
                 if imagen_recortada is not None: cv2.circle(imagen_recortada, (int(x), int(y)), int(radius + 20), (255, 255, 255), 5)
                 cnts_pts.append(contorno)
     if cnts_pts != []:
-        print("Len cnts_pts: ", len(cnts_pts))
+        #print("Len cnts_pts: ", len(cnts_pts))
         # Devuelve la función cualEstaMasCerca con los parametros obtenidos en la función
         return cualEstaMasCerca(pre_centro, cnts_pts, circulo, verdeCerca)
     return None
@@ -871,19 +872,24 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     
     #circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=1, maxRadius=100)
     #circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=50, param1=50, param2=25, minRadius=3, maxRadius=100)
-    #circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius=5, maxRadius=100)
+    circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius=5, maxRadius=100)
     
-    print("Radio deteccion por circulo: ", radioDeteccionPorCirculo)
-    radioMinimo = max(int(radioDeteccionPorCirculo * 3 - 15), 5)
-    radioMaximo = min(math.ceil(radioDeteccionPorCirculo * 3 + 15), 100)
+    #print("Radio deteccion por circulo: ", radioDeteccionPorCirculo)
+    #radioMinimo = max(math.ceil(radioDeteccionPorCirculo * 3 - 15), 5)
+    #radioMaximo = min(int(radioDeteccionPorCirculo * 3 + 15), 100)
     #print("Radio minimo: ", radioMinimo, "Radio maximo: ", radioMaximo)
-    circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius= radioMinimo, maxRadius= radioMaximo)
-
+    #circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=40, param1=50, param2=25, minRadius= radioMinimo, maxRadius= radioMaximo)
     #if numeroFrame == 51 or correccion: print("Circles: ", circles)
 
     #if correccion: return circles, (x1, y1)
     if correccion:
-        contadorCorreccion += 1
+        # Supongamos que quieres eliminar algunos círculos, aquí hay un ejemplo de condición
+        #condicion = (circles[:,:,2] - preCentro[1] * 3) > 15  # Condición de ejemplo
+        # Aplica la condición para filtrar círculos
+        #circles_filtrados = circles[~condicion]
+        #for circle in circles[0]:
+        #    if abs(circle[2] - preCentro[1] * 3) > 15:
+        #contadorCorreccion += 1
         #if contadorCorreccion == 6: contadorCorreccion = 1
         #for i in circles[0]:
         #    cv2.circle(imagen_recortada, (int(i[0]), int(i[1])), int(i[2]), (255, 255, 255), thickness = 2)
@@ -967,7 +973,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
         for (x, y, r) in circles:
             #if abs(r - radioDeteccionPorCirculo * 3) < 10: cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
             cv2.circle(imagen_recortada, (np.round(x).astype(int), np.round(y).astype(int)), np.round(r).astype(int), (0, 255, 0), 2)
-        if numeroFrame == 67: cv2.imwrite("imagen_recortada67.png", imagen_recortada)
+        #if numeroFrame == 18: cv2.imwrite("imagen_recortada18a.png", imagen_recortada)
 
     imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
     cv2.imshow("Imagen recortada", imagen_recortada)
@@ -977,7 +983,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     if a:
         pausado = True
 
-        if numeroFrame > 60:
+        if numeroFrame > 15:
             while True:
                 # Verificar si se debe pausar la imagen
                 if pausado:
@@ -1012,6 +1018,17 @@ def deteccionNoEsLaPelota(ultCentros, valorSumaEjeY, correccion):
     
     if sumaEjeY <= valorSumaEjeY:
         return True
+
+    if correccion:
+        contador1 = 0
+        contador2 = 0
+        for centro in ultCentros:
+            contador1 += 1
+            contador2 = 0
+            for centro2 in ultCentros:
+                contador2 += 1
+                if abs(centro[0][0] - centro2[0][0]) <= 1 and abs(centro[0][1] - centro2[0][1]) <= 1 and abs(centro[1] - centro2[1]) <= 1 and contador1 != contador2:
+                    return True
     
     return False
 
@@ -1093,6 +1110,7 @@ def corregirPosicionPelota(ultCentrosGlobales):
         diferenciaY = abs(centro1[0][1] - centro2[0][1])
     
     print("NumeroFramePelotaIncorrecta", numeroFramePelotaIncorrecta + 1)
+    if numeroFramePelotaIncorrecta > 8: numeroFramePelotaIncorrecta = 8
     
     #contador2 = numeroFramePelotaIncorrecta
     #for i in range(1, len(ultCentrosGlobales) - numeroFramePelotaIncorrecta + 1):
@@ -1156,7 +1174,7 @@ def corregirPosicionPelota(ultCentrosGlobales):
                 
                 verdeCerca = None
 
-                if deteccionColorUltimosFrames[contador2] is not None: 
+                if deteccionColorUltimosFrames[contador2] is not None:
                     verdeCerca = tp_fix(deteccionColorUltimosFrames[contador2], preCentroCorrecion, 0.2, False, None, (1,0), False, True)
                     #print("Verde Cerca", verdeCerca)
 
@@ -1165,6 +1183,7 @@ def corregirPosicionPelota(ultCentrosGlobales):
                     preCentroCorrecion = (preCentroCorrecion[0][0], preCentroCorrecion[0][1], preCentroCorrecion[1])
                 
                 else:
+                    #preCentroCorrecion = ((preCentroCorrecion[0][0], preCentroCorrecion[0][1]), preCentroCorrecion[1] * 3)
                     if i == 0 and len(primerosCirculosCorreccion) == 0: preCentroCorrecion = tp_fix(correccionUltimosCirculos[0], preCentroCorrecion, 0.2, True, None, (1,0), True, False)
                     elif i == 0 and len(primerosCirculosCorreccion) != 0: preCentroCorrecion = tp_fix(primerosCirculosCorreccion, preCentroCorrecion, 0.2, True, None, (1,0), True, False)
                     else: preCentroCorrecion = tp_fix(correccionUltimosCirculos[0], preCentroCorrecion, 0.2, True, None, (1,0), True, False)
@@ -1180,13 +1199,16 @@ def corregirPosicionPelota(ultCentrosGlobales):
                     #print("AAAAAAAAAAAAAAAAAA", [preCentrosCorrecion[0][0][0], preCentrosCorrecion[0][0][1], preCentrosCorrecion[0][1]] in primerosCirculosCorreccion)
                     primerosCirculosCorreccion.remove([preCentrosCorrecion[0][0][0], preCentrosCorrecion[0][0][1], preCentrosCorrecion[0][1]])
                     #print("PreCentrosCorrecion", preCentrosCorrecion)
-                    print("SeEstaMoviendo", seEstaMoviendo(preCentrosCorrecion[-5:], 25))
+                    print("Se Esta Moviendo", seEstaMoviendo(preCentrosCorrecion[-5:], 25))
+                    print("Deteccion No Es La Pelota", deteccionNoEsLaPelota(preCentrosCorrecion[-5:], 5, True))
                     #print("primerosCirculosCorreccion", primerosCirculosCorreccion)
                     preCentrosCorrecion = []
                     correccion = False
                     if len(primerosCirculosCorreccion) == 0: numeroFramePelotaIncorrecta += 1
                     break
                 else:
+                    print("Se Esta Moviendo", seEstaMoviendo(preCentrosCorrecion[-5:], 25))
+                    print("Deteccion No Es La Pelota", deteccionNoEsLaPelota(preCentrosCorrecion[-5:], 5, True))
                     correccion = True
                     #print("Deteccion Color Ultimos Frames", deteccionColorUltimosFrames)
                     break
