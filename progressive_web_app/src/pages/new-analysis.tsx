@@ -1,7 +1,11 @@
 import { type NextPage } from "next";
+import {getSession } from "next-auth/react";
+import type { GetServerSidePropsContext } from "next/types";
 import { useState } from "react";
 import Button from "~/components/Button";
 import Link from "next/link";
+import Topbar from "~/components/navigation/Topbar";
+import AlignCorners from "~/components/AlignCorners";
 
 const NewAnalysis: NextPage = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -48,7 +52,7 @@ const NewAnalysis: NextPage = () => {
               />
             </div>
           </>
-        ) : success ? (<></>) : (
+        ) : success ? (<><Topbar step={1}/><AlignCorners image="/img/test.png"/></>) : (
           <>
             <svg
               width="128"
@@ -89,6 +93,25 @@ const NewAnalysis: NextPage = () => {
 };
 
 export default NewAnalysis;
+
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  const session = await getSession(ctx);
+  console.log(session);
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/log-in",
+        permanent: false,
+      },
+    };
+  }
+  return {
+    props: {
+      session,
+    },
+  };
+};
 
 /* Esto es lo que había antes.
 
