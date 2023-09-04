@@ -722,12 +722,34 @@ def tracking(url):
         print("Tiempo:", time.time() - start_time, " - Frame:", numeroFrame)
         ################################ TIEMPO: 0.1 ###################################
 
+        # Define qué tan cerca está un pique del límite de la cancha
+        def distancia_al_borde(pique):
+            altura, ancho = (164, 474)
+            y, x = pique[0]
+
+            distancia_top = y
+            distancia_bottom = altura - y
+            distancia_left = x
+            distancia_right = ancho - x
+
+            return min(distancia_top, distancia_bottom, distancia_left, distancia_right)
+
+        # Encuentra la coordenada más cercana al borde
+        coordenada_mas_cercana = None
+        distancia_minima = None
+        for coordenada in pts_piques_finales:
+            distancia = distancia_al_borde(coordenada)
+            if distancia_minima is None or distancia < distancia_minima:
+                distancia_minima = distancia
+                coordenada_mas_cercana = coordenada
+
     print("Tiempo total:", time.time() - tiempo_inicial)
     print(pts_piques_finales)
+    print("Más cerca del límite:", coordenada_mas_cercana)
 
     vs.release()
 
     return pts_piques_finales
 
 if __name__ == '__main__':
-    tracking("./InkedInkedTennisBrothersVideo1080p.mp4")
+    tracking("../InkedInkedTennisBrothersVideo1080p.mp4")
