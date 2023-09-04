@@ -859,6 +859,8 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     x2 = min(preCentro[0][0] + recorteCerca, anchoOG * 3)
     y2 = min(preCentro[0][1] + recorteCerca, altoOG * 3)
 
+    if numeroFrame == 67: print("X1", x1, "Y1", y1, "X2", x2, "Y2", y2)
+
     # Recortar la región de interés de la imagen original
     imagen_recortada = frame[int(y1):int(y2), int(x1):int(x2)]
 
