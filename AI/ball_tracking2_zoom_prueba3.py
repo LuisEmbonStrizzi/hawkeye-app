@@ -181,7 +181,6 @@ def main(frame):
             preCentro = None
             TiempoDeteccionUltimaPelota += 1/fps
             TiempoTresCentrosConsecutivos = 0
-            print("Ultimos Centros", ultimosCentros)
 
         if len(contornos) > 0:
             deteccionColorEsteFrame = []
@@ -260,7 +259,7 @@ def main(frame):
         TiempoTresCentrosConsecutivos = 0
         deteccionColorUltimosFrames.append(None)
 
-    if numeroFrame == 75: cv2.imwrite("Frame75.jpg", frame)
+    #if numeroFrame == 68: cv2.imwrite("Frame68.jpg", frame)
 
     #ultFrames.appendleft(imutils.resize(frame, anchoOG, altoOG))
     ultFrames.appendleft(frame)
@@ -647,11 +646,11 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada, xy1, correci
     if cnts_pts != []:
         #print("Len cnts_pts: ", len(cnts_pts))
         # Devuelve la función cualEstaMasCerca con los parametros obtenidos en la función
-        return cualEstaMasCerca(pre_centro, cnts_pts, circulo, verdeCerca)
+        return cualEstaMasCerca(pre_centro, cnts_pts, circulo, verdeCerca, correcion)
     return None
 
 # Define qué candidato a pelota es el punto más cercano al anterior. Toma los puntos de tp_fix y analiza cual está mas cerca al pre_centro (centro anterior).
-def cualEstaMasCerca(punto, lista, circulo, verdeCerca):
+def cualEstaMasCerca(punto, lista, circulo, verdeCerca, correcion):
     suma = []
     suma2 = []
     for i in lista:
@@ -665,10 +664,17 @@ def cualEstaMasCerca(punto, lista, circulo, verdeCerca):
         difRadio = abs(int(radius) - int(punto[1]))
         
         # Guardamos los valores en listas
-        suma.append(difEnX + difEnY + difRadio * 3)
-        suma2.append(i)
+        if correcion and difRadio <= 15:
+            suma.append(difEnX + difEnY + difRadio * 3)
+            suma2.append(i)
+
+        if correcion == False:
+            suma.append(difEnX + difEnY + difRadio * 3)
+            suma2.append(i)
+
     # Devolvemos el valor más chico que representa el círculo a menor distancia del preCentro
-    return suma2[suma.index(min(suma))]
+    if len(suma2) > 0: return suma2[suma.index(min(suma))]
+    return None
 
 # Función que determina si es un pique o un golpe
 def pica (count):
@@ -900,6 +906,8 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
 
     centro = None
 
+    if numeroFrame == 67: cv2.imwrite("imagen_recortada67-SinCirculos.png", imagen_recortada)
+
     #circulosTresFrames = []
     #circulosTresFrames.append(circles.tolist())
 
@@ -973,7 +981,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
         for (x, y, r) in circles:
             #if abs(r - radioDeteccionPorCirculo * 3) < 10: cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
             cv2.circle(imagen_recortada, (np.round(x).astype(int), np.round(y).astype(int)), np.round(r).astype(int), (0, 255, 0), 2)
-        #if numeroFrame == 18: cv2.imwrite("imagen_recortada18a.png", imagen_recortada)
+        #if numeroFrame == 68: cv2.imwrite("imagen_recortada68.png", imagen_recortada)
 
     imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
     cv2.imshow("Imagen recortada", imagen_recortada)
@@ -1028,6 +1036,8 @@ def deteccionNoEsLaPelota(ultCentros, valorSumaEjeY, correccion):
             for centro2 in ultCentros:
                 contador2 += 1
                 if abs(centro[0][0] - centro2[0][0]) <= 1 and abs(centro[0][1] - centro2[0][1]) <= 1 and abs(centro[1] - centro2[1]) <= 1 and contador1 != contador2:
+                    return True
+                if abs(centro[0][1] - centro2[0][1]) <= 2 and contador1 != contador2:
                     return True
     
     return False
@@ -1149,7 +1159,7 @@ def corregirPosicionPelota(ultCentrosGlobales):
             if i == 0:
                 preCentroCorrecion = ultCentrosGlobales[numeroFramePelotaIncorrecta - 1][0]
                 print("preCentroCorrecion", preCentroCorrecion)
-            if type(preCentroCorrecion) is not tuple: preCentroCorrecion = ((preCentroCorrecion[0], preCentroCorrecion[1]), preCentroCorrecion[2])
+            if type(preCentroCorrecion) is not tuple and preCentroCorrecion is not None: preCentroCorrecion = ((preCentroCorrecion[0], preCentroCorrecion[1]), preCentroCorrecion[2])
             
             correccionUltimosCirculos = deteccionPorCirculos(preCentroCorrecion, ultCentrosGlobales[contador2][2], 200, True)
 
@@ -1167,6 +1177,11 @@ def corregirPosicionPelota(ultCentrosGlobales):
                 
                 if i == 0:
                     print("len PrimerosCirculosCorreccion", len(primerosCirculosCorreccion))
+                    # Ordena la lista de puntos en base a la distancia personalizada al preCentro
+                    #puntos_ordenados = sorted(primerosCirculosCorreccion, key=lambda punto: distancia_personalizada(punto, preCentroCorrecion[0], preCentroCorrecion[1]))
+
+                    # Imprime la lista ordenada
+                    #print("Puntos Ordenados", puntos_ordenados)
                     #print("PrimerosCirculosCorreccion", primerosCirculosCorreccion)
 
                 #print("deteccionColorUltimosFrames[contador2]", deteccionColorUltimosFrames[contador2])
@@ -1213,6 +1228,17 @@ def corregirPosicionPelota(ultCentrosGlobales):
                     #print("Deteccion Color Ultimos Frames", deteccionColorUltimosFrames)
                     break
             contador2 += 1
+
+# Función para calcular la distancia entre dos puntos
+def distancia_personalizada(punto, centro, radio):
+    xCenter, yCenter = centro
+    radius = radio
+
+    difEnX = abs(int(xCenter) - int(punto[0]))
+    difEnY = abs(int(yCenter) - int(punto[1]))
+    difRadio = abs(int(radius) - int(punto[2]))
+
+    return difEnX + difEnY + difRadio * 3
         
 # Toma la cámara si no recibe video
 if not args.get("video", False):
