@@ -50,15 +50,14 @@ else:
     altoOG, anchoOG = imagen.shape[:2]
     print("Alto", altoOG, "ancho", anchoOG)
 
-    imagen = imutils.resize(imagen, anchoOG * resizer, altoOG * resizer)
+    #imagen = imutils.resize(imagen, anchoOG * resizer, altoOG * resizer)
     print(imagen.shape[:2])
     
-    x1= 2854
-    y1= 1723
-    x2= 3254
-    y2= 2123
+    # Definir las coordenadas del rectángulo de recorte
+    x1, y1, x2, y2 = 2854, 1723, 3254, 2123
 
-    imagen_recortada = imagen[int(y1):int(y2), int(x1):int(x2)]
+    imagen_recortada = imagen[y1:y2, x1:x2]
+    cv2.imwrite("ImagenRecortadaGreenTracker.png", imagen_recortada)
 
     imagen_recortada = imutils.resize(imagen_recortada, imagen_recortada.shape[1] * resizer, imagen_recortada.shape[0] * resizer)
     imagen_gris = cv2.cvtColor(imagen_recortada, cv2.COLOR_BGR2GRAY)
@@ -79,7 +78,7 @@ else:
     if circles is not None:
         for (x, y, r) in circles[0]:
             #if abs(r - radioDeteccionPorCirculo * 3) < 10: cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
-            cv2.circle(imagen, (np.round(x).astype(int), np.round(y).astype(int)), np.round(r).astype(int), (0, 255, 0), 2)
+            cv2.circle(imagen_recortada, (np.round(x).astype(int), np.round(y).astype(int)), np.round(r).astype(int), (0, 255, 0), 2)
 
     print("Número de contornos encontrados:", len(contornos))
 
@@ -118,7 +117,7 @@ else:
         # Muestra la imagen con el contorno verde
         imagen = imutils.resize(imagen, height= 500)
         mascara = imutils.resize(mascara, height= 500)
-        imagen_recortada = imutils.resize(mascara, height= 500)
+        imagen_recortada = imutils.resize(imagen_recortada, height= 500)
 
         cv2.imshow("Imagen", imagen)
         cv2.imshow("Mascara de Contornos", mascara)
