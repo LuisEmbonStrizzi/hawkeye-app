@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import clsx from "clsx";
 
 type AlignCornersProps = {
@@ -50,13 +50,23 @@ const AlignCorners: React.FC<AlignCornersProps> = ({ image }) => {
     setSelectedIndeex(index);
   };
 
+  const variants = {
+    leftTop: { x: 0, y: 0 },
+    rightTop: { x: imgWidth - 128, y: 0 },
+    leftBottom: { x: 0, y: imgHeight - 128 },
+    rightBottom: { x: imgWidth - 128, y: imgHeight - 128 },
+  };
+
   return (
     <>
-      <h2 className="p-4 font-semibold text-foreground-important flex gap-4">
+      <h2 className="flex gap-4 p-4 font-semibold text-foreground-important">
         {vertices.map((vertex, index) => (
           <span
             key={index}
-            className={clsx(index === selectedIndex && "text-primary", "transition-all duration-300 ease-in-out")}
+            className={clsx(
+              index === selectedIndex && "text-primary",
+              "transition-all duration-300 ease-in-out"
+            )}
           >
             Vertex {index + 1}: ({Math.round(vertex.x)}, {Math.round(vertex.y)})
           </span>
@@ -64,8 +74,22 @@ const AlignCorners: React.FC<AlignCornersProps> = ({ image }) => {
       </h2>
       <section className="relative w-full max-w-4xl" ref={constraintsRef}>
         {magnifyingGlassVisible && (
-          <div
-            className="absolute z-20 flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border border-background-border bg-background shadow-xl"
+          <motion.div
+            animate={
+              (vertices[selectedIndex]?.x > imgWidth/2) &
+              (vertices[selectedIndex]?.y > imgHeight/2)
+                ? "rightBottom"
+                : (vertices[selectedIndex]?.x > imgWidth/2) &
+                  (vertices[selectedIndex]?.y < imgHeight/2)
+                ? "rightTop"
+                : (vertices[selectedIndex]?.x < imgWidth/2) &
+                  (vertices[selectedIndex]?.y > imgHeight/2)
+                ? "leftBottom"
+                : "leftTop"
+            }
+            variants={variants}
+            transition={{ duration: 0.5, type: "tween", ease: "linear" }}
+            className="left- absolute z-20 flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border border-background-border bg-background shadow-xl"
             style={{
               backgroundImage: `url('${image}')`,
               backgroundRepeat: "no-repeat",
@@ -102,7 +126,7 @@ const AlignCorners: React.FC<AlignCornersProps> = ({ image }) => {
                 className="fill-background"
               />
             </svg>
-          </div>
+          </motion.div>
         )}
         {vertices.map((vertex, index) => (
           <motion.span
@@ -116,12 +140,8 @@ const AlignCorners: React.FC<AlignCornersProps> = ({ image }) => {
             onDrag={(event, info) =>
               handleDrag(index, info.point.x, info.point.y)
             }
-            onMouseDown={() => {
-              setMagnifyingGlassVisible(true);
-            }}
-            onMouseUp={() => {
-              setMagnifyingGlassVisible(false);
-            }}
+            onDragStart={(event, info) => setMagnifyingGlassVisible(true)}
+            onDragEnd={(event, info) => setMagnifyingGlassVisible(false)}
             initial={initialVertices[index]}
             className="absolute z-10 flex h-8 w-8 items-center justify-center rounded-full border border-primary bg-background/60 shadow-sm shadow-primary/50"
           >

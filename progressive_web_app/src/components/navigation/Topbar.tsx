@@ -1,36 +1,37 @@
 import React from "react";
 import Button from "../Button";
 import Badge from "../Badge";
-import clsx from "clsx";
+import { useState } from "react";
+import Link from "next/link";
 
-type TopbarProps = {
-  step: number;
-};
+const Topbar: React.FC = () => {
+  const [step, setStep] = useState<number>(0);
 
-const Topbar: React.FC<TopbarProps> = (number) => {
   return (
     <header className="fixed top-0 flex w-full items-center border-b border-background-border bg-background px-4 py-[10px] text-sm text-foreground-important">
       <div className="flex w-full items-center justify-start">
-        <Button
-          style="secondary"
-          icon={
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 15L7 10L12 5L13.0625 6.0625L9.125 10L13.0625 13.9375L12 15Z"
-                fill="#596585"
-              />
-            </svg>
-          }
-          padding="icon"
-        />
+        <Link href="/home">
+          <Button
+            style="secondary"
+            icon={
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12 15L7 10L12 5L13.0625 6.0625L9.125 10L13.0625 13.9375L12 15Z"
+                  fill="#596585"
+                />
+              </svg>
+            }
+            padding="icon"
+          />
+        </Link>
       </div>
-      <div className="flex w-full items-center justify-center gap-2 text-base font-semibold text-foreground-important whitespace-nowrap">
+      <div className="flex w-full items-center justify-center gap-2 whitespace-nowrap text-base font-semibold text-foreground-important">
         Align corners <Badge label="0/2" />
       </div>
       <div className="flex w-full items-center justify-end lg:hidden">

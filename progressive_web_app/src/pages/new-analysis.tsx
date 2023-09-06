@@ -52,7 +52,7 @@ const NewAnalysis: NextPage = () => {
               />
             </div>
           </>
-        ) : success ? (<><Topbar step={1}/><AlignCorners image="/img/test.png"/></>) : (
+        ) : success ? (<><Topbar/><AlignCorners image="/img/test.png"/></>) : (
           <>
             <svg
               width="128"
