@@ -1,5 +1,8 @@
 {
     "files.associations": {
         "ostream": "cpp"
-    }
+    },
+    "python.analysis.extraPaths": [
+        "./gopro_api/official_sdk/tutorial"
+    ]
 }
