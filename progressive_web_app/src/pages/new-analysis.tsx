@@ -13,7 +13,7 @@ const NewAnalysis: NextPage = () => {
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="mx-auto my-auto flex h-screen w-full max-w-xl flex-col items-center justify-center gap-6 p-6">
+      <div className="mx-auto my-auto flex h-screen w-full flex-col items-center justify-center gap-6 p-6">
         {loading ? (
           <>
             {" "}
