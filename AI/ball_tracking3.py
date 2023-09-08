@@ -939,40 +939,83 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     #print("len Circles 0", contador)
     #print("len Circles 1", len(circles[0]))
 
-    if circles is not None and numeroFrame > 65:
-        circles = np.uint16(np.around(circles))
-        colores_promedio = []
+    #if circles is not None and numeroFrame > 65:
+    #    circles = np.uint16(np.around(circles))
+    #    colores_promedio = []
 
-        for circulo in circles[0, :]:
-            x, y, radio = circulo
+        # for circulo in circles[0, :]:
+        #     x, y, radio = circulo
 
-            # Extraer los píxeles dentro del círculo
-            mascara = np.zeros_like(imagen_gris)
-            cv2.circle(mascara, (x, y), radio, 255, -1)
-            píxeles_del_círculo = cv2.bitwise_and(imagen_recortada, imagen_recortada, mask=mascara)
+        #     # Extraer los píxeles dentro del círculo
+        #     mascara = np.zeros_like(imagen_gris)
+        #     cv2.circle(mascara, (x, y), radio, 255, -1)
+        #     píxeles_del_círculo = cv2.bitwise_and(imagen_recortada, imagen_recortada, mask=mascara)
 
-            # Calcular el color promedio de los píxeles dentro del círculo
-            color_promedio = np.mean(píxeles_del_círculo, axis=(0, 1))
+        #     # Calcular el color promedio de los píxeles dentro del círculo
+        #     color_promedio = np.mean(píxeles_del_círculo, axis=(0, 1))
 
-            colores_promedio.append(color_promedio)
+        #     colores_promedio.append(color_promedio)
         
-        print("Colores promedio", colores_promedio)
+        # print("Colores promedio", colores_promedio)
 
-        # Definir el color verde (ajusta estos valores según tus necesidades)
-        color_verde = np.array([0, 255, 0])
+        # # Definir el color verde (ajusta estos valores según tus necesidades)
+        # color_verde = np.array([0, 255, 0])
     
-        # Calcular las distancias euclidianas entre los colores promedio y el color verde
-        distancias = [np.linalg.norm(color - color_verde) for color in colores_promedio]
+        # # Calcular las distancias euclidianas entre los colores promedio y el color verde
+        # distancias = [np.linalg.norm(color - color_verde) for color in colores_promedio]
 
-        # Encontrar el índice del color promedio más cercano al verde
-        indice_color_mas_cercano = np.argmin(distancias)
+        # # Encontrar el índice del color promedio más cercano al verde
+        # indice_color_mas_cercano = np.argmin(distancias)
 
-        print("Círculo más cercano", circles[0, indice_color_mas_cercano])
-        print("Su color", distancias[indice_color_mas_cercano])
+        # print("Círculo más cercano", circles[0, indice_color_mas_cercano])
+        # print("Su color", distancias[indice_color_mas_cercano])
 
-        # Mostrar el círculo más cercano al verde en la imagen_recortada original
-        cv2.circle(imagen_recortada, (circles[0, indice_color_mas_cercano, 0], circles[0, indice_color_mas_cercano, 1]),
-                circles[0, indice_color_mas_cercano, 2], (0, 0, 255), 5)
+        # # Mostrar el círculo más cercano al verde en la imagen_recortada original
+        # cv2.circle(imagen_recortada, (circles[0, indice_color_mas_cercano, 0], circles[0, indice_color_mas_cercano, 1]),
+        #         circles[0, indice_color_mas_cercano, 2], (0, 0, 255), 5)
+
+    circles_casi_copia = [[[valor/3 for valor in sublista] for sublista in sublista_exterior] for sublista_exterior in circles]
+
+    circles_copia = []
+    for circulo in circles_casi_copia[0]:
+        if abs(circulo[2] - radioDeteccionPorCirculo) <= 15:
+            circles_copia.append(circulo)
+
+    todos_pixeles = []
+    for circulo in circles_copia:
+        x, y, radius = circulo
+        x, y, radius = int(x), int(y), int(radius)
+        pixeles = []
+
+        pixeles.append((x, y))
+
+        for i in range(1, radius + 1):
+            pixeles.append((x + i, y))
+            pixeles.append((x - i, y))
+
+        for i in range(1, radius + 1):
+            pixeles.append((x, y + i))
+            pixeles.append((x, y - i))
+
+        for i in range(1, radius + 1):
+            for h in range(1, radius + 1):
+                if math.sqrt(h **2 + i **2) <= radius:
+                    pixeles.append((x + h, y + i))
+                    pixeles.append((x - h, y + i))
+                    pixeles.append((x + h, y - i))
+                    pixeles.append((x - h, y - i))
+                else: break
+        
+        todos_pixeles.append(pixeles)
+    
+    print("Circles", circles_copia[0])
+    print("Pixeles", todos_pixeles[0])
+    
+
+    # Extraer el color del círculo
+    #color = imagen_recortada[y, x]
+
+    #print("Color Pixel", color)
 
     if circles is not None:
         circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada, (x1, y1), False, False)
