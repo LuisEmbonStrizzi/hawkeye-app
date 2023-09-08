@@ -12,7 +12,7 @@ from bleak import BleakClient
 from tutorial_modules import GOPRO_BASE_UUID, connect_ble, logger
 
 
-async def main(identifier: Optional[str]) -> None:
+async def main(identifier: Optional[str], command) -> None:
     # Synchronization event to wait until notification response is received
     event = asyncio.Event()
 
@@ -41,7 +41,7 @@ async def main(identifier: Optional[str]) -> None:
     # Write to command request BleUUID to load the video preset group
     logger.info("Loading the video preset group...")
     event.clear()
-    await client.write_gatt_char(COMMAND_REQ_UUID, bytearray([0x04, 0x3E, 0x02, 0x03, 0xE8]), response=True)
+    await client.write_gatt_char(COMMAND_REQ_UUID, bytearray(command), response=True)
     await event.wait()  # Wait to receive the notification response
     await client.disconnect()
 
