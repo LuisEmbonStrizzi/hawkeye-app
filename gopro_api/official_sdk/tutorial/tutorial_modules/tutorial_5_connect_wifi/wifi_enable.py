@@ -74,9 +74,11 @@ async def main(identifier: Optional[str], timeout: Optional[int]) -> None:
     *_, client = await enable_wifi(identifier)
 
     if not timeout:
-        logger.info("Maintaining BLE Connection indefinitely. Send keyboard interrupt to exit.")
+        logger.info(
+            "Maintaining BLE Connection indefinitely. Send keyboard interrupt to exit.")
         while True:
             time.sleep(1)
+
     else:
         logger.info(f"Maintaining BLE connection for {timeout} seconds")
         time.sleep(timeout)
