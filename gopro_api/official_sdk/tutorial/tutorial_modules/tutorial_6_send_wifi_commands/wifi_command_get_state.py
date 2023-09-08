@@ -5,12 +5,13 @@ import sys
 import json
 import argparse
 
+
 import requests
 
 from tutorial_modules import GOPRO_BASE_URL, logger
 
 
-def main() -> None:
+def main():
     # Build the HTTP GET request
     url = GOPRO_BASE_URL + "/gopro/camera/state"
     logger.info(f"Getting GoPro's status and settings: sending {url}")
@@ -22,6 +23,8 @@ def main() -> None:
     logger.info("Command sent successfully")
     # Log response as json
     logger.info(f"Response: {json.dumps(response.json(), indent=4)}")
+
+    return response
 
 
 if __name__ == "__main__":

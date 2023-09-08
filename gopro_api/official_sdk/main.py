@@ -1,10 +1,12 @@
 from fastapi import FastAPI
+import time
 import requests
 from tutorial.tutorial_modules.tutorial_5_connect_wifi.wifi_enable import enable_wifi
 from tutorial.tutorial_modules.tutorial_2_send_ble_commands.ble_command_set_shutter import main as ble_command_set_shutter
 from tutorial.tutorial_modules.tutorial_6_send_wifi_commands.send_wifi_command import main as send_wifi_command
 from tutorial_modules import GOPRO_BASE_URL, logger
 from tutorial_modules.tutorial_6_send_wifi_commands.wifi_command_get_media_list import get_media_list
+from tutorial_modules.tutorial_6_send_wifi_commands.wifi_command_get_state import main as get_camera_state
 app = FastAPI()
 
 
@@ -57,4 +59,7 @@ async def stopRecording():
 
 @ app.get("/getBattery")
 async def getBattery():
-    return {"message": "Battery here :)"}
+
+    response = get_camera_state()
+    data = response.json()
+    return {"message": "Battery here :)", "battery": data["status"]["70"]}
