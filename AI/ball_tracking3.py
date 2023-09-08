@@ -55,6 +55,7 @@ def main(frame):
     global centroConDecimales
     global deteccionPorColor
     global corregir
+    global color_pre_centro
 
     # Agrandamos el frame para ver más la pelota
     frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
@@ -459,6 +460,60 @@ def main(frame):
     
     ultimosFrames.append(frameCopia)
 
+    pixeles = []
+    pixeles_colores = []
+
+    if centro is not None:
+        if centro[0][0] < frame.shape[1] and centro[0][1] < frame.shape[0]: pixeles.append((centro[0][0], centro[0][1]))
+
+        for i in range(1, centro[1] + 1):
+            if centro[0][0] + i < frame.shape[1] and centro[0][1] < frame.shape[0]: pixeles.append((centro[0][0] + i, centro[0][1]))
+            if centro[0][0] - i < frame.shape[1] and centro[0][1] < frame.shape[0]: pixeles.append((centro[0][0] - i, centro[0][1]))
+
+        for i in range(1, centro[1] + 1):
+            if centro[0][0] < frame.shape[1] and centro[0][1] + i < frame.shape[0]: pixeles.append((centro[0][0], centro[0][1] + i))
+            if centro[0][0] < frame.shape[1] and centro[0][1] - i < frame.shape[0]: pixeles.append((centro[0][0], centro[0][1] - i))
+
+        for i in range(1, centro[1] + 1):
+            for h in range(1, centro[1] + 1):
+                if math.sqrt(h **2 + i **2) <= centro[1]:
+                    if centro[0][0] + h < frame.shape[1] and centro[0][1] + i < frame.shape[0]: pixeles.append((centro[0][0] + h, centro[0][1] + i))
+                    if centro[0][0] - h < frame.shape[1] and centro[0][1] + i < frame.shape[0]: pixeles.append((centro[0][0] - h, centro[0][1] + i))
+                    if centro[0][0] + h < frame.shape[1] and centro[0][1] - i < frame.shape[0]: pixeles.append((centro[0][0] + h, centro[0][1] - i))
+                    if centro[0][0] - h < frame.shape[1] and centro[0][1] - i < frame.shape[0]: pixeles.append((centro[0][0] - h, centro[0][1] - i))
+                else: break
+
+        for pixel in pixeles:
+            color = frame[pixel[1], pixel[0]]
+            pixeles_colores.append(color)
+
+        # Calcula el promedio de cada posición utilizando comprensiones de listas
+        promedio_primer_valor = sum(sublista[0] for sublista in pixeles_colores) / len(pixeles_colores)
+        promedio_segundo_valor = sum(sublista[1] for sublista in pixeles_colores) / len(pixeles_colores)
+        promedio_tercer_valor = sum(sublista[2] for sublista in pixeles_colores) / len(pixeles_colores)
+
+        color_pre_centro = (int(promedio_primer_valor), int(promedio_segundo_valor), int(promedio_tercer_valor))
+        print("Color centro", color_pre_centro)
+
+        cv2.circle(frameCopia, centro[0], centro[1], (0, 0, 255), 2)
+        for pixel in pixeles:
+            frameCopia[int(pixel[1]), int(pixel[0])] = [0, 0, 0]
+
+        # suma1 = 0
+        # suma2 = 0
+        # suma3 = 0
+        # for sublista in pixeles_colores:
+        #     suma1 += sublista[0]
+        #     suma2 += sublista[1]
+        #     print("sublista", sublista)
+        #     suma3 += sublista[2]
+
+        # suma1 /= len(pixeles_colores)
+        # suma2 /= len(pixeles_colores)
+        # suma3 /= len(pixeles_colores)
+
+        # print("Promedio de colores", suma1, suma2, suma3)
+
     print("Centro", centro)
     #print("Radio de la pelota", radio)
     print("Radio de la pelota de verdad", radioDeteccionPorCirculo)
@@ -469,12 +524,15 @@ def main(frame):
     # Resizea el frame al tamaño original y lo muestra
     frame = imutils.resize(frame, anchoOG, altoOG)
     frame = imutils.resize(frame, height= 700)
+    frameCopia = imutils.resize(frameCopia, anchoOG, altoOG)
+    frameCopia = imutils.resize(frameCopia, height= 700)
     mascara = imutils.resize(mascara, anchoOG, altoOG)
     mascara = imutils.resize(mascara, height= 700)
     
     # También muestra la máscara
     cv2.imshow("Mascara Normal", mascara)
     cv2.imshow("Normal", frame)
+    cv2.imshow("Copia", frameCopia)
 
 # Función que recibe el centro de la pelota y pasa sus coordenadas a un plano 2D de la cancha de tenis
 def coordenadaPorMatriz(centro):
@@ -848,6 +906,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     global contadorCorreccion
     global frameSiguiente
     global radio
+    global color_pre_centro
 
     #if numeroFrame == 52: cv2.imwrite("Frame52aa.jpg", frame)
 
@@ -862,6 +921,8 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
 
     # Recortar la región de interés de la imagen original
     imagen_recortada = frame[int(y1):int(y2), int(x1):int(x2)]
+
+    imagen_recortada_copia = imagen_recortada.copy()
 
     # Agrandamos el frame para ver más la pelota
     imagen_recortada = imutils.resize(imagen_recortada, imagen_recortada.shape[1] * resizer, imagen_recortada.shape[0] * resizer)
@@ -982,46 +1043,90 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
             circles_copia.append(circulo)
 
     todos_pixeles = []
+    promedios_colores = []
     for circulo in circles_copia:
+        pixeles_colores = []
         x, y, radius = circulo
         x, y, radius = int(x), int(y), int(radius)
         pixeles = []
 
-        pixeles.append((x, y))
+        if x < imagen_recortada_copia.shape[1] and y < imagen_recortada_copia.shape[0]: pixeles.append((x, y))
 
         for i in range(1, radius + 1):
-            pixeles.append((x + i, y))
-            pixeles.append((x - i, y))
+            if x + i < imagen_recortada_copia.shape[1] and y < imagen_recortada_copia.shape[0]: pixeles.append((x + i, y))
+            if x - i < imagen_recortada_copia.shape[1] and y < imagen_recortada_copia.shape[0]: pixeles.append((x - i, y))
 
         for i in range(1, radius + 1):
-            pixeles.append((x, y + i))
-            pixeles.append((x, y - i))
+            if x < imagen_recortada_copia.shape[1] and y + i < imagen_recortada_copia.shape[0]: pixeles.append((x, y + i))
+            if x < imagen_recortada_copia.shape[1] and y - i < imagen_recortada_copia.shape[0]: pixeles.append((x, y - i))
 
         for i in range(1, radius + 1):
             for h in range(1, radius + 1):
                 if math.sqrt(h **2 + i **2) <= radius:
-                    pixeles.append((x + h, y + i))
-                    pixeles.append((x - h, y + i))
-                    pixeles.append((x + h, y - i))
-                    pixeles.append((x - h, y - i))
+                    if x + h < imagen_recortada_copia.shape[1] and y + i < imagen_recortada_copia.shape[0]: pixeles.append((x + h, y + i))
+                    if x - h < imagen_recortada_copia.shape[1] and y + i < imagen_recortada_copia.shape[0]: pixeles.append((x - h, y + i))
+                    if x + h < imagen_recortada_copia.shape[1] and y - i < imagen_recortada_copia.shape[0]: pixeles.append((x + h, y - i))
+                    if x - h < imagen_recortada_copia.shape[1] and y - i < imagen_recortada_copia.shape[0]: pixeles.append((x - h, y - i))
                 else: break
+
+        for pixel in pixeles:
+            color = imagen_recortada_copia[pixel[1], pixel[0]]
+            pixeles_colores.append(color)
+
+        # Calcula el promedio de cada posición utilizando comprensiones de listas
+        promedio_primer_valor = sum(sublista[0] for sublista in pixeles_colores) / len(pixeles_colores)
+        promedio_segundo_valor = sum(sublista[1] for sublista in pixeles_colores) / len(pixeles_colores)
+        promedio_tercer_valor = sum(sublista[2] for sublista in pixeles_colores) / len(pixeles_colores)
+
+        #print("Pixeles colores aaaaaaaaaaaaaaa", pixeles_colores[0])
+
+        # print("Promedio primer valor", promedio_primer_valor)
+        # print("Promedio segundo valor", promedio_segundo_valor)
+        # print("Promedio tercer valor", promedio_tercer_valor)
         
         todos_pixeles.append(pixeles)
-    
-    print("Circles", circles_copia[0])
-    print("Pixeles", todos_pixeles[0])
-    
+        promedios_colores.append((promedio_primer_valor, promedio_segundo_valor, promedio_tercer_valor))
 
-    # Extraer el color del círculo
-    #color = imagen_recortada[y, x]
+    #print("Promedios colores", promedios_colores)
 
-    #print("Color Pixel", color)
+    #for x, y, radius in circles_copia:
+    #    cv2.circle(imagen_recortada_copia, (int(x), int(y)), int(radius), (0, 0, 255), 5)
+    #    break
+    
+    #for pixel in todos_pixeles:
+    #    for pxl in pixel:
+    #        imagen_recortada_copia[int(pxl[1]), int(pxl[0])] = [0, 0, 0]
+    #    break
+
+    # Definir el color verde como un vector RGB normalizado (0, 255, 0)
+    color_verde = np.array([0, 255, 0]) / np.linalg.norm(np.array([0, 255, 0]))
+    #color_pre_centro = np.array(color_pre_centro) / np.linalg.norm(np.array(color_pre_centro))
+    #print("Color pre centro", color_pre_centro)
+
+    # Calcular las similitudes de coseno entre los colores promedio y el color verde
+    similitudes_coseno = [np.dot(color / np.linalg.norm(color), color_verde) for color in promedios_colores]
+    #similitudes_coseno = [np.dot(color / np.linalg.norm(color), color_pre_centro) for color in promedios_colores]
+
+    # Encontrar el índice de la similitud de coseno más alta (el color más similar al verde)
+    indice_similitud_mas_alta = np.argmax(similitudes_coseno)
+
+    #print("Es este", circles_copia[indice_similitud_mas_alta])
+
+    # Mostrar el círculo más cercano al verde en la imagen original
+    cv2.circle(imagen_recortada_copia, (int(circles_copia[indice_similitud_mas_alta][0]), int(circles_copia[indice_similitud_mas_alta][1])),
+           int(circles_copia[indice_similitud_mas_alta][2]), (0, 255, 0), 2)
+    
+    #print("Circles", circles_copia)
+    #print("Pixeles", todos_pixeles[0])
 
     if circles is not None:
         circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * 3), 0.2, True, imagen_recortada, (x1, y1), False, False)
+        circuloDetectado = [circles_copia[indice_similitud_mas_alta][0] * 3, circles_copia[indice_similitud_mas_alta][1] * 3, circles_copia[indice_similitud_mas_alta][2] * 3]
+        
         #if numeroFrame == 51: 
             #cv2.imwrite("Frame51.jpg", frame)
             #print("Circulo detectado: ", circuloDetectado)
+        
         if circuloDetectado is not None:
             cv2.circle(imagen_recortada, (int(circuloDetectado[0]), int(circuloDetectado[1])), 50, (0, 255, 0), thickness = 2)
 
@@ -1057,15 +1162,16 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     if circles is not None:
         circles = circles[0]
         #circles = np.round(circles[0]).astype(int)
-        #for (x, y, r) in circles:
+        for (x, y, r) in circles:
             #if abs(r - radioDeteccionPorCirculo * 3) < 10: cv2.circle(imagen_recortada, (x, y), r, (0, 255, 0), 2)
-            #cv2.circle(imagen_recortada, (np.round(x).astype(int), np.round(y).astype(int)), np.round(r).astype(int), (0, 255, 0), 2)
+            cv2.circle(imagen_recortada, (np.round(x).astype(int), np.round(y).astype(int)), np.round(r).astype(int), (0, 255, 0), 2)
         #if numeroFrame == 68: cv2.imwrite("imagen_recortada68.png", imagen_recortada)
 
     imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
     cv2.imshow("Imagen recortada", imagen_recortada)
+    cv2.imshow("Imagen recortada copia", imagen_recortada_copia)
         
-    a = False
+    a = True
     
     if a:
         pausado = True
@@ -1466,6 +1572,8 @@ deteccionColorEsteFrame = []
 radio = None
 
 corregir = (False, 0)
+
+color_pre_centro = None
 
 # Abrir el archivo en modo de lectura
 with open(ruta_archivo, "r") as archivo:
