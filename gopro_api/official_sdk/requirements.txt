@@ -1,0 +1,12 @@
+#pip install --upgrade google-api-python-client
+
+
+rich
+wrapt
+requests
+construct
+google
+google-api-python-client
+pexpect
+bleak
+zeroconf
