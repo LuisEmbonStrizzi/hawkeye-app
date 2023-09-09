@@ -8,7 +8,14 @@ from tutorial.tutorial_modules.tutorial_6_send_wifi_commands.send_wifi_command i
 from tutorial_modules import GOPRO_BASE_URL, logger
 from tutorial_modules.tutorial_6_send_wifi_commands.wifi_command_get_media_list import get_media_list
 from tutorial_modules.tutorial_6_send_wifi_commands.wifi_command_get_state import main as get_camera_state
+from azure.storage.blob import BlobServiceClient
+import os
+from decouple import config
+
 app = FastAPI()
+
+azure_connection_string = config('AZURE_CONNECTION_STRING')
+container_name = config('AZURE_CONTAINER_NAME')
 
 
 @app.get("/connectCameras")
@@ -33,7 +40,21 @@ async def connect_to_cameras():
             for chunk in request.iter_content(chunk_size=8192):
                 f.write(chunk)
 
-        return {"message": "Camera connected", "file": file}
+        blob_service_client = BlobServiceClient.from_connection_string(
+            azure_connection_string)
+        container_client = blob_service_client.get_container_client(
+            container_name)
+        # Nombre del archivo en Azure será el mismo que local
+        blob_name = os.path.basename(file)
+        blob_client = container_client.get_blob_client(blob_name)
+
+        with open(file, "rb") as f:
+            blob_client.upload_blob(f, overwrite=True)
+
+        # Obtener la URL del blob
+        blob_url = blob_client.url
+
+        return {"message": "Camera connected", "file_url": blob_url}
 
     except Exception as e:  # pylint: disable=broad-exception-caught
         logger.error(e)
@@ -70,7 +91,21 @@ async def stopRecording():
             for chunk in request.iter_content(chunk_size=8192):
                 f.write(chunk)
 
-        return {"message": "Record stopped", "file": file}
+        blob_service_client = BlobServiceClient.from_connection_string(
+            azure_connection_string)
+        container_client = blob_service_client.get_container_client(
+            container_name)
+        # Nombre del archivo en Azure será el mismo que local
+        blob_name = os.path.basename(file)
+        blob_client = container_client.get_blob_client(blob_name)
+
+        with open(file, "rb") as f:
+            blob_client.upload_blob(f, overwrite=True)
+
+        # Obtener la URL del blob
+        blob_url = blob_client.url
+
+        return {"message": "Record stopped", "file_url": blob_url}
 
     except Exception as e:
         logger.error(e)

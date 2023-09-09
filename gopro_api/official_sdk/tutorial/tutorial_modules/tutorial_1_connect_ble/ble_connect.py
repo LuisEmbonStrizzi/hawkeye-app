@@ -75,8 +75,10 @@ async def connect_ble(
                 for d in devices:
                     logger.info(f"\tDiscovered: {d}")
                 # Now look for our matching device(s)
-                token = re.compile(r"GoPro [A-Z0-9]{4}" if identifier is None else f"GoPro {identifier}")
-                matched_devices = [device for name, device in devices.items() if token.match(name)]
+                token = re.compile(
+                    r"GoPro [A-Z0-9]{4}" if identifier is None else f"GoPro {identifier}")
+                matched_devices = [device for name,
+                                   device in devices.items() if token.match(name)]
                 logger.info(f"Found {len(matched_devices)} matching devices.")
 
             # Connect to first matching Bluetooth device
@@ -84,7 +86,7 @@ async def connect_ble(
 
             logger.info(f"Establishing BLE connection to {device}...")
             client = BleakClient(device)
-            await client.connect(timeout=15)
+            await client.connect(timeout=120)
             logger.info("BLE Connected!")
 
             # Try to pair (on some OS's this will expectedly fail)
@@ -101,8 +103,10 @@ async def connect_ble(
             for service in client.services:
                 for char in service.characteristics:
                     if "notify" in char.properties:
-                        logger.info(f"Enabling notification on char {char.uuid}")
-                        await client.start_notify(char, notification_handler)  # type: ignore
+                        logger.info(
+                            f"Enabling notification on char {char.uuid}")
+                        # type: ignore
+                        await client.start_notify(char, notification_handler)
             logger.info("Done enabling notifications")
 
             return client
@@ -110,7 +114,8 @@ async def connect_ble(
             logger.error(f"Connection establishment failed: {exc}")
             logger.warning(f"Retrying #{retry}")
 
-    raise RuntimeError(f"Couldn't establish BLE connection after {RETRIES} retries")
+    raise RuntimeError(
+        f"Couldn't establish BLE connection after {RETRIES} retries")
 
 
 async def main(identifier: Optional[str]) -> None:
@@ -122,7 +127,8 @@ async def main(identifier: Optional[str]) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Connect to a GoPro camera, pair, then enable notifications.")
+    parser = argparse.ArgumentParser(
+        description="Connect to a GoPro camera, pair, then enable notifications.")
     parser.add_argument(
         "-i",
         "--identifier",

@@ -15,7 +15,7 @@ export const videoRouter = createTRPCRouter({
   uploadVideo: protectedProcedure.mutation(async ({ ctx }) => {
     try {
       const cameraData: cameraData = await axios.get(
-        "https://hawkeyegoproapi.azurewebsites.net/getVideo",
+        "http://127.0.0.1:8080/stopRecording",
         { responseType: "json" }
       );
 
@@ -76,12 +76,45 @@ export const videoRouter = createTRPCRouter({
   }),
 
   getVideo: protectedProcedure.query(async ({ ctx }) => {
-    const result = await ctx.prisma.videos.findMany({
+    const result = await ctx.prisma.videos.findFirst({
       where: {
         userId: ctx.session.user.id,
       },
     });
     console.log(result);
     return result;
+  }),
+  record: protectedProcedure.query(async ({}) => {
+    try {
+      const record = await axios.get("http://127.0.0.1:8080/record", {
+        responseType: "json",
+      });
+      return record;
+    } catch (err: unknown) {
+      console.log(err);
+    }
+  }),
+  stopRecording: protectedProcedure.query(async ({}) => {
+    try {
+      const stopRecording = await axios.get(
+        "http://127.0.0.1:8080/stopRecording",
+        {
+          responseType: "json",
+        }
+      );
+      return stopRecording;
+    } catch (err: unknown) {
+      console.log(err);
+    }
+  }),
+  getBattery: protectedProcedure.query(async ({}) => {
+    try {
+      const battery = await axios.get("http://127.0.0.1:8080/getBattery", {
+        responseType: "json",
+      });
+      return battery;
+    } catch (err: unknown) {
+      console.log(err);
+    }
   }),
 });
