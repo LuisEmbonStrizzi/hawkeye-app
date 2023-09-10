@@ -207,6 +207,8 @@ def main(frame):
                 TiempoTresCentrosConsecutivos = 0
                 deteccionPorColor = True
 
+                print("Deteccion por color")
+
                 if centro is not None: ultimosCentros.appendleft(centroConDecimales)
 
             # Si se detectó un centro hace menos de 0.3 segundos
@@ -225,6 +227,8 @@ def main(frame):
                     TiempoTresCentrosConsecutivos += TiempoDeteccionUltimaPelota
                     TiempoDeteccionUltimaPelota = 0
                     deteccionPorColor = True
+
+                    print("Deteccion por color")
 
                     if centro is not None: ultimosCentros.appendleft(centroConDecimales)
                 
@@ -260,7 +264,13 @@ def main(frame):
         TiempoTresCentrosConsecutivos = 0
         deteccionColorUltimosFrames.append(None)
 
-    #if numeroFrame == 68: cv2.imwrite("Frame68.jpg", frame)
+    #if numeroFrame == 50: cv2.imwrite("Frame50.jpg", frame)
+    #if numeroFrame == 51: cv2.imwrite("Frame51.jpg", frame)
+    #if numeroFrame == 52: cv2.imwrite("Frame52.jpg", frame)
+    #if numeroFrame == 53: cv2.imwrite("Frame53.jpg", frame)
+    #if numeroFrame == 54: cv2.imwrite("Frame54.jpg", frame)
+    #if numeroFrame == 55: cv2.imwrite("Frame55.jpg", frame)
+    #if numeroFrame == 56: cv2.imwrite("Frame56.jpg", frame)
 
     #ultFrames.appendleft(imutils.resize(frame, anchoOG, altoOG))
     ultFrames.appendleft(frame)
@@ -276,6 +286,7 @@ def main(frame):
         if len(ultimosCentrosGlobales) == 14 and len(ultimosCentrosCirculo) >= 5:
             if seEstaMoviendo(ultimosCentrosCirculo, 15) == False and corregir[1] == 0 or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5, False) and corregir[1] == 0:
                 corregir = (True, numeroFrame + 2)
+                print(f"{bcolors.FAIL}Warning: No active frommets remain. Continue?{bcolors.ENDC}")
         
         elif len(ultimosCentrosCirculo) >= 5:
             if seEstaMoviendo(ultimosCentrosCirculo, 15) == False or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5, False):
@@ -484,7 +495,7 @@ def main(frame):
                 else: break
 
         for pixel in pixeles:
-            color = frame[pixel[1], pixel[0]]
+            color = frameCopia[pixel[1], pixel[0]]
             pixeles_colores.append(color)
 
         # Calcula el promedio de cada posición utilizando comprensiones de listas
@@ -495,9 +506,9 @@ def main(frame):
         color_pre_centro = (int(promedio_primer_valor), int(promedio_segundo_valor), int(promedio_tercer_valor))
         print("Color centro", color_pre_centro)
 
-        cv2.circle(frameCopia, centro[0], centro[1], (0, 0, 255), 2)
-        for pixel in pixeles:
-            frameCopia[int(pixel[1]), int(pixel[0])] = [0, 0, 0]
+        #cv2.circle(frameCopia, centro[0], centro[1], (0, 0, 255), 2)
+        #for pixel in pixeles:
+        #    frameCopia[int(pixel[1]), int(pixel[0])] = [0, 0, 0]
 
         # suma1 = 0
         # suma2 = 0
@@ -513,6 +524,16 @@ def main(frame):
         # suma3 /= len(pixeles_colores)
 
         # print("Promedio de colores", suma1, suma2, suma3)
+
+    #if numeroFrame == 50: cv2.imwrite("Frame50Copia.jpg", frameCopia)
+    #if numeroFrame == 51: cv2.imwrite("Frame51Copia.jpg", frameCopia)
+    #if numeroFrame == 52: cv2.imwrite("Frame52Copia.jpg", frameCopia)
+    #if numeroFrame == 53: cv2.imwrite("Frame53Copia.jpg", frameCopia)
+    #if numeroFrame == 54: cv2.imwrite("Frame54Copia.jpg", frameCopia)
+    #if numeroFrame == 55: cv2.imwrite("Frame55Copia.jpg", frameCopia)
+    #if numeroFrame == 56: cv2.imwrite("Frame56Copia.jpg", frameCopia)
+
+    if len(ultimosCentrosGlobales) == 14: print("CambiosDeDireccion", cambiosDeDireccion(ultimosCentrosGlobales))
 
     print("Centro", centro)
     #print("Radio de la pelota", radio)
@@ -1111,6 +1132,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     indice_similitud_mas_alta = np.argmax(similitudes_coseno)
 
     #print("Es este", circles_copia[indice_similitud_mas_alta])
+    print("Coseno más alto", similitudes_coseno[indice_similitud_mas_alta])
 
     # Mostrar el círculo más cercano al verde en la imagen original
     cv2.circle(imagen_recortada_copia, (int(circles_copia[indice_similitud_mas_alta][0]), int(circles_copia[indice_similitud_mas_alta][1])),
@@ -1171,7 +1193,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     cv2.imshow("Imagen recortada", imagen_recortada)
     cv2.imshow("Imagen recortada copia", imagen_recortada_copia)
         
-    a = True
+    a = False
     
     if a:
         pausado = True
@@ -1424,6 +1446,29 @@ def distancia_personalizada(punto, centro, radio):
     difRadio = abs(int(radius) - int(punto[2]))
 
     return difEnX + difEnY + difRadio * 3
+
+def cambiosDeDireccion(ultCentros):
+    cambios_de_direccion = 0
+    movimiento_en_x = []
+    movimiento_en_y = []
+    for i in range(len(ultCentros) - 1):
+        if ultCentros[i + 1][0][0][0] < ultCentros[i][0][0][0]: derecha = False
+        elif ultCentros[i + 1][0][0][0] > ultCentros[i][0][0][0]: derecha = True
+        else: derecha = None
+
+        if ultCentros[i + 1][0][0][1] < ultCentros[i][0][0][1]: abajo = False
+        elif ultCentros[i + 1][0][0][1] > ultCentros[i][0][0][1]: abajo = True
+        else: abajo = None
+
+        movimiento_en_x.append(derecha)
+        movimiento_en_y.append(abajo)
+
+    for i in range(len(movimiento_en_x) - 1):
+        if movimiento_en_x[i + 1] != movimiento_en_x[i] or movimiento_en_y[i + 1] != movimiento_en_y[i]: cambios_de_direccion += 1
+    
+    return cambios_de_direccion
+
+
         
 # Toma la cámara si no recibe video
 if not args.get("video", False):
