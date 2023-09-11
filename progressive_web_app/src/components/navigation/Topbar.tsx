@@ -1,21 +1,46 @@
-import React from "react";
 import Button from "../Button";
-import Badge from "../Badge";
-import { useState } from "react";
+//import Badge from "../Badge";
 import Link from "next/link";
 
-type Step = "more" | "less";
+export type Step = "more" | "less";
 
-const Topbar: React.FC = () => {
-  const [step, setStep] = useState<number>(0);
-  const handleStep = (stepState: Step) => {
-    if (stepState === "more") {
-      setStep(step + 1);
-    } else {
-      setStep(step - 1);
-    }
-  };
+type AlignCornersProps = {
+  step: number;
+  handleStep: (stepState: Step) => void;
+};
 
+//<Badge label={step < 1 ? "0/2" : "1/2"} />
+/* 
+
+            {step === 1 && (
+              <Button
+                style="secondary"
+                onClick={() => {
+                  handleStep("less");
+                }}
+                icon={
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 15L7 10L12 5L13.0625 6.0625L9.125 10L13.0625 13.9375L12 15Z"
+                      className="fill-secondary-foreground transition-all duration-150 ease-out group-hover:fill-foreground"
+                    />
+                  </svg>
+                }
+                label="Former step"
+                padding="both-right"
+                iconPosition="left"
+              />
+            )}
+
+*/
+
+const Topbar: React.FC<AlignCornersProps> = ({ step, handleStep }) => {
   return (
     <header className="fixed top-0 flex w-full items-center border-b border-background-border bg-background px-4 py-[10px] text-sm text-foreground-important">
       <div className="flex w-full items-center justify-start">
@@ -41,13 +66,7 @@ const Topbar: React.FC = () => {
         </Link>
       </div>
       <div className="flex w-full items-center justify-center gap-2 whitespace-nowrap text-base font-semibold text-foreground-important">
-        {step === 2 ? (
-          <>Hawkeye</>
-        ) : (
-          <>
-            Align corners <Badge label={step < 1 ? "0/2" : "1/2"} />
-          </>
-        )}
+        {step >= 1 ? "Hawkeye" : "Align corners"}
       </div>
       <div className="flex w-full items-center justify-end lg:hidden">
         <Button
@@ -70,35 +89,13 @@ const Topbar: React.FC = () => {
         />
       </div>
       <div className="hidden w-full items-center justify-end gap-4 lg:flex">
-        {step < 2 && (
+        {step < 1 && (
           <>
-            {" "}
-            {step === 1 && (
-              <Button
-                style="secondary"
-                onClick={()=>{handleStep("less")}}
-                icon={
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M12 15L7 10L12 5L13.0625 6.0625L9.125 10L13.0625 13.9375L12 15Z"
-                      className="fill-secondary-foreground transition-all duration-150 ease-out group-hover:fill-foreground"
-                    />
-                  </svg>
-                }
-                label="Former step"
-                padding="both-right"
-                iconPosition="left"
-              />
-            )}
             <Button
               style="primary"
-              onClick={()=>{handleStep("more")}}
+              onClick={() => {
+                handleStep("more");
+              }}
               icon={
                 <svg
                   width="20"

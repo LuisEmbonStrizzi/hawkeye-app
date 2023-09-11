@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import clsx from "clsx";
 
 type AlignCornersProps = {
@@ -58,7 +58,7 @@ const AlignCorners: React.FC<AlignCornersProps> = ({ image }) => {
   };
 
   return (
-    <>
+    <div className="mx-auto my-auto flex h-screen w-full flex-col items-center justify-center gap-4 p-4">
       <h2 className="flex gap-4 p-4 font-semibold text-foreground-important">
         {vertices.map((vertex, index) => (
           <span
@@ -174,7 +174,7 @@ const AlignCorners: React.FC<AlignCornersProps> = ({ image }) => {
           alt="Frame of the camera display"
         />
       </section>
-    </>
+    </div>
   );
 };
 export default AlignCorners;

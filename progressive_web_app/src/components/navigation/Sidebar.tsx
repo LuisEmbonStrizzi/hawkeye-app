@@ -11,7 +11,7 @@ type SidebarItemProps = {
 
 const Sidebar: React.FC<SidebarItemProps> = ({ activeItem }) => {
   return (
-    <div className="fixed left-0 top-0 flex h-full w-[280px] flex-col justify-between border-r border-background-border bg-background p-4">
+    <div className="fixed left-0 top-0 flex h-full w-72 flex-col justify-between border-r border-background-border bg-background p-4">
       <nav className="flex flex-col">
         <Link href={"/new-analysis"} className="flex flex-col">
           <Button style="primary" label="New analysis" />
