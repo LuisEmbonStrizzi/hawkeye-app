@@ -12,7 +12,6 @@ from bleak.backends.device import BLEDevice as BleakDevice
 
 from tutorial_modules import logger
 
-
 def exception_handler(loop: asyncio.AbstractEventLoop, context: Dict[str, Any]) -> None:
     """Catch exceptions from non-main thread
 
@@ -123,6 +122,7 @@ async def main(identifier: Optional[str]) -> None:
         ...
 
     client = await connect_ble(dummy_notification_handler, identifier)
+
     await client.disconnect()
 
 

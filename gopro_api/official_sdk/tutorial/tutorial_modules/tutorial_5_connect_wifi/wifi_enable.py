@@ -12,7 +12,6 @@ from bleak import BleakClient
 
 from tutorial_modules import GOPRO_BASE_UUID, connect_ble, logger
 
-
 async def enable_wifi(identifier: Optional[str] = None) -> Tuple[str, str, BleakClient]:
     """Connect to a GoPro via BLE, find its WiFi AP SSID and password, and enable its WiFI AP
 
@@ -49,6 +48,7 @@ async def enable_wifi(identifier: Optional[str] = None) -> Tuple[str, str, Bleak
         event.set()
 
     client = await connect_ble(notification_handler, identifier)
+
 
     # Read from WiFi AP SSID BleUUID
     logger.info("Reading the WiFi AP SSID")

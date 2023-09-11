@@ -13,7 +13,7 @@ from bleak import BleakClient
 from tutorial_modules import GOPRO_BASE_UUID, connect_ble, logger
 
 
-async def main(identifier: Optional[str], command: [int, int, int, int]) -> None:
+async def main(identifier: Optional[str]) -> None:
     # Synchronization event to wait until notification response is received
     event = asyncio.Event()
 
@@ -39,26 +39,21 @@ async def main(identifier: Optional[str], command: [int, int, int, int]) -> None
 
     client = await connect_ble(notification_handler, identifier)
 
-    # # Write to command request BleUUID to turn the shutter on
-    # logger.info("Setting the shutter on")
-    # event.clear()
-    # await client.write_gatt_char(COMMAND_REQ_UUID, bytearray([3, 1, 1, 1]), response=True)
-    # await event.wait()  # Wait to receive the notification response
-
-    # time.sleep(2)  # If we're recording, let's wait 2 seconds (i.e. take a 2 second video)
-    # # Write to command request BleUUID to turn the shutter off
-    # logger.info("Setting the shutter off")
-    # # event.clear()
-    # await client.write_gatt_char(COMMAND_REQ_UUID, bytearray([3, 1, 1, 0]), response=True)
-    # await event.wait()  # Wait to receive the notification response
-    # await client.disconnect()
-
     # Write to command request BleUUID to turn the shutter on
     logger.info("Setting the shutter on")
     event.clear()
-    await client.write_gatt_char(COMMAND_REQ_UUID, bytearray(command), response=True)
+    await client.write_gatt_char(COMMAND_REQ_UUID, bytearray([0x04, 0x3E, 0x02, 0x03, 0xE9]), response=True)
+    await event.wait()  # Wait to receive the notification response
+
+    time.sleep(2)  # If we're recording, let's wait 2 seconds (i.e. take a 2 second video)
+    # Write to command request BleUUID to turn the shutter off
+    logger.info("Setting the shutter off")
+    # event.clear()
+    await client.write_gatt_char(COMMAND_REQ_UUID, bytearray([3, 1, 1, 1]), response=True)
     await event.wait()  # Wait to receive the notification response
     await client.disconnect()
+    
+    return
 
 
 if __name__ == "__main__":
@@ -75,7 +70,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     try:
-        asyncio.run(main(args.identifier, [3, 1, 1, 1]))
+        asyncio.run(main(args.identifier))
     except Exception as e:
         logger.error(e)
         sys.exit(-1)

@@ -18,12 +18,13 @@ def main():
 
     # Send the GET request and retrieve the response
     response = requests.get(url, timeout=10)
+    print("djsajhdksajdh",response)
     # Check for errors (if an error is found, an exception will be raised)
     response.raise_for_status()
     logger.info("Command sent successfully")
     # Log response as json
     logger.info(f"Response: {json.dumps(response.json(), indent=4)}")
-
+    
     return response
 
 

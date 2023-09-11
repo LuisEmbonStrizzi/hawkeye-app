@@ -23,6 +23,8 @@ def main(endpoint: str) -> None:
     # Log response as json
     logger.info(f"Response: {json.dumps(response.json(), indent=4)}")
 
+    return
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

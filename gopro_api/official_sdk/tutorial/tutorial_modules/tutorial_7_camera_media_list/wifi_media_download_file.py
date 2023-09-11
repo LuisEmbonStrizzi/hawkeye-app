@@ -14,18 +14,19 @@ def main() -> None:
     # Get the media list
     media_list = get_media_list()
 
-    # Find a photo. We're just taking the first one we find.
+# Find the last photo with .jpg extension
     photo: Optional[str] = None
-    for media_file in [x["n"] for x in media_list["media"][0]["fs"]]:
-        if media_file.lower().endswith(".jpg"):
-            logger.info(f"found a photo: {media_file}")
-            photo = media_file
-            break
+    photos = [x["n"] for x in media_list["media"][0]["fs"] if x["n"].lower().endswith(".jpg")]
+
+    if photos:
+        photo = photos[-1]  # Select the last photo with .jpg extension
     else:
         raise RuntimeError("Couldn't find a photo on the GoPro")
 
+    # Resto del código es igual
+
     assert photo is not None
-    # Build the url to get the thumbnail data for the photo
+    # Build the URL to get the thumbnail data for the photo
     logger.info(f"Downloading {photo}")
     url = GOPRO_BASE_URL + f"/videos/DCIM/100GOPRO/{photo}"
     logger.info(f"Sending: {url}")
@@ -36,6 +37,34 @@ def main() -> None:
             logger.info(f"receiving binary stream to {file}...")
             for chunk in request.iter_content(chunk_size=8192):
                 f.write(chunk)
+
+    # media_list = get_media_list()
+
+    # # Find a photo. We're just taking the first one we find.
+    # photo: Optional[str] = None
+    # print(len([x["n"] for x in media_list["media"][0]["fs"]]))
+
+    # for i, media_file in enumerate([x["n"] for x in media_list["media"][0]["fs"]]):
+    #     print(i)
+    #     if media_file.lower().endswith(".jpg"):
+    #         logger.info(f"found a photo: {media_file}")
+    #         photo = media_file
+    #         break
+    # else:
+    #     raise RuntimeError("Couldn't find a photo on the GoPro")
+
+    # assert photo is not None
+    # # Build the url to get the thumbnail data for the photo
+    # logger.info(f"Downloading {photo}")
+    # url = GOPRO_BASE_URL + f"/videos/DCIM/100GOPRO/{photo}"
+    # logger.info(f"Sending: {url}")
+    # with requests.get(url, stream=True, timeout=10) as request:
+    #     request.raise_for_status()
+    #     file = photo.split(".")[0] + ".jpg"
+    #     with open(file, "wb") as f:
+    #         logger.info(f"receiving binary stream to {file}...")
+    #         for chunk in request.iter_content(chunk_size=8192):
+    #             f.write(chunk)
 
 
 if __name__ == "__main__":

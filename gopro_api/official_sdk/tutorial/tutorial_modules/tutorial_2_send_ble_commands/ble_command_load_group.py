@@ -8,7 +8,6 @@ from typing import Optional
 from binascii import hexlify
 
 from bleak import BleakClient
-
 from tutorial_modules import GOPRO_BASE_UUID, connect_ble, logger
 
 
@@ -21,7 +20,8 @@ async def main(identifier: Optional[str], command) -> None:
     COMMAND_RSP_UUID = GOPRO_BASE_UUID.format("0073")
     response_uuid = COMMAND_RSP_UUID
 
-    client: BleakClient
+    client: BleakClient = None
+
 
     def notification_handler(handle: int, data: bytes) -> None:
         logger.info(f'Received response at {handle=}: {hexlify(data, ":")!r}')
@@ -36,7 +36,8 @@ async def main(identifier: Optional[str], command) -> None:
         # Notify the writer
         event.set()
 
-    client = await connect_ble(notification_handler, identifier)
+    
+    await connect_ble(notification_handler, identifier)
 
     # Write to command request BleUUID to load the video preset group
     logger.info("Loading the video preset group...")
