@@ -8,11 +8,11 @@ fps = 30
 output_path = 'video_zoom.mp4'
 frame_width = int(vs.get(3))
 frame_height = int(vs.get(4))
-out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'XVID'), fps, (frame_width, frame_height))
+out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'avc1'), fps, (frame_width, frame_height))
 zooming = False
-zoom_coords = (1900, 1080) # Si y es mayor a 812 tira error (?????) 1732
+zoom_coords = (962, 542) # Si y es mayor a 812 tira error (?????) 1732
 
-start_frame = 100  # Cambia este valor al fotograma en el que deseas iniciar el zoom
+start_frame = 271  # Cambia este valor al fotograma en el que deseas iniciar el zoom
 zoom_duration = 50  # Cambia este valor a la duración de la animación de zoom en fotogramas
 
 unidad_x = (zoom_coords[0] - frame_width / 2) / zoom_duration
@@ -34,7 +34,7 @@ while True:
         elif num_frame == start_frame:
             # Congela el último fotograma antes del inicio del zoom
             frozen_frame = frame.copy()
-        elif num_frame < start_frame + zoom_duration:
+        elif num_frame <= start_frame + zoom_duration:
             print("HOLA")
             zoom_factor = 1.0 + (num_frame - start_frame) / zoom_duration
             print("zoom factor", zoom_factor)
