@@ -19,6 +19,11 @@
   background: rgba(78, 203, 113, 0.1);
 }
 
+html{
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
 @layer components {
   .toast {
     border-radius: 6px;

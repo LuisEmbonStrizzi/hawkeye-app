@@ -28,11 +28,16 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step }) => {
         </section>
       ) : (
         <div className="flex h-screen w-full pt-[63px]">
-          <section className="flex h-full w-full items-center justify-center gap-4">
-            <h1></h1>
+          <section className="flex h-full w-full flex-col items-center justify-center gap-4">
+            <h1 className="text-3xl font-semibold text-foreground-important">
+              No hawkeye call yet
+            </h1>
+            <p className="text-foreground">
+              Here you will see the clip of the point you want to analyze.
+            </p>
           </section>
           <aside className="flex h-full w-96 flex-col border-l border-background-border">
-            <div className="flex items-center justify-center px-8 py-16">
+            <div className="flex flex-grow flex-col items-center justify-center px-8 py-16">
               <Counter />
             </div>
             <hr className="border-background-border" />
@@ -77,8 +82,8 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step }) => {
               />
             </section>
             <hr className="border-background-border" />
-            <section className="flex flex-col gap-4 p-8 items-center justify-center">
-              <CamBattery battery={60}/>
+            <section className="flex flex-col items-center justify-center gap-4 p-8">
+              <CamBattery battery={91} />
             </section>
           </aside>
         </div>
