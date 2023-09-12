@@ -762,7 +762,6 @@ def tracking(url):
     # Encuentra a qué coordenada en el plano normal corresponde
     for i in range(len(pts_piques_normales)):
         if coordenada_mas_cercana[1] == float("{:.2f}".format(pts_piques_normales[i][1] / fps)):
-            print("ENCONTRE")
             coordenada_mas_cercana = pts_piques_normales[i]
             break
 
