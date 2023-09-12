@@ -14,7 +14,7 @@ from tutorial_modules.tutorial_6_send_wifi_commands.wifi_command_get_state impor
 from azure.storage.blob import BlobServiceClient
 import os
 from decouple import config
-from bleak import BleakScanner, BleakClient
+from bleak import BleakClient
 
 app = FastAPI()
 
@@ -46,7 +46,8 @@ async def enableWifi():
     try:
         ssid, password, client = await enable_wifi()
         ble_client.set_client(client)
-        print("Valor de ble_client:", ble_client)  # Imprimir el valor de ble_client
+
+        print(ble_client.ble_client.services)
 
         return {"Nombre de Red": ssid, "Contraseña": password}
 
@@ -66,6 +67,8 @@ async def courtPhoto():
             COMMAND_RSP_UUID = GOPRO_BASE_UUID.format("0073")
             response_uuid = COMMAND_RSP_UUID
 
+            print(ble_client.ble_client.services)
+
 
             def notification_handler(handle: int, data: bytes) -> None:
                 logger.info(f'Received response at {handle}: {data.hex(":")}')
@@ -81,7 +84,10 @@ async def courtPhoto():
                 event.set()
 
             for service in ble_client.ble_client.services:
+                    print(f"Service UUID: {service.uuid}")
                     for char in service.characteristics:
+                        print(f"Characteristic UUID: {char.uuid}")
+
                         if "notify" in char.properties:
                             logger.info(
                                 f"Enabling notification on char {char.uuid}")
@@ -101,13 +107,21 @@ async def courtPhoto():
             # event.clear()
             await ble_client.ble_client.write_gatt_char(COMMAND_REQ_UUID, bytearray([3, 1, 1, 1]), response=True)
             await event.wait()  # Wait to receive the notification response
-            await ble_client.ble_client.disconnect()
 
             return
 
         await runCommands()
+
+        time.sleep(2)
         
-        media_list = get_media_list()
+        url = GOPRO_BASE_URL + "/gopro/media/list"
+        logger.info(f"Getting GoPro's status and settings: sending {url}")
+
+        # Send the GET request and retrieve the response
+        response = requests.get(url, timeout=10)
+        media_list = response.json()
+
+        print(media_list)
 
     # Find the last photo with .jpg extension
         photo: Optional[str] = None
@@ -162,13 +176,6 @@ async def courtPhoto():
 @app.get("/record")
 async def record():
     try:
-        # send_wifi_command("/gopro/camera/setting?setting=167&option=2")
-        url = GOPRO_BASE_URL + "/gopro/camera/setting?setting=167&option=4"
-        logger.info(f"Getting GoPro's status and settings: sending {url}")
-
-        # Send the GET request and retrieve the response
-        response = requests.get(url, timeout=10)
-        data = response.json()
         async def runCommands():
 
             event = asyncio.Event()
@@ -177,6 +184,11 @@ async def record():
             COMMAND_REQ_UUID = GOPRO_BASE_UUID.format("0072")
             COMMAND_RSP_UUID = GOPRO_BASE_UUID.format("0073")
             response_uuid = COMMAND_RSP_UUID
+
+            print(ble_client.ble_client.services)
+
+            print("holaaaa")
+
 
 
             def notification_handler(handle: int, data: bytes) -> None:
@@ -187,14 +199,15 @@ async def record():
                     logger.info("Command sent successfully")
                 # Anything else is unexpected. This shouldn't happen
                 else:
-                    client = connect_ble(None, None)
-                    ble_client.set_client(client)
+                    logger.error("Unexpected response")
 
                 # Notify the writer
                 event.set()
 
             for service in ble_client.ble_client.services:
+                    print(f"Service UUID: {service.uuid}")
                     for char in service.characteristics:
+                        print(f"Characteristic UUID: {char.uuid}")
                         if "notify" in char.properties:
                             logger.info(
                                 f"Enabling notification on char {char.uuid}")
@@ -202,22 +215,22 @@ async def record():
                             await ble_client.ble_client.start_notify(char, notification_handler)
             logger.info("Done enabling notifications")
 
-            # Write to command request BleUUID to turn the shutter on
+            
+
             logger.info("Setting video mode")
             event.clear()
             await ble_client.ble_client.write_gatt_char(COMMAND_REQ_UUID, bytearray([0x04, 0x3E, 0x02, 0x03, 0xE8]), response=True)
-            await event.wait()  # Wait to receive the notification response
-
-            # Write to command request BleUUID to turn the shutter off
-            logger.info("Setting the shutter on")
-            # event.clear()
-            await ble_client.ble_client.write_gatt_char(COMMAND_REQ_UUID, bytearray([3, 1, 1, 1]), response=True)
-            await event.wait()  # Wait to receive the notification response
-            await ble_client.ble_client.disconnect()
+            await event.wait() 
 
             return
 
-        await runCommands()  # Wait to receive the notification response
+        await runCommands()
+        url = GOPRO_BASE_URL + "/gopro/camera/setting?setting=167&option=2"
+        logger.info(f"Getting GoPro's status and settings: sending {url}")
+
+        # Send the GET request and retrieve the response
+        response = requests.get(url, timeout=10)
+        data = response.json()
 
         return {"message": "Record started"}
 
@@ -237,6 +250,8 @@ async def stopRecording():
             COMMAND_RSP_UUID = GOPRO_BASE_UUID.format("0073")
             response_uuid = COMMAND_RSP_UUID
 
+            print("holaaaa")
+            
 
             def notification_handler(handle: int, data: bytes) -> None:
                 logger.info(f'Received response at {handle}: {data.hex(":")}')
@@ -260,18 +275,36 @@ async def stopRecording():
                             await ble_client.ble_client.start_notify(char, notification_handler)
             logger.info("Done enabling notifications")
 
-            # Write to command request BleUUID to turn the shutter on
-            logger.info("Setting the shutter off")
-            event.clear()
-            await ble_client.ble_client.write_gatt_char(COMMAND_REQ_UUID, bytearray([3, 1, 1, 0]), response=True)
-            await event.wait()  # Wait to receive the notification response
 
-            await ble_client.ble_client.disconnect()
+            logger.info("Setting the shutter on")
+            event.clear()
+            await ble_client.ble_client.write_gatt_char(COMMAND_REQ_UUID, bytearray([3, 1, 1, 1]), response=True)
+            await event.wait() 
+
+            time.sleep(2)  
+            logger.info("Setting the shutter off")
+            # event.clear()
+            await ble_client.ble_client.write_gatt_char(COMMAND_REQ_UUID, bytearray([3, 1, 1, 0]), response=True)
+            await event.wait() 
+
+
+            url = GOPRO_BASE_URL + "/gopro/camera/setting?setting=167&option=4"
+            logger.info(f"Getting GoPro's status and settings: sending {url}")
+
+            # Send the GET request and retrieve the response
+            response = requests.get(url, timeout=10)
+            data = response.json()
 
             return
 
         await runCommands()
-        media_list = get_media_list()
+
+        url = GOPRO_BASE_URL + "/gopro/media/list"
+        logger.info(f"Getting GoPro's status and settings: sending {url}")
+
+        # Send the GET request and retrieve the response
+        response = requests.get(url, timeout=10)
+        media_list = response.json()
 
     # Find the last photo with .jpg extension
         video: Optional[str] = None

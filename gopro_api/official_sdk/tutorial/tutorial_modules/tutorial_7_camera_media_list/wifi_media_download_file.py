@@ -15,24 +15,24 @@ def main() -> None:
     media_list = get_media_list()
 
 # Find the last photo with .jpg extension
-    photo: Optional[str] = None
-    photos = [x["n"] for x in media_list["media"][0]["fs"] if x["n"].lower().endswith(".jpg")]
+    video: Optional[str] = None
+    videos = [x["n"] for x in media_list["media"][0]["fs"] if x["n"].lower().endswith(".mp4")]
 
-    if photos:
-        photo = photos[-1]  # Select the last photo with .jpg extension
+    if videos:
+        video = videos[-1]  # Select the last photo with .jpg extension
     else:
         raise RuntimeError("Couldn't find a photo on the GoPro")
 
     # Resto del código es igual
 
-    assert photo is not None
-    # Build the URL to get the thumbnail data for the photo
-    logger.info(f"Downloading {photo}")
-    url = GOPRO_BASE_URL + f"/videos/DCIM/100GOPRO/{photo}"
+    assert video is not None
+    # Build the URL to get the thumbnail data for the video
+    logger.info(f"Downloading {video}")
+    url = GOPRO_BASE_URL + f"/videos/DCIM/100GOPRO/{video}"
     logger.info(f"Sending: {url}")
     with requests.get(url, stream=True, timeout=10) as request:
         request.raise_for_status()
-        file = photo.split(".")[0] + ".jpg"
+        file = video.split(".")[0] + ".mp4"
         with open(file, "wb") as f:
             logger.info(f"receiving binary stream to {file}...")
             for chunk in request.iter_content(chunk_size=8192):
