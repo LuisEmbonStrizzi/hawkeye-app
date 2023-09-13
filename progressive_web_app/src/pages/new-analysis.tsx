@@ -63,24 +63,82 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 /* Esto es lo que había antes.
 
 import { type NextPage } from "next";
-import { api } from "~/utils/api";
+import { getSession } from "next-auth/react";
+import type { GetServerSidePropsContext } from "next/types";
+import { useState } from "react";
+import Button from "~/components/Button";
+import Link from "next/link";
+import NewAnalysisSteps from "~/components/navigation/NewAnalysisSteps";
+import Loading from "~/components/new-analysis/Loading";
+import Error from "~/components/new-analysis/Error";
 
 const NewAnalysis: NextPage = () => {
-  const uploadVideo = api.videos.uploadVideo.useMutation({
-    onSuccess: () => {
-      void refetchVideos();
+  const [loading, setLoading] = useState<boolean>(true);
+  const [success, setSuccess] = useState<boolean>(false);
+
+  return (
+    <main className="min-h-screen bg-background">
+      {loading ? (
+        <Loading
+          firstOnClick={() => {
+            setLoading(false);
+            setSuccess(true);
+          }}
+          secondOnClick={() => {
+            setLoading(false);
+            setSuccess(false);
+          }}
+        />
+      ) : success ? (
+        <NewAnalysisSteps />
+      ) : (
+        <Error
+          firstOnClick={() => {
+            setSuccess(true);
+            setLoading(true);
+          }}
+        />
+      )}
+    </main>
+  );
+};
+
+export default NewAnalysis;
+
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  const session = await getSession(ctx);
+  console.log(session);
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/log-in",
+        permanent: false,
+      },
+    };
+  }
+  return {
+    props: {
+      session,
     },
+  };
+};
+
+/* Esto es lo que había antes.
+
+import { type NextPage } from "next";
+import React from "react";
+import { api } from "~/utils/api";
+const NewAnalysis: NextPage = () => {
+  const uploadVideo = api.videos.uploadVideo.useMutation();
+  const { data: videos } = api.videos.getVideo.useQuery(undefined, {
+    refetchInterval: 3000,
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleSubmit = (e: any) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     uploadVideo.mutate();
   };
-
-  const { data: videos, refetch: refetchVideos } =
-    api.videos.getVideo.useQuery();
 
   return (
     <>
@@ -96,15 +154,8 @@ const NewAnalysis: NextPage = () => {
       <br />
 
       {videos?.map((video) => (
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         <div key={video.id}>
-          <video
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            src={video.videoUrl!}
-            height={800}
-            width={800}
-          ></video>
-
+          <video src={video.videoUrl!} height={800} width={800}></video>
           <pre> {video.boundsArray} </pre>
         </div>
       ))}

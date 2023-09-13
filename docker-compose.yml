@@ -1,0 +1,26 @@
+version: "3.9"
+services:
+  progressive_web_app:
+    platform: "linux/amd64"
+    build:
+      context: ./progressive_web_app
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_CLIENTVAR: "clientvar"
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    image: pollito500/hawkeye-app:1.8
+    container_name: pwa
+    env_file:
+      - ./progressive_web_app/.env
+  cv_api_hawkeye:
+    image: pollito500/hawkeye-app:1.9
+    container_name: cv_api
+    build: 
+      context: ./AI
+      dockerfile: Dockerfile
+    ports: 
+      - '8080:8080'
+
+#Docker compose para iniciar la api de opencv y la pwa

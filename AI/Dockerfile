@@ -27,9 +27,9 @@ COPY ./Python/ball_tracking2_cpp.py /app/
 COPY ./Python/ball_tracking2_timed.py /app/
 
 # -o main especifica el nombre del archivo de salida como main.
-# main.cpp es el archivo fuente que deseas compilar.
+# main.cpp es el archivo fuente se quiere compilar.
 # -I/usr/include/opencv4 agrega la ruta de inclusión /usr/include/opencv4 para que el compilador pueda encontrar los archivos de encabezado de OpenCV.
-# -lopencv_core, -lopencv_highgui, -lopencv_imgcodecs -lopencv_imgproc enlazan las bibliotecas opencv_core, opencv_highgui y libopencv_imgcodecs, libopencv_imgproc.so respectivamente.
+# -lopencv_core, -lopencv_highgui, -lopencv_imgcodecs -lopencv_imgproc enlazan las bibliotecas opencv_core, opencv_highgui, libopencv_imgcodecs y libopencv_imgproc.so respectivamente.
 
 RUN g++ -fPIC -shared -o cpplibrary.so cpplibrary.cpp -I/usr/include/opencv4 -lopencv_core -lopencv_highgui -lopencv_imgcodecs -lopencv_imgproc
 

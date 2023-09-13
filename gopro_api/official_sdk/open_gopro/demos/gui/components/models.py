@@ -1,0 +1,462 @@
+# models.py/Open GoPro, Version 2.0 (C) Copyright 2021 GoPro, Inc. (http://gopro.com/OpenGoPro).
+# This copyright was auto-generated on Wed Aug 17 20:05:18 UTC 2022
+
+"""GUI models and associated common functionality"""
+
+# pylint: disable = reimported, unused-import
+# NOTE! The reason for the seemingly redundant, unnecessary import here is because we are using eval
+# to dynamically build messages
+
+from __future__ import annotations
+import re
+import enum
+import time
+import logging
+import inspect
+from pathlib import Path
+import datetime
+import typing
+from typing import Pattern, Any, Callable, Generator, Optional, no_type_check, Union, Final
+
+from wrapt.decorators import BoundFunctionWrapper
+import construct
+
+from open_gopro import WirelessGoPro, constants
+from open_gopro.api import BleStatus, HttpSetting, BleSetting
+from open_gopro.interface import BleMessage, HttpMessage, Message, Messages, GoProBle, GoProHttp
+import open_gopro.api.params
+import open_gopro.api.params as Params
+from open_gopro.responses import GoProResp, ResponseType
+
+PREVIEW_STREAM_URL: Final = r"udp://127.0.0.1:8554"
+
+logger = logging.getLogger(__name__)
+
+
+class CompoundGoPro(WirelessGoPro):
+    """A GoPro that supports sending compound commands"""
+
+    def __init__(self, target: Optional[Pattern] = None) -> None:
+        """Constructor
+
+        Args:
+            target (Optional[Pattern], optional): BLE device (camera) to search for. Defaults to None (first
+                found camera will be connected to).
+        """
+
+        super().__init__(target)
+        self.compound_command = CompoundCommands(self)
+
+
+class GoProModel:
+    """GoPro model interface for controllers"""
+
+    class Update(enum.Enum):
+        """The type of update that the response / element corresponds to"""
+
+        SETTING = enum.auto()
+        STATUS = enum.auto()
+        CAPABILITY = enum.auto()
+        PROTOBUF = enum.auto()
+
+    def __init__(self) -> None:
+        # Initial instantiation just to get command strings
+        self.gopro: CompoundGoPro = CompoundGoPro()
+
+    def start(self, identifier: Optional[Pattern]) -> None:
+        """Open the model (i.e. connect BLE and Wifi to camera)
+
+        Args:
+            identifier (Optional[Pattern]): regex to connect to. Defaults to None (connect to first camera)
+        """
+        # Reinstantiate
+        self.gopro = CompoundGoPro(target=identifier)
+        self.gopro.open()
+
+    # NOTE: the following properties must be evaluated dynamically since self.gopro is changing
+    # TODO hash and evaluate lazily
+
+    @property
+    def _message_types(self) -> list[Messages]:
+        """Get the top level containers of the message types supported by the GoPro model
+
+        Returns:
+            list[Union[Commands, SettingsStatuses]]: list of message type containers
+        """
+        return [
+            self.gopro.ble_command,
+            self.gopro.ble_setting,
+            self.gopro.ble_status,
+            self.gopro.http_command,
+            self.gopro.http_setting,
+            self.gopro.compound_command,
+        ]
+
+    @property
+    def messages(self) -> list[tuple[str, Message]]:
+        """Get all of the available BLE and Wifi Messages
+
+        Returns:
+            list[Message]: list of available messages
+        """
+        messages = []
+        for message_type in self._message_types:
+            c = list(message_type.items())
+            c.sort(key=lambda x: str(x[0]))
+            messages.extend(c)
+        return messages
+
+    @property
+    def message_dict(self) -> dict[str, list[str]]:
+        """Get flattened dictionary of message indexed by their string name
+
+        Returns:
+            dict[str, list[str]]: flattened dict
+        """
+        d = {}
+        for messages in self._message_types:
+            d[type(messages).__name__] = [str(message) for message in messages]
+            d[type(messages).__name__].sort()
+        return d
+
+    @classmethod
+    def is_ble(cls, message: Message) -> bool:
+        """Is this message a BLE message?
+
+        Args:
+            message (Message): Message to analyze
+
+        Returns:
+            bool: True if yes, False otherwise
+        """
+        return type(message) in (BleSetting, BleStatus, BleMessage)
+
+    @classmethod
+    def is_wifi(cls, message: Message) -> bool:
+        """Is this message a Wifi Message?
+
+        Args:
+            message (Message): Message to analyze
+
+        Returns:
+            bool: True if yes, False otherwise
+        """
+        return type(message) in (HttpMessage, HttpSetting)
+
+    @classmethod
+    def is_setting(cls, message: Message) -> bool:
+        """Is this message a setting?
+
+        Args:
+            message (Message): Message to analyze
+
+        Returns:
+            bool: True if yes, False otherwise
+        """
+        return type(message) in (BleSetting, HttpSetting)
+
+    @classmethod
+    def is_status(cls, message: Message) -> bool:
+        """Is this message a status?
+
+        Args:
+            message (Message): Message to analyze
+
+        Returns:
+            bool: True if yes, False otherwise
+        """
+        return isinstance(message, BleStatus)
+
+    @classmethod
+    def is_command(cls, message: Message) -> bool:
+        """Is this message a command (i.e. not setting or status)?
+
+        Args:
+            message (Message): Message to analyze
+
+        Returns:
+            bool: True if yes, False otherwise
+        """
+        return isinstance(message, (BoundFunctionWrapper, CompoundCommand))
+
+    @classmethod
+    def is_compound_command(cls, message: Message) -> bool:
+        """Is this message a compound command (i.e. a series of commands only used in the GUI)?
+
+        Args:
+            message (Message): Message to analyze
+
+        Returns:
+            bool: True if yes, False otherwise
+        """
+        return isinstance(message, CompoundCommand)
+
+    @classmethod
+    @no_type_check
+    def get_args_info(cls, message: Message) -> tuple[list[str], list[type]]:
+        """Get the argument names and types for a given message
+
+        Args:
+            message (Message): Message to analyze
+
+        Returns:
+            tuple[list[str], list[type]]: (list[argument names], list[argument types])
+        """
+        arg_types: list[type] = []
+        arg_names: list[str] = []
+        method_info = inspect.getfullargspec(
+            message if (is_command := cls.is_command(message)) else message.set
+        )
+        for arg in method_info.kwonlyargs if is_command else method_info.args[1:]:
+            if arg.startswith("_"):
+                continue
+            try:
+                # Assume this is a generic and try to get the standard type of its original class
+                arg_type = re.search(r"\[.*\]", str(message.__orig_class__))[0].strip("[]")
+            except AttributeError:
+                # This is not a generic so use the annotations from inspect
+                arg_type = method_info.annotations[arg]
+
+            # TODO temporary workaround to avoid handling parameter sequences. This is not an actual solution
+            if "optional" in arg_type.lower():
+                continue
+            arg_types.append(eval(arg_type))  # pylint: disable = eval-used
+            arg_names.append(arg)
+        return arg_names, arg_types
+
+    def get_message_info(
+        self, message: Message
+    ) -> tuple[list[Callable], list[Callable], list[type], list[str]]:
+        """For a given message, get its adapters, validator, argument types, and argument names
+
+        Args:
+            message (Message): Message to analyze
+
+        Raises:
+            ValueError: unhandled type of argument
+
+        Returns:
+            tuple[list[Callable], list[Callable], list[type], list[str]]:
+                (list[adapters], list[validators], list[arg_types], list[arg_names])
+        """
+        adapters: list[Callable] = []
+        validators: list[Callable] = []
+        names, arg_types = self.get_args_info(message)
+
+        # Build adapters and validators
+        # NOTE! These lambdas must define default variables since they are lost once the for loop scope exits
+        for arg_type in arg_types:
+            if "enum" in str(arg_type).lower():
+                try:
+                    format_field = message.param_builder.fmtstr  # type: ignore
+                    for construct_field in (construct.Int8ub, construct.Int32ub, construct.Int16ub):
+                        if construct_field.fmtstr == format_field:
+                            validators.append(lambda x, cs=construct_field: cs.build(int(x)))
+                            adapters.append(lambda x, adapt=arg_type: adapt[x])
+                            break
+                    else:
+                        raise ValueError("unrecognized format field" + str(format_field))
+                except AttributeError:
+                    validators.append(lambda x, adapt=arg_type: adapt(x))
+                    adapters.append(lambda x, adapt=arg_type: adapt[x])
+            elif arg_type is datetime.datetime:
+                # Special case to be handled by controller
+                adapters.append(datetime.datetime)
+                validators.append(datetime.datetime)
+            else:
+                validators.append(lambda _: True)
+                if arg_type is bool:
+                    adapters.append(lambda x: bool(x.lower() == "true"))
+                if arg_type in [bytes, bytearray]:  # type: ignore
+                    adapters.append(lambda x, adapt=arg_type: adapt(x, "utf-8"))
+                else:
+                    adapters.append(lambda x, adapt=arg_type: adapt(x))
+
+        return adapters, validators, arg_types, names
+
+    def updates(
+        self, response: Optional[GoProResp] = None
+    ) -> Generator[tuple[enum.IntEnum, Any, GoProModel.Update], None, None]:
+        """Generate updates from a response or any asynchronous updates
+
+        Args:
+            response (Optional[GoProResp], optional): Response to analyze. If none, get all asynchronous
+                updates. Defaults to None.
+
+        Yields:
+            Generator[tuple[enum.IntEnum, Any, GoProModel.Update], None, None]: generates (updates identifier,
+                update value, update type)
+        """
+
+        def get_update_type(container: GoProResp, identifier: ResponseType) -> GoProModel.Update:
+            if container.protocol is GoProResp.Protocol.BLE:
+                if container.cmd in [
+                    constants.QueryCmdId.GET_CAPABILITIES_VAL,
+                    constants.QueryCmdId.REG_CAPABILITIES_UPDATE,
+                    constants.QueryCmdId.SETTING_CAPABILITY_PUSH,
+                ]:
+                    return GoProModel.Update.CAPABILITY
+                if container.cmd in [
+                    constants.QueryCmdId.GET_SETTING_VAL,
+                    constants.QueryCmdId.REG_SETTING_VAL_UPDATE,
+                    constants.QueryCmdId.SETTING_VAL_PUSH,
+                ]:
+                    return GoProModel.Update.SETTING
+                if container.cmd in [
+                    constants.QueryCmdId.GET_STATUS_VAL,
+                    constants.QueryCmdId.REG_STATUS_VAL_UPDATE,
+                    constants.QueryCmdId.STATUS_VAL_PUSH,
+                ]:
+                    return GoProModel.Update.STATUS
+                # Must be protobuf
+                return GoProModel.Update.PROTOBUF
+            if container.protocol is GoProResp.Protocol.HTTP:
+                if isinstance(identifier, constants.StatusId):
+                    return GoProModel.Update.STATUS
+                if isinstance(identifier, constants.SettingId):
+                    return GoProModel.Update.SETTING
+                raise TypeError(f"Received unexpected WiFi identifier: {identifier}")
+            raise TypeError(f"Received unexpected protocol {container.protocol}")
+
+        if isinstance(response, GoProResp):
+            for identifier, value in response.items():
+                if type(identifier) in (constants.SettingId, constants.StatusId):
+                    yield identifier, value, get_update_type(response, identifier)
+        elif response is None:
+            while update := self.gopro.get_notification(0):
+                for identifier, value in update.items():
+                    yield identifier, value, get_update_type(update, identifier)
+
+
+class CompoundCommand(Message):
+    """Functionality that consists of multiple BLE and / or Wifi Messages"""
+
+    def __init__(self, communicator: WirelessGoPro, identifier: Any, parser: Any = None) -> None:
+        self._communicator = communicator
+        super().__init__(identifier, parser)
+
+    def __str__(self) -> str:
+        return self._identifier
+
+    def _as_dict(self, *_: Any, **kwargs: Any) -> dict[str, Any]:
+        """Return the command as a dict
+
+        Args:
+            *_ (Any): unused
+            **kwargs (Any) : additional dict keys to append
+
+        Returns:
+            dict[str, Any]: Message as dict
+        """
+        return {"protocol": "Complex", "id": self._identifier} | kwargs
+
+
+# pylint: disable = missing-class-docstring, arguments-differ
+class CompoundCommands(Messages[CompoundCommand, str, Union[GoProBle, GoProHttp]]):
+    """The container for the compound commands"""
+
+    def __init__(self, communicator: WirelessGoPro) -> None:
+        """Constructor
+
+        Args:
+            communicator (WirelessGoPro): the communicator to send the commands
+        """
+
+        class LiveStream(CompoundCommand):
+            def __call__(  # type: ignore
+                self,
+                *,
+                ssid: str,
+                password: str,
+                url: str,
+                window_size: Params.WindowSize,
+                lens_type: Params.LensType,
+                min_bit: int,
+                max_bit: int,
+                start_bit: int,
+            ) -> GoProResp:
+                """Disable shutter, connect to WiFi, start livestream, and set shutter
+
+                Args:
+                    ssid (str): SSID to connect to
+                    password (str): password of WiFi network
+                    url (str): url used to stream. Set to empty string to invalidate/cancel stream
+                    window_size (open_gopro.api.params.WindowSize): Streaming video resolution
+                    lens_type (open_gopro.api.params.LensType): Streaming Field of View
+                    min_bit (int): Desired minimum streaming bitrate (>= 800)
+                    max_bit (int): Desired maximum streaming bitrate (<= 8000)
+                    start_bit (int): Initial streaming bitrate (honored if 800 <= value <= 8000)
+
+                Raises:
+                    RuntimeError: could not find desired ssid
+
+                Returns:
+                    GoProResp: status and url to start livestream
+                """
+                self._communicator.ble_command.set_shutter(shutter=Params.Toggle.DISABLE)
+                self._communicator.ble_command.register_livestream_status(
+                    register=[Params.RegisterLiveStream.STATUS]
+                )
+
+                self._communicator.ble_command.scan_wifi_networks()
+                # Wait to receive scanning success
+                scan_id: Optional[int] = None
+                while update := self._communicator.get_notification():
+                    if (
+                        update == constants.ActionId.NOTIF_START_SCAN
+                        and update["scanning_state"] == Params.ScanState.SUCCESS
+                    ):
+                        scan_id = update["scan_id"]
+                        break
+
+                # Get scan results and see if we need to provision
+                assert scan_id
+                for entry in self._communicator.ble_command.get_ap_entries(scan_id=scan_id)["entries"]:
+                    if entry["ssid"] == ssid:
+                        # Are we already provisioned?
+                        if entry["scan_entry_flags"] & Params.ScanEntry.CONFIGURED:
+                            logger.info("Connecting to already provisioned network...")
+                            self._communicator.ble_command.request_wifi_connect(ssid=ssid)
+                        else:
+                            logger.info("Provisioning new network...")
+                            self._communicator.ble_command.request_wifi_connect_new(
+                                ssid=ssid, password=password
+                            )
+                        # Wait to receive provisioning done notification (it is "New" AP in both cases)
+                        while update := self._communicator.get_notification():
+                            if (
+                                update == constants.ActionId.NOTIF_PROVIS_STATE
+                                and update["provisioning_state"] == Params.ProvisioningState.SUCCESS_NEW_AP
+                            ):
+                                break
+                        break
+                else:
+                    raise RuntimeError(f"Could not find network {ssid}")
+
+                # Start livestream
+                self._communicator.ble_command.set_livestream_mode(
+                    url=url,
+                    window_size=window_size,
+                    cert=bytes(),
+                    minimum_bitrate=min_bit,
+                    maximum_bitrate=max_bit,
+                    starting_bitrate=start_bit,
+                    lens=lens_type,
+                )
+                # Wait to receive livestream started status
+                while update := self._communicator.get_notification():
+                    if (
+                        update == constants.ActionId.LIVESTREAM_STATUS_NOTIF
+                        and update["live_stream_status"] == Params.LiveStreamStatus.READY
+                    ):
+                        break
+                time.sleep(2)
+                assert self._communicator.ble_command.set_shutter(shutter=Params.Toggle.ENABLE).is_ok
+
+                response = GoProResp(meta=["Livestream"], raw_packet={"url": url})
+                response._parse()
+                return response
+
+        self.livestream = LiveStream(communicator, "Livestream")
+
+        super().__init__(communicator)
