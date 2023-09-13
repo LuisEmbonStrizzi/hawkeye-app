@@ -534,7 +534,7 @@ def main(frame):
     #if numeroFrame == 56: cv2.imwrite("Frame56Copia.jpg", frameCopia)
 
     #if len(ultimosCentrosGlobales) == 14: print("CambiosDeDireccion", cambiosDeDireccion(ultimosCentrosGlobales))
-    if len(ultimosCentrosGlobales) >= 5: print("CambiosDeDireccion", cambiosDeDireccion(list(ultimosCentrosGlobales)[-5:]))
+    if len(ultimosCentrosGlobales) >= 5: print("CambiosDeDireccion", cambiosDeDireccion(list(ultimosCentrosGlobales)[-7:]))
     #print("Ultimos Centros Globales", ultimosCentrosGlobales)
     
     print("Centro", centro)
@@ -1195,7 +1195,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion):
     cv2.imshow("Imagen recortada", imagen_recortada)
     cv2.imshow("Imagen recortada copia", imagen_recortada_copia)
         
-    a = False
+    a = True
     
     if a:
         pausado = True
@@ -1455,6 +1455,8 @@ def cambiosDeDireccion(ultCentros):
     cambios_de_direccion = 0
     movimiento_en_x = []
     movimiento_en_y = []
+    deteccionesPorColor = []
+    deteccionesPorColorCambio = []
     for i in range(len(ultCentros) - 1):
         if ultCentros[i + 1][0][0][0] < ultCentros[i][0][0][0]: derecha = False
         elif ultCentros[i + 1][0][0][0] > ultCentros[i][0][0][0]: derecha = True
@@ -1466,14 +1468,21 @@ def cambiosDeDireccion(ultCentros):
 
         movimiento_en_x.append(derecha)
         movimiento_en_y.append(abajo)
+        if i is not 0: deteccionesPorColor.append(ultCentros[i][1])
+    
+    deteccionesPorColor.append(ultCentros[-1][1])
 
     for i in range(len(movimiento_en_x) - 1):
-        if movimiento_en_x[i + 1] != movimiento_en_x[i] or movimiento_en_y[i + 1] != movimiento_en_y[i]: cambios_de_direccion += 1
+        if movimiento_en_x[i + 1] != movimiento_en_x[i] or movimiento_en_y[i + 1] != movimiento_en_y[i]:
+            deteccionesPorColorCambio.append(deteccionesPorColor[i + 1])
+            cambios_de_direccion += 1
     
     print("Movimiento en x", movimiento_en_x)
     print("Movimiento en y", movimiento_en_y)
+    print("Detecciones por color", deteccionesPorColor)
+    print("Detecciones por color cambio", deteccionesPorColorCambio)
 
-    if cambios_de_direccion >= 2:
+    if cambios_de_direccion >= 3 and deteccionesPorColorCambio.count(False) >= 2:
         diferenciaX = abs(ultCentros[0][0][0][0] - ultCentros[1][0][0][0])
         diferenciaY = abs(ultCentros[0][0][0][1] - ultCentros[1][0][0][1])
         ultCentros.pop(0)
