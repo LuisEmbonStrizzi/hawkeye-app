@@ -4,15 +4,119 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import { v1 as uuidv1 } from "uuid";
 import { env } from "~/env.mjs";
 import axios from "axios";
-
+import {z} from "zod"
 type cameraData = {
   data: {
-    video: string;
-  };
-};
+    video: string
+  }
+}
+
+const Battery = z.object({
+  message: z.string(),
+  battery: z.number()
+});
+
+type TBattery = z.infer<typeof Battery>;
+
+
+const CourtPhotoResponse = z.object({
+  message: z.string(),
+  file_url: z.string()
+});
+
+type TCourtPhotoResponse = z.infer<typeof CourtPhotoResponse>;
+
+const Wificredentials = z.object({
+  netname: z.string(),
+  password: z.string()
+});
+
+type TWificredentials = z.infer<typeof Wificredentials>;
+
+const RecordResponse = z.object({
+  message: z.string(),
+});
+
+type TRecordResponse = z.infer<typeof RecordResponse>;
+
+
 
 export const videoRouter = createTRPCRouter({
-  uploadVideo: protectedProcedure.mutation(async ({ ctx }) => {
+  enableWifi: protectedProcedure.mutation(async ({ ctx }) => {
+    const Wificredentials: TWificredentials  = await axios.get(
+      "http://127.0.0.1:8080/enable_Wifi",
+      { responseType: "json" }
+    );
+    const result = await ctx.prisma.videos.create({
+      data: {
+        userId: ctx.session?.user.id,
+        ssid: Wificredentials.netname,
+        Wifipassword: Wificredentials.password
+      },
+    });
+    console.log(result);
+    return result;
+  }),
+  getWifiCredentials: protectedProcedure.query(async ({ctx}) => {
+    try {
+      const result = await ctx.prisma.videos.findFirst({
+        where: {
+          userId: ctx.session.user.id,
+        },
+      });
+      console.log(result);
+      return result;
+    } catch (err: unknown) {
+      console.log(err);
+    }
+  }),
+  CourtPhoto: protectedProcedure.mutation(async ({ctx}) => {
+    try {
+      const courtPhoto: TCourtPhotoResponse = await axios.get(
+        "http://127.0.0.1:8080/courtPhoto",
+        {
+          responseType: "json",
+        }
+      );
+
+      const result = await ctx.prisma.videos.create({
+        data: {
+          thumbnailUrl: courtPhoto.file_url,
+          userId: ctx.session.user.id
+        },
+      });
+
+      return result;
+    } catch (err: unknown) {
+      console.log(err);
+    }
+  }),
+  getCourtPhoto: protectedProcedure.query(async ({ctx}) => {
+    try {
+      const result = await ctx.prisma.videos.findFirst({
+        where: {
+          userId: ctx.session.user.id,
+        },
+      });
+      console.log(result);
+      return result;
+    } catch (err: unknown) {
+      console.log(err);
+    }
+  }),
+
+  record: protectedProcedure.mutation(async ({}) => {
+    try {
+      const record: TRecordResponse = await axios.get("http://127.0.0.1:8000/record", {
+        responseType: "json",
+      });
+      return record;
+    } catch (err: unknown) {
+      console.log(err);
+    }
+  }),
+
+  stopRecording: protectedProcedure.mutation(async ({ ctx }) => {
     try {
       const cameraData: cameraData = await axios.get(
         "http://127.0.0.1:8080/stopRecording",
@@ -84,32 +188,11 @@ export const videoRouter = createTRPCRouter({
     console.log(result);
     return result;
   }),
-  record: protectedProcedure.query(async ({}) => {
-    try {
-      const record = await axios.get("http://127.0.0.1:8080/record", {
-        responseType: "json",
-      });
-      return record;
-    } catch (err: unknown) {
-      console.log(err);
-    }
-  }),
-  stopRecording: protectedProcedure.query(async ({}) => {
-    try {
-      const stopRecording = await axios.get(
-        "http://127.0.0.1:8080/stopRecording",
-        {
-          responseType: "json",
-        }
-      );
-      return stopRecording;
-    } catch (err: unknown) {
-      console.log(err);
-    }
-  }),
+  
+  
   getBattery: protectedProcedure.query(async ({}) => {
     try {
-      const battery = await axios.get("http://127.0.0.1:8080/getBattery", {
+      const battery: TBattery = await axios.get("http://127.0.0.1:8080/getBattery", {
         responseType: "json",
       });
       return battery;

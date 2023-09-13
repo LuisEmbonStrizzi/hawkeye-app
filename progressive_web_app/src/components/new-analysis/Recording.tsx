@@ -2,16 +2,27 @@ import Button from "../Button";
 import CamBattery from "./CamBattery";
 import Counter from "./Counter";
 import { api } from "~/utils/api";
+import { record } from "zod";
+import { useState } from "react"
 type RecordingProps = {
   handleStep: () => void;
   step: number;
 };
 
 const Recording: React.FC<RecordingProps> = ({ handleStep, step }) => {
-  const { data: recordMessage } = api.videos.record.useQuery(undefined);
-  const getBattery = api.videos.getBattery.useQuery(undefined, {
-    refetchInterval: 15000,
-  });
+  // const getBattery = api.videos.getBattery.useQuery(undefined, {
+  //   refetchInterval: 15000,
+  // });
+  // const callHawkeye = api.videos.uploadVideo.useMutation({
+    
+  // });
+  
+  const record = api.videos.record.useMutation()
+
+  function startRecording() {
+    handleStep
+    record.mutate()
+  }
 
   return (
     <>
@@ -27,7 +38,7 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step }) => {
             <Button
               label="Start recording"
               style="primary"
-              onClick={handleStep}
+              onClick={startRecording}
             />
           </div>
         </section>
@@ -65,6 +76,7 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step }) => {
                   </svg>
                 }
                 iconPosition="left"
+                onClick={() => callHawkeye.mutate()}
               />
               <Button
                 style="secondary"
@@ -88,7 +100,7 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step }) => {
             </section>
             <hr className="border-background-border" />
             <section className="flex flex-col items-center justify-center gap-4 p-8">
-              <CamBattery battery={23} />
+              <CamBattery battery={getBattery.data?.battery} />
             </section>
           </aside>
         </div>
