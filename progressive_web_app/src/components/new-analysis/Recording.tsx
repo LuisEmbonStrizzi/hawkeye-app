@@ -2,28 +2,67 @@ import Button from "../Button";
 import CamBattery from "./CamBattery";
 import Counter from "./Counter";
 import { api } from "~/utils/api";
-import { record } from "zod";
-import { useState } from "react"
+import axios from "axios";
+import {
+  type TRecordResponse,
+  type TStopRecording,
+} from "~/server/api/routers/videos";
+import { useState } from "react";
+import Image from "next/image";
+
 type RecordingProps = {
   handleStep: () => void;
   step: number;
 };
 
+type CameraData = {
+  message: string;
+  file_url: string;
+};
+
 const Recording: React.FC<RecordingProps> = ({ handleStep, step }) => {
-  // const getBattery = api.videos.getBattery.useQuery(undefined, {
-  //   refetchInterval: 15000,
-  // });
-  // const callHawkeye = api.videos.uploadVideo.useMutation({
-    
-  // });
-  
-  const record = api.videos.record.useMutation()
+  const [recordData, setRecordData] = useState<string | null>();
+  const [cameraInfo, setCameraInfo] = useState<CameraData | null>(null);
 
-  function startRecording() {
-    handleStep
-    record.mutate()
+  async function startRecording() {
+    try {
+      handleStep;
+      const record: TRecordResponse = await axios.get(
+        "http://127.0.0.1:8000/record",
+        {
+          responseType: "json",
+        }
+      );
+      if (record.message === "RecordStarted") {
+        // Aquí puedes manipular los datos recibidos del backend
+        setRecordData(record.message);
+      }
+
+      return;
+    } catch (err: unknown) {
+      console.log(err);
+    }
   }
+  async function callHawkeye() {
+    try {
+      const stopRecord: TStopRecording = await axios.get(
+        "http://127.0.0.1:8000/stopRecording",
+        {
+          responseType: "json",
+        }
+      );
+      if (stopRecord.message === "CameraConnected") {
+        setCameraInfo({
+          message: stopRecord.message,
+          file_url: stopRecord.file_url,
+        });
+      }
 
+      return;
+    } catch (err: unknown) {
+      console.log(err);
+    }
+  }
   return (
     <>
       {step === 1 ? (
@@ -38,6 +77,7 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step }) => {
             <Button
               label="Start recording"
               style="primary"
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onClick={startRecording}
             />
           </div>
@@ -56,6 +96,16 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step }) => {
             <div className="flex flex-grow flex-col items-center justify-center px-8 py-16">
               <Counter />
             </div>
+            {cameraInfo && (
+              <div>
+                <Image
+                  src={cameraInfo.file_url}
+                  alt=""
+                  width={50}
+                  height={50}
+                />
+              </div>
+            )}
             <hr className="border-background-border" />
             <section className="flex flex-col gap-4 p-8">
               <Button
@@ -76,7 +126,8 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step }) => {
                   </svg>
                 }
                 iconPosition="left"
-                onClick={() => callHawkeye.mutate()}
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                onClick={callHawkeye}
               />
               <Button
                 style="secondary"

@@ -20,6 +20,8 @@ app = FastAPI()
 
 azure_connection_string = config('AZURE_CONNECTION_STRING')
 container_name = config('AZURE_CONTAINER_NAME')
+
+
 class BleClientManager:
     def __init__(self):
         self.ble_client: BleakClient = None
@@ -39,8 +41,11 @@ class BleClientManager:
     def write_gatt_char(self, uuid, value, response=False):
         if self.ble_client:
             return self.ble_client.write_gatt_char(uuid, value, response)
-        
+
+
 ble_client = BleClientManager()
+
+
 @app.get("/enable_Wifi")
 async def enableWifi():
     try:
@@ -53,6 +58,7 @@ async def enableWifi():
 
     except Exception as e:
         logger.error(e)
+
 
 @app.get("/courtPhoto")
 async def courtPhoto():
@@ -69,7 +75,6 @@ async def courtPhoto():
 
             print(ble_client.ble_client.services)
 
-
             def notification_handler(handle: int, data: bytes) -> None:
                 logger.info(f'Received response at {handle}: {data.hex(":")}')
 
@@ -84,15 +89,15 @@ async def courtPhoto():
                 event.set()
 
             for service in ble_client.ble_client.services:
-                    print(f"Service UUID: {service.uuid}")
-                    for char in service.characteristics:
-                        print(f"Characteristic UUID: {char.uuid}")
+                print(f"Service UUID: {service.uuid}")
+                for char in service.characteristics:
+                    print(f"Characteristic UUID: {char.uuid}")
 
-                        if "notify" in char.properties:
-                            logger.info(
-                                f"Enabling notification on char {char.uuid}")
-                            # type: ignore
-                            await ble_client.ble_client.start_notify(char, notification_handler)
+                    if "notify" in char.properties:
+                        logger.info(
+                            f"Enabling notification on char {char.uuid}")
+                        # type: ignore
+                        await ble_client.ble_client.start_notify(char, notification_handler)
             logger.info("Done enabling notifications")
 
             # Write to command request BleUUID to turn the shutter on
@@ -101,7 +106,8 @@ async def courtPhoto():
             await ble_client.ble_client.write_gatt_char(COMMAND_REQ_UUID, bytearray([0x04, 0x3E, 0x02, 0x03, 0xE9]), response=True)
             await event.wait()  # Wait to receive the notification response
 
-            time.sleep(2)  # If we're recording, let's wait 2 seconds (i.e. take a 2 second video)
+            # If we're recording, let's wait 2 seconds (i.e. take a 2 second video)
+            time.sleep(2)
             # Write to command request BleUUID to turn the shutter off
             logger.info("Setting the shutter on")
             # event.clear()
@@ -113,7 +119,7 @@ async def courtPhoto():
         await runCommands()
 
         time.sleep(2)
-        
+
         url = GOPRO_BASE_URL + "/gopro/media/list"
         logger.info(f"Getting GoPro's status and settings: sending {url}")
 
@@ -125,7 +131,8 @@ async def courtPhoto():
 
     # Find the last photo with .jpg extension
         photo: Optional[str] = None
-        photos = [x["n"] for x in media_list["media"][0]["fs"] if x["n"].lower().endswith(".jpg")]
+        photos = [x["n"] for x in media_list["media"][0]
+                  ["fs"] if x["n"].lower().endswith(".jpg")]
 
         if photos:
             photo = photos[-1]  # Select the last photo with .jpg extension
@@ -147,8 +154,6 @@ async def courtPhoto():
                 for chunk in request.iter_content(chunk_size=8192):
                     f.write(chunk)
 
-
-
         blob_service_client = BlobServiceClient.from_connection_string(
             azure_connection_string)
         container_client = blob_service_client.get_container_client(
@@ -162,7 +167,6 @@ async def courtPhoto():
         with open(file, "rb") as f:
             blob_client.upload_blob(f, overwrite=True)
         logger.info(f"Archivo '{blob_name}' cargado correctamente en Azure.")
-
 
         # Obtener la URL del blob
         blob_url = blob_client.url
@@ -189,8 +193,6 @@ async def record():
 
             print("holaaaa")
 
-
-
             def notification_handler(handle: int, data: bytes) -> None:
                 logger.info(f'Received response at {handle}: {data.hex(":")}')
 
@@ -205,22 +207,20 @@ async def record():
                 event.set()
 
             for service in ble_client.ble_client.services:
-                    print(f"Service UUID: {service.uuid}")
-                    for char in service.characteristics:
-                        print(f"Characteristic UUID: {char.uuid}")
-                        if "notify" in char.properties:
-                            logger.info(
-                                f"Enabling notification on char {char.uuid}")
-                            # type: ignore
-                            await ble_client.ble_client.start_notify(char, notification_handler)
+                print(f"Service UUID: {service.uuid}")
+                for char in service.characteristics:
+                    print(f"Characteristic UUID: {char.uuid}")
+                    if "notify" in char.properties:
+                        logger.info(
+                            f"Enabling notification on char {char.uuid}")
+                        # type: ignore
+                        await ble_client.ble_client.start_notify(char, notification_handler)
             logger.info("Done enabling notifications")
-
-            
 
             logger.info("Setting video mode")
             event.clear()
             await ble_client.ble_client.write_gatt_char(COMMAND_REQ_UUID, bytearray([0x04, 0x3E, 0x02, 0x03, 0xE8]), response=True)
-            await event.wait() 
+            await event.wait()
 
             return
 
@@ -232,7 +232,7 @@ async def record():
         response = requests.get(url, timeout=10)
         data = response.json()
 
-        return {"message": "Record started"}
+        return {"message": "RecordStarted"}
 
     except Exception as e:
         logger.error(e)
@@ -251,7 +251,6 @@ async def stopRecording():
             response_uuid = COMMAND_RSP_UUID
 
             print("holaaaa")
-            
 
             def notification_handler(handle: int, data: bytes) -> None:
                 logger.info(f'Received response at {handle}: {data.hex(":")}')
@@ -267,26 +266,24 @@ async def stopRecording():
                 event.set()
 
             for service in ble_client.ble_client.services:
-                    for char in service.characteristics:
-                        if "notify" in char.properties:
-                            logger.info(
-                                f"Enabling notification on char {char.uuid}")
-                            # type: ignore
-                            await ble_client.ble_client.start_notify(char, notification_handler)
+                for char in service.characteristics:
+                    if "notify" in char.properties:
+                        logger.info(
+                            f"Enabling notification on char {char.uuid}")
+                        # type: ignore
+                        await ble_client.ble_client.start_notify(char, notification_handler)
             logger.info("Done enabling notifications")
-
 
             logger.info("Setting the shutter on")
             event.clear()
             await ble_client.ble_client.write_gatt_char(COMMAND_REQ_UUID, bytearray([3, 1, 1, 1]), response=True)
-            await event.wait() 
+            await event.wait()
 
-            time.sleep(2)  
+            time.sleep(2)
             logger.info("Setting the shutter off")
             # event.clear()
             await ble_client.ble_client.write_gatt_char(COMMAND_REQ_UUID, bytearray([3, 1, 1, 0]), response=True)
-            await event.wait() 
-
+            await event.wait()
 
             url = GOPRO_BASE_URL + "/gopro/camera/setting?setting=167&option=4"
             logger.info(f"Getting GoPro's status and settings: sending {url}")
@@ -308,7 +305,8 @@ async def stopRecording():
 
     # Find the last photo with .jpg extension
         video: Optional[str] = None
-        videos = [x["n"] for x in media_list["media"][0]["fs"] if x["n"].lower().endswith(".mp4")]
+        videos = [x["n"] for x in media_list["media"][0]
+                  ["fs"] if x["n"].lower().endswith(".mp4")]
 
         if videos:
             video = videos[-1]  # Select the last photo with .jpg extension
@@ -330,8 +328,6 @@ async def stopRecording():
                 for chunk in request.iter_content(chunk_size=8192):
                     f.write(chunk)
 
-
-
         blob_service_client = BlobServiceClient.from_connection_string(
             azure_connection_string)
         container_client = blob_service_client.get_container_client(
@@ -346,11 +342,10 @@ async def stopRecording():
             blob_client.upload_blob(f, overwrite=True)
         logger.info(f"Archivo '{blob_name}' cargado correctamente en Azure.")
 
-
         # Obtener la URL del blob
         blob_url = blob_client.url
 
-        return {"message": "Camera connected", "file_url": blob_url}
+        return {"message": "CameraConnected", "file_url": blob_url}
 
     except Exception as e:
         logger.error(e)
@@ -370,5 +365,3 @@ async def getBattery():
 
     except Exception as e:
         logger.error(e)
-
-  

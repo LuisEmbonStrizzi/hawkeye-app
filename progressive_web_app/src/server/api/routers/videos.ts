@@ -4,46 +4,45 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import { v1 as uuidv1 } from "uuid";
 import { env } from "~/env.mjs";
 import axios from "axios";
-import {z} from "zod"
+import { z } from "zod";
 type cameraData = {
   data: {
-    video: string
-  }
-}
+    video: string;
+  };
+};
 
 const Battery = z.object({
   message: z.string(),
-  battery: z.number()
+  battery: z.number(),
 });
 
 type TBattery = z.infer<typeof Battery>;
 
-
 const CourtPhotoResponse = z.object({
   message: z.string(),
-  file_url: z.string()
+  file_url: z.string(),
 });
 
 type TCourtPhotoResponse = z.infer<typeof CourtPhotoResponse>;
 
 const Wificredentials = z.object({
   netname: z.string(),
-  password: z.string()
+  password: z.string(),
 });
 
 type TWificredentials = z.infer<typeof Wificredentials>;
 
 const RecordResponse = z.object({
   message: z.string(),
+  file_url: z.string(),
 });
 
-type TRecordResponse = z.infer<typeof RecordResponse>;
-
-
+export type TRecordResponse = Omit<z.infer<typeof RecordResponse>, "file_url">;
+export type TStopRecording = z.infer<typeof RecordResponse>;
 
 export const videoRouter = createTRPCRouter({
   enableWifi: protectedProcedure.mutation(async ({ ctx }) => {
-    const Wificredentials: TWificredentials  = await axios.get(
+    const Wificredentials: TWificredentials = await axios.get(
       "http://127.0.0.1:8080/enable_Wifi",
       { responseType: "json" }
     );
@@ -51,13 +50,13 @@ export const videoRouter = createTRPCRouter({
       data: {
         userId: ctx.session?.user.id,
         ssid: Wificredentials.netname,
-        Wifipassword: Wificredentials.password
+        Wifipassword: Wificredentials.password,
       },
     });
     console.log(result);
     return result;
   }),
-  getWifiCredentials: protectedProcedure.query(async ({ctx}) => {
+  getWifiCredentials: protectedProcedure.query(async ({ ctx }) => {
     try {
       const result = await ctx.prisma.videos.findFirst({
         where: {
@@ -70,7 +69,7 @@ export const videoRouter = createTRPCRouter({
       console.log(err);
     }
   }),
-  CourtPhoto: protectedProcedure.mutation(async ({ctx}) => {
+  CourtPhoto: protectedProcedure.mutation(async ({ ctx }) => {
     try {
       const courtPhoto: TCourtPhotoResponse = await axios.get(
         "http://127.0.0.1:8080/courtPhoto",
@@ -82,7 +81,7 @@ export const videoRouter = createTRPCRouter({
       const result = await ctx.prisma.videos.create({
         data: {
           thumbnailUrl: courtPhoto.file_url,
-          userId: ctx.session.user.id
+          userId: ctx.session.user.id,
         },
       });
 
@@ -91,7 +90,7 @@ export const videoRouter = createTRPCRouter({
       console.log(err);
     }
   }),
-  getCourtPhoto: protectedProcedure.query(async ({ctx}) => {
+  getCourtPhoto: protectedProcedure.query(async ({ ctx }) => {
     try {
       const result = await ctx.prisma.videos.findFirst({
         where: {
@@ -107,9 +106,12 @@ export const videoRouter = createTRPCRouter({
 
   record: protectedProcedure.mutation(async ({}) => {
     try {
-      const record: TRecordResponse = await axios.get("http://127.0.0.1:8000/record", {
-        responseType: "json",
-      });
+      const record: TRecordResponse = await axios.get(
+        "http://127.0.0.1:8000/record",
+        {
+          responseType: "json",
+        }
+      );
       return record;
     } catch (err: unknown) {
       console.log(err);
@@ -188,13 +190,15 @@ export const videoRouter = createTRPCRouter({
     console.log(result);
     return result;
   }),
-  
-  
+
   getBattery: protectedProcedure.query(async ({}) => {
     try {
-      const battery: TBattery = await axios.get("http://127.0.0.1:8080/getBattery", {
-        responseType: "json",
-      });
+      const battery: TBattery = await axios.get(
+        "http://127.0.0.1:8080/getBattery",
+        {
+          responseType: "json",
+        }
+      );
       return battery;
     } catch (err: unknown) {
       console.log(err);
