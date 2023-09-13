@@ -20,7 +20,8 @@ const NewAnalysisSteps: React.FC = () => {
       <Topbar step={step} handleStep={handleStep} />
       {step === 0 ? (
         <AlignCorners image="/img/test.png" />
-      ) : (<Recording handleStep={()=>handleStep("more")} step={step}/>
+      ) : (
+        <Recording handleStep={() => handleStep("more")} step={step} />
       )}
     </>
   );

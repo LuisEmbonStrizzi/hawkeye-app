@@ -1,13 +1,18 @@
 import Button from "../Button";
 import CamBattery from "./CamBattery";
 import Counter from "./Counter";
-
+import { api } from "~/utils/api";
 type RecordingProps = {
   handleStep: () => void;
   step: number;
 };
 
 const Recording: React.FC<RecordingProps> = ({ handleStep, step }) => {
+  const { data: recordMessage } = api.videos.record.useQuery(undefined);
+  const getBattery = api.videos.getBattery.useQuery(undefined, {
+    refetchInterval: 15000,
+  });
+
   return (
     <>
       {step === 1 ? (
@@ -20,7 +25,7 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step }) => {
           </p>
           <div className="absolute bottom-0 flex w-full flex-col p-6 sm:static sm:w-auto sm:p-0">
             <Button
-              label="Start  recording"
+              label="Start recording"
               style="primary"
               onClick={handleStep}
             />
@@ -83,7 +88,7 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step }) => {
             </section>
             <hr className="border-background-border" />
             <section className="flex flex-col items-center justify-center gap-4 p-8">
-              <CamBattery battery={91} />
+              <CamBattery battery={23} />
             </section>
           </aside>
         </div>
