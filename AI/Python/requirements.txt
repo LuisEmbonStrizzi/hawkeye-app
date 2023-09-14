@@ -3,3 +3,5 @@ opencv-contrib-python
 imutils
 uvicorn
 fastapi
+azure-storage-blob
+python-decouple

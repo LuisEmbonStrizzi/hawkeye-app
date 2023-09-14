@@ -31,6 +31,7 @@ def tracking(url):
         # global topLeftX, topLeftY, topRightX, topRightY, bottomLeftX, bottomLeftY, bottomRightX, bottomRightY
         # global estaCercaX
         # global estaCercaY
+        nonlocal matrix
 
         anchoOG = frame.shape[1]
         altoOG = frame.shape[0]
@@ -86,7 +87,7 @@ def tracking(url):
                     centro = (int(M["m10"] / M["m00"]),
                                 int(M["m01"] / M["m00"])), int(radio)
                     primeraVez = False
-                    preCentro = centro
+                    #preCentro = centro
                     TiempoDeteccionUltimaPelota = 0
                     TiempoTresCentrosConsecutivos = 0
 
@@ -101,7 +102,7 @@ def tracking(url):
                         M = cv2.moments(casiCentro)
                         centro = [int(M["m10"] / M["m00"]),
                                     int(M["m01"] / M["m00"])], int(radio)
-                        preCentro = centro
+                        #preCentro = centro
                         TiempoTresCentrosConsecutivos += TiempoDeteccionUltimaPelota
                         TiempoDeteccionUltimaPelota = 0
                         ultimosCentros.appendleft(centro)
@@ -173,12 +174,14 @@ def tracking(url):
                     if posiblesPiques == []:
                         #posiblesPiques.appendleft((abajo, preCentro[0], numeroFrame))
                         posiblesPiques.appendleft(
-                            (abajo, coordenadaPorMatriz(preCentro), numeroFrame))
+                            (abajo, coordenadaPorMatriz(preCentro), numeroFrame - 1))
+                        posiblesPiquesNormales.appendleft((preCentro, numeroFrame - 1))
                         ult_posible_pique = preCentro[0]
                     elif preCentro[0] != ult_posible_pique:
                         #posiblesPiques.appendleft((abajo, preCentro[0], numeroFrame))
                         posiblesPiques.appendleft(
-                            (abajo, coordenadaPorMatriz(preCentro), numeroFrame))
+                            (abajo, coordenadaPorMatriz(preCentro), numeroFrame - 1))
+                        posiblesPiquesNormales.appendleft((preCentro, numeroFrame - 1))
                         ult_posible_pique = preCentro[0]
 
                     if len(posiblesPiques) >= 2:
@@ -190,13 +193,13 @@ def tracking(url):
                                 posiblesPiques[1], True)
                         if es_pique and type(posiblesPiques[1][0]) is not bool and esta_en_cancha_posible_pique:
                             #pts_piques_finales.append([coordenadaPorMatriz(posiblesPiques[1][0][0]), float("{:.2f}".format(posiblesPiques[1][1] / fps))])
-                            pts_piques_finales.append([posiblesPiques[1][0], float(
-                                "{:.2f}".format(posiblesPiques[1][1] / fps))])
+                            pts_piques_finales.append([posiblesPiques[1][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                            pts_piques_normales.append([(int(posiblesPiquesNormales[1][0][0][0] / resizer), int(posiblesPiquesNormales[1][0][0][1] / resizer)), posiblesPiquesNormales[1][1]])
 
                         elif es_pique and type(posiblesPiques[1][0]) is not bool and not esta_en_cancha_posible_pique:
                             #pts_piques_finales_afuera.append([coordenadaPorMatriz(posiblesPiques[1][0][0]), float("{:.2f}".format(posiblesPiques[1][1] / fps))])
-                            pts_piques_finales_afuera.append(
-                                [posiblesPiques[1][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                            pts_piques_finales_afuera.append([posiblesPiques[1][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                            pts_piques_normales.append([(int(posiblesPiquesNormales[1][0][0][0] / resizer), int(posiblesPiquesNormales[1][0][0][1] / resizer)), posiblesPiquesNormales[1][1]])
 
                         elif es_pique == False and type(posiblesPiques[1][0]) is not bool:
                             #pts_golpes_finales.append([coordenadaPorMatriz(posiblesPiques[1][0][0]), float("{:.2f}".format(posiblesPiques[1][1] / fps))])
@@ -209,12 +212,14 @@ def tracking(url):
                     if posiblesPiques == []:
                         #posiblesPiques.appendleft((preCentro, numeroFrame))
                         posiblesPiques.appendleft(
-                            (coordenadaPorMatriz(preCentro), numeroFrame))
+                            (coordenadaPorMatriz(preCentro), numeroFrame - 1))
+                        posiblesPiquesNormales.appendleft((preCentro, numeroFrame - 1))
                         ult_posible_pique = preCentro[0]
                     elif ult_posible_pique != preCentro[0]:
                         #posiblesPiques.appendleft((preCentro, numeroFrame))
                         posiblesPiques.appendleft(
-                            (coordenadaPorMatriz(preCentro), numeroFrame))
+                            (coordenadaPorMatriz(preCentro), numeroFrame - 1))
+                        posiblesPiquesNormales.appendleft((preCentro, numeroFrame - 1))
                         ult_posible_pique = preCentro[0]
 
                     if len(posiblesPiques) >= 2:
@@ -233,11 +238,13 @@ def tracking(url):
                             #pts_piques_finales.append([coordenadaPorMatriz(posiblesPiques[1][0][0]), float("{:.2f}".format(posiblesPiques[1][1] / fps))])
                             pts_piques_finales.append([posiblesPiques[1][0], float(
                                 "{:.2f}".format(posiblesPiques[1][1] / fps))])
+                            pts_piques_normales.append([(int(posiblesPiquesNormales[1][0][0][0] / resizer), int(posiblesPiquesNormales[1][0][0][1] / resizer)), posiblesPiquesNormales[1][1]])
 
                         elif es_pique and type(posiblesPiques[1][0]) is not bool and not esta_en_cancha_posible_pique:
                             #pts_piques_finales_afuera.append([coordenadaPorMatriz(posiblesPiques[1][0][0]), float("{:.2f}".format(posiblesPiques[1][1] / fps))])
                             pts_piques_finales_afuera.append(
                                 [posiblesPiques[1][0], float("{:.2f}".format(posiblesPiques[1][1] / fps))])
+                            pts_piques_normales.append([(int(posiblesPiquesNormales[1][0][0][0] / resizer), int(posiblesPiquesNormales[1][0][0][1] / resizer)), posiblesPiquesNormales[1][1]])
 
                         elif es_pique == False and type(posiblesPiques[1][0]) is not bool:
                             #pts_golpes_finales.append([coordenadaPorMatriz(posiblesPiques[1][0][0]), float("{:.2f}".format(posiblesPiques[1][1] / fps))])
@@ -281,6 +288,9 @@ def tracking(url):
             afterVelocidad = False
         ################################ TIEMPO: 0.001 ###################################
 
+        if centro is not None:
+            preCentro = centro
+
         # Resizea y Muestra el Frame
         frame = imutils.resize(frame, anchoOG, altoOG)
         frame = imutils.resize(frame, height=768)
@@ -294,21 +304,16 @@ def tracking(url):
         ################################ TIEMPO: 0.002 (llegó a tirar 0.008) ###################################
         if type(centro) is list:
             centro = (centro, 0)
-        pts1 = np.float32([[topLeftX, topLeftY], [topRightX, topRightY], [
-            bottomLeftX, bottomLeftY], [bottomRightX, bottomRightY]])
-        pts2 = np.float32([[0, 0], [164, 0], [0, 474], [164, 474]])
-
-        matrix = cv2.getPerspectiveTransform(pts1, pts2)
-        perspectiva = cv2.warpPerspective(frame, matrix, (164, 474))
-
+        
         cords_pelota = np.array(
             [[centro[0][0] / resizer], [centro[0][1] / resizer], [1]])
         cords_pelota_pers = np.dot(matrix, cords_pelota)
         cords_pelota_pers = (int(
             cords_pelota_pers[0]/cords_pelota_pers[2]), int(cords_pelota_pers[1]/cords_pelota_pers[2]))
-
-        perspectiva = cv2.circle(
-            perspectiva, cords_pelota_pers, 3, (0, 0, 255), -1)
+        
+        # Mostrar la perspectiva con la pelota pintada
+        #perspectiva = cv2.warpPerspective(frame, matrix, (164, 474))
+        #perspectiva = cv2.circle(perspectiva, cords_pelota_pers, 3, (0, 0, 255), -1)
         #cv2.imshow("Perspectiva", perspectiva)
 
         ################################ TIEMPO: 0.002 (llegó a tirar 0.008) ###################################
@@ -638,6 +643,7 @@ def tracking(url):
     puntoMaximoDerechaCancha = max(topRightX, bottomRightX)
 
     pts_piques_finales = []
+    pts_piques_normales = []
     pts_piques_finales_afuera = []
     pts_golpes_finales = []
 
@@ -680,6 +686,7 @@ def tracking(url):
     es_pique = None
     posiblePique = False
     posiblesPiques = deque()
+    posiblesPiquesNormales = deque()
 
     # TiempoDifVelocidad cuenta cuento tiempo en segundos pasa desde que se encontraron los dos puntos para usar en la velocidad
     TiempoDifVelocidad = 0
@@ -699,6 +706,13 @@ def tracking(url):
     pelotaEstaEnPerspectiva = None
 
     radio = 0
+
+    pts1 = np.float32([[topLeftX, topLeftY], [topRightX, topRightY], [
+            bottomLeftX, bottomLeftY], [bottomRightX, bottomRightY]])
+    pts2 = np.float32([[0, 0], [164, 0], [0, 474], [164, 474]])
+
+    matrix = cv2.getPerspectiveTransform(pts1, pts2)
+    
 
     tiempo_inicial = time.time()
     for _ in range(frame_count):
@@ -722,12 +736,45 @@ def tracking(url):
         print("Tiempo:", time.time() - start_time, " - Frame:", numeroFrame)
         ################################ TIEMPO: 0.1 ###################################
 
+    # Define qué tan cerca está un pique del límite de la cancha
+    def distancia_al_borde(pique):
+        altura, ancho = (164, 474)
+        y, x = pique[0]
+
+        distancia_top = y
+        distancia_bottom = altura - y
+        distancia_left = x
+        distancia_right = ancho - x
+
+        return min(distancia_top, distancia_bottom, distancia_left, distancia_right)
+    
+    # Se juntan los piques de adentro y afuera
+    if pts_piques_finales_afuera != []:
+        pts_piques_finales.append(pts_piques_finales_afuera)
+
+    # Encuentra la coordenada más cercana al borde
+    coordenada_mas_cercana = None
+    distancia_minima = None
+    for coordenada in pts_piques_finales:
+        distancia = distancia_al_borde(coordenada)
+        if distancia_minima is None or distancia < distancia_minima:
+            distancia_minima = distancia
+            coordenada_mas_cercana = coordenada
+    
+    # Encuentra a qué coordenada en el plano normal corresponde
+    for i in range(len(pts_piques_normales)):
+        if coordenada_mas_cercana[1] == float("{:.2f}".format(pts_piques_normales[i][1] / fps)):
+            coordenada_mas_cercana = pts_piques_normales[i]
+            break
+
     print("Tiempo total:", time.time() - tiempo_inicial)
     print(pts_piques_finales)
+    print("Más cerca del límite:", coordenada_mas_cercana)
+    print(pts_piques_normales)
 
     vs.release()
 
-    return pts_piques_finales
+    return coordenada_mas_cercana
 
 if __name__ == '__main__':
-    tracking("./InkedInkedTennisBrothersVideo1080p.mp4")
+    tracking("../InkedInkedTennisBrothersVideo1080p.mp4")
