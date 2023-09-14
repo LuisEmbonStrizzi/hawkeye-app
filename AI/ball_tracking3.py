@@ -976,18 +976,18 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     #if numeroFrame == 51 or correccion: print("Circles: ", circles)
 
     #if correccion: return circles, (x1, y1)
-    #if correccion:
+    if correccion:
         # Supongamos que quieres eliminar algunos círculos, aquí hay un ejemplo de condición
         #condicion = (circles[:,:,2] - preCentro[1] * 3) > 15  # Condición de ejemplo
         # Aplica la condición para filtrar círculos
         #circles_filtrados = circles[~condicion]
         #for circle in circles[0]:
         #    if abs(circle[2] - preCentro[1] * 3) > 15:
-        #contadorCorreccion += 1
+        contadorCorreccion += 1
         #if contadorCorreccion == 6: contadorCorreccion = 1
-        #for i in circles[0]:
-        #    cv2.circle(imagen_recortada, (int(i[0]), int(i[1])), int(i[2]), (255, 255, 255), thickness = 2)
-        #    cv2.imwrite("imagen_recortada" + str(contadorCorreccion) + ".png", imagen_recortada)
+        for i in circles[0]:
+            cv2.circle(imagen_recortada, (int(i[0]), int(i[1])), int(i[2]), (255, 255, 255), thickness = 2)
+        #cv2.imwrite("imagen_recortada" + str(contadorCorreccion) + ".png", imagen_recortada)
         #cv2.imwrite("imagen_recortada" + str(contadorCorreccion) + ".png", imagen_recortada)
         #cv2.imwrite("Frame" + str(contadorCorreccion) + ".png", frame)
         #return circles
@@ -1169,7 +1169,9 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
             cv2.circle(frame, (xr, yr), rr, (255, 255, 0), thickness = 2)
 
             centro = ((xr, yr), rr)
-            if correccion: return centro, similitudes_coseno[indice_similitud_mas_alta], promedios_colores[indice_similitud_mas_alta]
+            if correccion:
+                cv2.imwrite("imagen_recortada" + str(contadorCorreccion) + ".png", imagen_recortada) 
+                return centro, similitudes_coseno[indice_similitud_mas_alta], promedios_colores[indice_similitud_mas_alta]
             centroConDecimales = ((x1 + circuloDetectado[0] / resizer, y1 + circuloDetectado[1] / resizer), circuloDetectado[2] / resizer)
             ultimosCentrosCirculo.appendleft(centroConDecimales)
             radioDeteccionPorCirculo = circuloDetectado[2] / resizer
@@ -1204,7 +1206,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     cv2.imshow("Imagen recortada", imagen_recortada)
     cv2.imshow("Imagen recortada copia", imagen_recortada_copia)
         
-    a = True
+    a = False
     
     if a:
         pausado = True
@@ -1535,12 +1537,13 @@ def cambiosDeDireccion(ultCentros, correccion):
             verdeCerca = None
             if i[1] == True: circulosCorreccion.append((i[0], None))
             else:
-                if len(circulosCorreccion) == 0: preCentroCorreccion = i[4]
-                else: preCentroCorreccion = circulosCorreccion[-1][0]
+                if len(circulosCorreccion) == 0 and i[4] is not None: preCentroCorreccion = i[4]
+                elif len(circulosCorreccion) != 0: preCentroCorreccion = circulosCorreccion[-1][0]
+                else: continue
                 if deteccionColorUltimosFrames[contador] is not None: verdeCerca = tp_fix(deteccionColorUltimosFrames[contador], preCentroCorreccion, 0.2, False, None, (1,0), False, True)
                 if verdeCerca is None:
                     if color_preCentro is None: color_preCentro = i[3]
-                    correccionCirculos, coseno, casi_color_preCentro = deteccionPorCirculos(i[4], i[2], 300, True, color_preCentro, 4)
+                    correccionCirculos, coseno, casi_color_preCentro = deteccionPorCirculos(preCentroCorreccion, i[2], 300, True, color_preCentro, 4)
                     if coseno > ultimosSimilitudesCoseno[contador]:
                         #print("AAAAAAAAAAAAAAAAAAA")
                         circulosCorreccion.append((correccionCirculos, None))
