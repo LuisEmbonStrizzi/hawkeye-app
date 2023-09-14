@@ -6,6 +6,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import {
+  TgetBattery,
   type TrecordResponse,
 } from "~/server/api/routers/videos";
 type Tbattery = {
@@ -13,33 +14,53 @@ type Tbattery = {
 }
 
 type RecordingProps = {
-  getBattery: () => any;
   handleStep: () => void;
   step: number;
   initialBattery?: number;
 };
 
 
+
 const Recording: React.FC<RecordingProps> = ({
   handleStep,
   step,
   initialBattery,
-  getBattery
 }) => {
   const [battery, setBattery] = useState<number | undefined>(initialBattery);
   const [recordData, setRecordData] = useState<string | null>(null);
-
+  const [startRecord, setStartRecord] = useState<boolean>(false);
+  const [stopRecord, setStopRecord] = useState<boolean>(false);
+  async function getBattery() {
+    try {
+      const getBattery: TgetBattery = await axios.get(
+        "http://localhost:8000/getBattery",
+        {
+          responseType: "json",
+        }
+      );
+      console.log(getBattery);
+      setBattery(getBattery.data.battery)
+      return getBattery.data.battery;
+    } catch (error) {
+      console.error("Error al obtener los datos:", error);
+    }
+  };
   useEffect(() => {
     const intervalId = setInterval(async () => {
-        const updatedBattery = await getBattery();
-        console.log(updatedBattery);
-        if (updatedBattery !== null) {
-          setBattery(updatedBattery);
-        }
-      }, 30000);
+      const updatedBattery = await getBattery();
+      console.log(updatedBattery);
+      if (updatedBattery !== null) {
+        setBattery(updatedBattery);
+      }
+    }, 30000);
+
+    // No deberías usar clearInterval aquí, ya que detendría el intervalo inmediatamente
+    // clearInterval(intervalId);
+    
+    // Limpieza del intervalo cuando el componente se desmonta
+    return () => clearInterval(intervalId);
+  }, []);
   
-      clearInterval(intervalId);
-  },[])
    
 
   const uploadVideo = api.videos.stopRecording.useMutation();
@@ -48,11 +69,15 @@ const Recording: React.FC<RecordingProps> = ({
   //     void refetchVideos();
   //   },
   // }
-  // const { data: videos, refetch: refetchVideos } =
-  // api.videos.getVideo.useQuery();
+  // if(uploadVideo.isSuccess == true) {
+  //   const { data: videos, refetch: refetchVideos } =
+  //   api.videos.getVideo.useQuery();
+  // }
+  
   function callHawkeye() {
     try {
       uploadVideo.mutate();
+      setStopRecord(true)
     } catch (err: unknown) {
       console.log(err);
     }
@@ -70,7 +95,9 @@ const Recording: React.FC<RecordingProps> = ({
       if (record.data.message === "RecordStarted") {
         // Aquí puedes manipular los datos recibidos del backend
         setRecordData(record.data.message);
+        setStartRecord(true)
       }
+
 
       console.log(record.data.message);
     } catch (err: unknown) {
@@ -109,7 +136,7 @@ const Recording: React.FC<RecordingProps> = ({
           </section>
           <aside className="flex h-full w-96 flex-col border-l border-background-border">
             <div className="flex flex-grow flex-col items-center justify-center px-8 py-16">
-              <Counter />
+              <Counter startRecord={startRecord} stopRecord={stopRecord} />
             </div>
             {/* {videos?.map((video) => (
               <div key={video.id}>

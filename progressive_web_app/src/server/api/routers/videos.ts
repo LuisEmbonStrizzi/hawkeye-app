@@ -91,9 +91,8 @@ export const videoRouter = createTRPCRouter({
 
       const result = await ctx.prisma.videos.create({
         data: {
-          videoUrl: azureResponse.videoUrl,
+          videoUrl: stringifyArray,
           userId: ctx.session?.user.id,
-          boundsArray: stringifyArray,
         },
       });
 

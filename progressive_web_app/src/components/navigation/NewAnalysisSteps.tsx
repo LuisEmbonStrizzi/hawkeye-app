@@ -88,7 +88,6 @@ const NewAnalysisSteps: React.FC = ({
             handleStep={() => handleStep("more")}
             step={step}
             initialBattery={battery}
-            getBattery={getBattery}
             />
       )}
     </>
