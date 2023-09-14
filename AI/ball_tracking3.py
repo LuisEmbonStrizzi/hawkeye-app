@@ -674,6 +674,9 @@ def ignorarContornosQuietos(cnts, contornosIgnorar):
 
 # Fución que determina si la pelota se está moviendo
 def seEstaMoviendo(ultCentros, rango):
+    #print("AAAAAAAAAAAAA")
+    #print("ultCentros", ultCentros)
+    #print("Rango", rango)
     movimiento = False
     # Si la suma de las restas de los últimos centros es mayor a 15, significa que la pelota se está moviendo, de lo contrario no lo está.
     for i in range(2):
@@ -690,6 +693,16 @@ def seEstaMoviendo(ultCentros, rango):
             break
         else:
             movimiento = False
+    
+    restaA = abs(ultCentros[4][1] - ultCentros[3][1])
+    restaB = abs(ultCentros[3][1] - ultCentros[2][1])
+    restaC = abs(ultCentros[2][1] - ultCentros[1][1])
+    restaD = abs(ultCentros[1][1] - ultCentros[0][1])
+
+    if restaA + restaB + restaC + restaD >= 3:
+        movimiento = True
+    else:
+        movimiento = False
     
     # Devuelve True o False dependiendo de si la pelota se mueve o no
     if movimiento:
@@ -976,17 +989,17 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     #if numeroFrame == 51 or correccion: print("Circles: ", circles)
 
     #if correccion: return circles, (x1, y1)
-    if correccion:
+    #if correccion:
         # Supongamos que quieres eliminar algunos círculos, aquí hay un ejemplo de condición
         #condicion = (circles[:,:,2] - preCentro[1] * 3) > 15  # Condición de ejemplo
         # Aplica la condición para filtrar círculos
         #circles_filtrados = circles[~condicion]
         #for circle in circles[0]:
         #    if abs(circle[2] - preCentro[1] * 3) > 15:
-        contadorCorreccion += 1
+        #contadorCorreccion += 1
         #if contadorCorreccion == 6: contadorCorreccion = 1
-        for i in circles[0]:
-            cv2.circle(imagen_recortada, (int(i[0]), int(i[1])), int(i[2]), (255, 255, 255), thickness = 2)
+        #for i in circles[0]:
+        #    cv2.circle(imagen_recortada, (int(i[0]), int(i[1])), int(i[2]), (255, 255, 255), thickness = 2)
         #cv2.imwrite("imagen_recortada" + str(contadorCorreccion) + ".png", imagen_recortada)
         #cv2.imwrite("imagen_recortada" + str(contadorCorreccion) + ".png", imagen_recortada)
         #cv2.imwrite("Frame" + str(contadorCorreccion) + ".png", frame)
@@ -1211,7 +1224,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     if a:
         pausado = True
 
-        if numeroFrame > 60:
+        if numeroFrame > 95:
             while True:
                 # Verificar si se debe pausar la imagen
                 if pausado:
@@ -1232,6 +1245,11 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     return centro
 
 def deteccionNoEsLaPelota(ultCentros, valorSumaEjeY, correccion):
+    #print("BBBBBBBBBBB")
+    #print("ultCentros", ultCentros)
+    #print("valorSumaEjeY", valorSumaEjeY)
+    #print("correccion", correccion)
+
     if correccion == False:
         sumaRadios = 0
         for i in range(len(ultCentros) - 1):
@@ -1468,6 +1486,9 @@ def cambiosDeDireccion(ultCentros, correccion):
     global color_pre_centro
     global ultimosCentrosGlobales
 
+    #for i in ultCentros:
+    #    print("ultCentros", i[0])
+
     cambios_de_direccion = 0
     movimiento_en_x = []
     movimiento_en_y = []
@@ -1566,15 +1587,15 @@ def cambiosDeDireccion(ultCentros, correccion):
 
                     if verdeCerca[0][0] < i[2].shape[1] and verdeCerca[0][1] < i[2].shape[0]: pixeles.append((verdeCerca[0][0], verdeCerca[0][1]))
 
-                    for i in range(1, verdeCerca[1] + 1):
+                    for i in range(1, int(verdeCerca[1]) + 1):
                         if verdeCerca[0][0] + i < i[2].shape[1] and verdeCerca[0][1] < i[2].shape[0]: pixeles.append((verdeCerca[0][0] + i, verdeCerca[0][1]))
                         if verdeCerca[0][0] - i < i[2].shape[1] and verdeCerca[0][1] < i[2].shape[0]: pixeles.append((verdeCerca[0][0] - i, verdeCerca[0][1]))
 
-                    for i in range(1, verdeCerca[1] + 1):
+                    for i in range(1, int(verdeCerca[1]) + 1):
                         if verdeCerca[0][0] < i[2].shape[1] and verdeCerca[0][1] + i < i[2].shape[0]: pixeles.append((verdeCerca[0][0], verdeCerca[0][1] + i))
                         if verdeCerca[0][0] < i[2].shape[1] and verdeCerca[0][1] - i < i[2].shape[0]: pixeles.append((verdeCerca[0][0], verdeCerca[0][1] - i))
 
-                    for i in range(1, verdeCerca[1] + 1):
+                    for i in range(1, int(verdeCerca[1]) + 1):
                         for h in range(1, verdeCerca[1] + 1):
                             if math.sqrt(h **2 + i **2) <= verdeCerca[1]:
                                 if verdeCerca[0][0] + h < i[2].shape[1] and verdeCerca[0][1] + i < i[2].shape[0]: pixeles.append((verdeCerca[0][0] + h, verdeCerca[0][1] + i))
@@ -1606,7 +1627,7 @@ def cambiosDeDireccion(ultCentros, correccion):
             primeraVez = True
             preCentro = None
             ultimosCentrosGlobales.clear()
-        else: 
+        else:
             centroConDecimales = circulosCorreccion[-1][0]
             radioDeteccionPorCirculo = circulosCorreccion[-1][0][1]
             ((x, y), radio) = circulosCorreccion[-1][0]
@@ -1617,7 +1638,10 @@ def cambiosDeDireccion(ultCentros, correccion):
                 ultimosCentrosGlobales[i] = circulosCorreccion[contador]
                 contador += 1
         
-        #print("Ultimos Centros Globales", ultimosCentrosGlobales)
+        #for i in circulosCorreccion:
+        #    print("Circulos Correccion", i[0])
+        #for i in ultimosCentrosGlobales:
+        #    print("Ultimos Centros Globales", i[0])
 
         #if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro))
 
