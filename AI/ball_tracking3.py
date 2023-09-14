@@ -1535,7 +1535,10 @@ def cambiosDeDireccion(ultCentros, correccion):
         #print("Deteccion Color Ultimos Frames", list(deteccionColorUltimosFrames)[-7:])
         for i in ultCentros:
             verdeCerca = None
-            if i[1] == True: circulosCorreccion.append((i[0], None))
+            if i[1] == True:
+                if len(circulosCorreccion) != 0: preCentroCorreccion2 = circulosCorreccion[-1][0] 
+                else: preCentroCorreccion2 = i[4]
+                circulosCorreccion.append((i[0], True, i[2], i[3], preCentroCorreccion2))
             else:
                 if len(circulosCorreccion) == 0 and i[4] is not None: preCentroCorreccion = i[4]
                 elif len(circulosCorreccion) != 0: preCentroCorreccion = circulosCorreccion[-1][0]
@@ -1546,18 +1549,57 @@ def cambiosDeDireccion(ultCentros, correccion):
                     correccionCirculos, coseno, casi_color_preCentro = deteccionPorCirculos(preCentroCorreccion, i[2], 300, True, color_preCentro, 4)
                     if coseno > ultimosSimilitudesCoseno[contador]:
                         #print("AAAAAAAAAAAAAAAAAAA")
-                        circulosCorreccion.append((correccionCirculos, None))
+                        if len(circulosCorreccion) != 0: preCentroCorreccion2 = circulosCorreccion[-1][0] 
+                        else: preCentroCorreccion2 = i[4]
+                        circulosCorreccion.append((correccionCirculos, False, i[2], casi_color_preCentro, preCentroCorreccion2))
                         color_preCentro = casi_color_preCentro
                     else:
                         #print("BBBBBBBBBBBBBBBBBB", correccionCirculos)
-                        circulosCorreccion.append((i[0], None))
+                        if len(circulosCorreccion) != 0: preCentroCorreccion2 = circulosCorreccion[-1][0] 
+                        else: preCentroCorreccion2 = i[4]
+                        circulosCorreccion.append((i[0], False, i[2], i[3], preCentroCorreccion2))
                         color_preCentro = i[3]
                     #circulosCorreccion.append(deteccionPorCirculos(i[4], i[2], 300, True, i[3], 4))
-                else: circulosCorreccion.append((verdeCerca, None))
+                else:
+                    pixeles = []
+                    pixeles_colores = []
+
+                    if verdeCerca[0][0] < i[2].shape[1] and verdeCerca[0][1] < i[2].shape[0]: pixeles.append((verdeCerca[0][0], verdeCerca[0][1]))
+
+                    for i in range(1, verdeCerca[1] + 1):
+                        if verdeCerca[0][0] + i < i[2].shape[1] and verdeCerca[0][1] < i[2].shape[0]: pixeles.append((verdeCerca[0][0] + i, verdeCerca[0][1]))
+                        if verdeCerca[0][0] - i < i[2].shape[1] and verdeCerca[0][1] < i[2].shape[0]: pixeles.append((verdeCerca[0][0] - i, verdeCerca[0][1]))
+
+                    for i in range(1, verdeCerca[1] + 1):
+                        if verdeCerca[0][0] < i[2].shape[1] and verdeCerca[0][1] + i < i[2].shape[0]: pixeles.append((verdeCerca[0][0], verdeCerca[0][1] + i))
+                        if verdeCerca[0][0] < i[2].shape[1] and verdeCerca[0][1] - i < i[2].shape[0]: pixeles.append((verdeCerca[0][0], verdeCerca[0][1] - i))
+
+                    for i in range(1, verdeCerca[1] + 1):
+                        for h in range(1, verdeCerca[1] + 1):
+                            if math.sqrt(h **2 + i **2) <= verdeCerca[1]:
+                                if verdeCerca[0][0] + h < i[2].shape[1] and verdeCerca[0][1] + i < i[2].shape[0]: pixeles.append((verdeCerca[0][0] + h, verdeCerca[0][1] + i))
+                                if verdeCerca[0][0] - h < i[2].shape[1] and verdeCerca[0][1] + i < i[2].shape[0]: pixeles.append((verdeCerca[0][0] - h, verdeCerca[0][1] + i))
+                                if verdeCerca[0][0] + h < i[2].shape[1] and verdeCerca[0][1] - i < i[2].shape[0]: pixeles.append((verdeCerca[0][0] + h, verdeCerca[0][1] - i))
+                                if verdeCerca[0][0] - h < i[2].shape[1] and verdeCerca[0][1] - i < i[2].shape[0]: pixeles.append((verdeCerca[0][0] - h, verdeCerca[0][1] - i))
+                            else: break
+                
+                    for pixel in pixeles:
+                        color = i[2][pixel[1], pixel[0]]
+                        pixeles_colores.append(color)
+
+                    # Calcula el promedio de cada posición utilizando comprensiones de listas
+                    promedio_primer_valor = sum(sublista[0] for sublista in pixeles_colores) / len(pixeles_colores)
+                    promedio_segundo_valor = sum(sublista[1] for sublista in pixeles_colores) / len(pixeles_colores)
+                    promedio_tercer_valor = sum(sublista[2] for sublista in pixeles_colores) / len(pixeles_colores)
+
+                    color_preCentro = (int(promedio_primer_valor), int(promedio_segundo_valor), int(promedio_tercer_valor))
+                    if len(circulosCorreccion) != 0: preCentroCorreccion2 = circulosCorreccion[-1][0] 
+                    else: preCentroCorreccion2 = i[4]
+                    circulosCorreccion.append((verdeCerca, True, i[2], color_preCentro, preCentroCorreccion2))
             
             contador += 1
     
-        print("Circulos Correccion", circulosCorreccion)
+        #print("Circulos Correccion", circulosCorreccion)
         print("Cambios de Direccion Correccion", cambiosDeDireccion(circulosCorreccion, True))
     
         if cambiosDeDireccion(circulosCorreccion, True) >= 3:
@@ -1570,6 +1612,14 @@ def cambiosDeDireccion(ultCentros, correccion):
             ((x, y), radio) = circulosCorreccion[-1][0]
             preCentro = ((int(x), int(y)), int(radio))
             color_pre_centro = color_preCentro
+            contador = 0
+            for i in range(-7, 0):
+                ultimosCentrosGlobales[i] = circulosCorreccion[contador]
+                contador += 1
+        
+        #print("Ultimos Centros Globales", ultimosCentrosGlobales)
+
+        #if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro))
 
     print("Cambios de Dirección", cambios_de_direccion)
     return cambios_de_direccion
