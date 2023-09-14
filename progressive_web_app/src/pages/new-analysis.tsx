@@ -8,18 +8,30 @@ import NewAnalysisSteps from "~/components/navigation/NewAnalysisSteps";
 import Loading from "~/components/new-analysis/Loading";
 import Error from "~/components/new-analysis/Error";
 import GoproWifi from "~/components/new-analysis/GoproWifi";
+import AlignCorners from "~/components/new-analysis/AlignCorners";
+import Recording from "~/components/new-analysis/Recording";
 
 const NewAnalysis: NextPage = () => {
   const [wifi, setWifi] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
+  const [alignedCorners, setAlignedCorners] = useState<boolean>(false);
 
   const password = "asn2djk12snd3sk";
-  const name = "qZXA-321"
+  const name = "qZXA-321";
 
   return (
     <main className="min-h-screen bg-background">
-      {wifi ? <GoproWifi firstOnClick={() => { setWifi(false); setLoading(true) }} name={name} password={password} /> : loading ? (
+      {wifi ? (
+        <GoproWifi
+          firstOnClick={() => {
+            setWifi(false);
+            setLoading(true);
+          }}
+          name={name}
+          password={password}
+        />
+      ) : loading ? (
         <Loading
           firstOnClick={() => {
             setLoading(false);
@@ -31,7 +43,14 @@ const NewAnalysis: NextPage = () => {
           }}
         />
       ) : success ? (
-        <NewAnalysisSteps />
+        alignedCorners ? (
+          <Recording />
+        ) : (
+          <AlignCorners
+            image="/img/test.png"
+            firstOnClick={() => setAlignedCorners(true)}
+          />
+        )
       ) : (
         <Error
           firstOnClick={() => {

@@ -23,7 +23,7 @@ const Loading: React.FC<LoadingProps> = ({ firstOnClick, secondOnClick }) => {
         />
       </svg>
       <p className="font-medium text-foreground-important">
-        Establishing and checking the connection with the cameras...
+        Checking the connection with the cameras...
       </p>
       <div className="flex w-full flex-col items-center justify-center gap-4 sm:flex-row">
         <Button label="Success" style="primary" onClick={firstOnClick} />

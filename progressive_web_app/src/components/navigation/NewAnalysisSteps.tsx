@@ -1,7 +1,6 @@
 import { useState } from "react";
 import AlignCorners from "../new-analysis/AlignCorners";
 import Topbar from "./Topbar";
-import Button from "../Button";
 import type { Step } from "./Topbar";
 import Recording from "../new-analysis/Recording";
 
