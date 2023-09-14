@@ -6,7 +6,7 @@ vs = cv2.VideoCapture("../InkedInkedTennisBrothersVideo1080p.mp4")
 
 fps = 30
 
-output_path = 'video_zoom.mp4'
+output_path = 'video_zoom2.mp4'
 frame_width = int(vs.get(3))
 frame_height = int(vs.get(4))
 out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'XVID'), fps, (frame_width, frame_height))
@@ -20,11 +20,37 @@ zoom_duration = 50  # Cambia este valor a la duración de la animación de zoom 
 
 #lineal = funcion_lineal(frame_width / 2, frame_height / 2, zoom_coords[0], zoom_coords[1])
 
-dif_x = zoom_coords[0] - frame_width / 2
-dif_y = zoom_coords[1] - frame_height / 2
+if zoom_coords[0] < frame_width * 1/4 or zoom_coords[0] > frame_width * 3/4 or zoom_coords[1] < frame_height * 1/4 or zoom_coords[1] > frame_height * 3/4:
+    lineaPrincipal = ((frame_width / 2, frame_height / 2), (zoom_coords))
+    lineas = [
+    ((frame_width * 1/4, frame_height * 1/4), (frame_width * 3/4, frame_height * 1/4)), 
+    ((frame_width * 1/4, frame_height * 1/4), (frame_width * 1/4, frame_height * 3/4)),
+    ((frame_width * 3/4, frame_height * 1/4), (frame_width * 3/4, frame_height * 3/4)),
+    ((frame_width * 1/4, frame_height * 3/4), (frame_width * 3/4, frame_height * 3/4))]
 
-un_zoom_x = dif_x / zoom_duration
-un_zoom_y = dif_y / zoom_duration
+    for i in lineas:
+        i = np.array(i, dtype=np.float32)
+        lineaPrincipal = np.array(lineaPrincipal, dtype=np.float32)
+
+        _, rvec, tvec, _ = cv2.solvePnPRansac(np.zeros((1, 3)), i, np.zeros((1, 2)), lineaPrincipal)
+        if rvec is not None and tvec is not None:
+            x, y, _ = tvec
+            print(f'El punto de intersección es: ({x}, {y})')
+        else:
+            print('Las líneas no se intersectan en el espacio bidimensional.')
+    
+    dif_x = x - frame_width / 2
+    dif_y = y - frame_height / 2
+
+    un_zoom_x = dif_x / zoom_duration
+    un_zoom_y = dif_y / zoom_duration
+
+else:
+    dif_x = zoom_coords[0] - frame_width / 2
+    dif_y = zoom_coords[1] - frame_height / 2
+
+    un_zoom_x = dif_x / zoom_duration
+    un_zoom_y = dif_y / zoom_duration
 
 todos_puntos = []
 todos_puntos_con_proporcion = []
