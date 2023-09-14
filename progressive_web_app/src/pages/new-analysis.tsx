@@ -1,25 +1,56 @@
 import { type NextPage } from "next";
 import { getSession } from "next-auth/react";
-import type { GetServerSidePropsContext } from "next/types";
+import type {
+  GetServerSidePropsContext,
+  InferGetServerSidePropsType,
+} from "next/types";
 import { useState } from "react";
 import Button from "~/components/Button";
 import Link from "next/link";
-import NewAnalysisSteps from "~/components/navigation/NewAnalysisSteps";
+import NewAnalysisSteps, {
+  getCourtPhoto,
+} from "~/components/navigation/NewAnalysisSteps";
 import Loading from "~/components/new-analysis/Loading";
 import Error from "~/components/new-analysis/Error";
 import GoproWifi from "~/components/new-analysis/GoproWifi";
+import { type TWificredentials } from "~/server/api/routers/videos";
+import axios from "axios";
+import { getBattery } from "~/components/new-analysis/Recording";
 
-const NewAnalysis: NextPage = () => {
+async function startRecording() {
+  try {
+    const record: TWificredentials = await axios.get(
+      "http://127.0.0.1:8000/enable_Wifi",
+      {
+        responseType: "json",
+      }
+    );
+
+    return record.data;
+  } catch (err: unknown) {
+    console.log(err);
+  }
+}
+
+const NewAnalysis = (
+  props: InferGetServerSidePropsType<typeof getServerSideProps>
+) => {
   const [wifi, setWifi] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
 
-  const password = "asn2djk12snd3sk";
-  const name = "qZXA-321"
-
   return (
     <main className="min-h-screen bg-background">
-      {wifi ? <GoproWifi firstOnClick={() => { setWifi(false); setLoading(true) }} name={name} password={password} /> : loading ? (
+      {wifi ? (
+        <GoproWifi
+          firstOnClick={() => {
+            setWifi(false);
+            setLoading(true);
+          }}
+          networkName={props.name}
+          password={props.password}
+        />
+      ) : loading ? (
         <Loading
           firstOnClick={() => {
             setLoading(false);
@@ -31,7 +62,10 @@ const NewAnalysis: NextPage = () => {
           }}
         />
       ) : success ? (
-        <NewAnalysisSteps />
+        <NewAnalysisSteps
+          image={props.image}
+          initialBattery={props.initialBattery}
+        />
       ) : (
         <Error
           firstOnClick={() => {
@@ -48,6 +82,10 @@ export default NewAnalysis;
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const session = await getSession(ctx);
+  const wifiCredentials = await startRecording();
+  const courtPhoto = wifiCredentials && (await getCourtPhoto());
+  const initialBattery = wifiCredentials && (await getBattery());
+
   console.log(session);
 
   if (!session) {
@@ -58,9 +96,14 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       },
     };
   }
+
   return {
     props: {
       session,
+      name: wifiCredentials?.networkName,
+      password: wifiCredentials?.password,
+      image: courtPhoto?.file_url,
+      initialBattery,
     },
   };
 };

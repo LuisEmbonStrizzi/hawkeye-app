@@ -3,45 +3,47 @@ import CamBattery from "./CamBattery";
 import Counter from "./Counter";
 import { api } from "~/utils/api";
 import axios from "axios";
-import {
-  type TRecordResponse,
-  type TrecordResponse,
-  type TgetBattery
-} from "~/server/api/routers/videos";
+import { type TgetBattery } from "~/server/api/routers/videos";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
 type RecordingProps = {
+  startRecording: () => void;
   handleStep: () => void;
   step: number;
-  initialBattery: number;
+  recordData: string | null;
+  initialBattery?: number;
 };
 
-const getBattery = async () => {
+export const getBattery = async () => {
   try {
     const getBattery: TgetBattery = await axios.get(
       "http://localhost:8000/getBattery",
       {
         responseType: "json",
       }
-    )
-    console.log(getBattery)
-    return getBattery.data.battery
+    );
+    console.log(getBattery);
+    return getBattery.data.battery;
   } catch (error) {
-    console.error('Error al obtener los datos:', error);
+    console.error("Error al obtener los datos:", error);
   }
 };
 
-const Recording: React.FC<RecordingProps> = ({ handleStep, step, initialBattery }) => {
-  const [recordData, setRecordData] = useState<string | null>(null);
+const Recording: React.FC<RecordingProps> = ({
+  handleStep,
+  step,
+  recordData,
+  startRecording,
+  initialBattery,
+}) => {
   const [battery, setBattery] = useState<number | undefined>(initialBattery);
 
-  
-
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     const intervalId = setInterval(async () => {
       const updatedBattery = await getBattery();
-      console.log(updatedBattery)
+      console.log(updatedBattery);
       if (updatedBattery !== null) {
         setBattery(updatedBattery);
       }
@@ -50,28 +52,6 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step, initialBattery 
     return () => clearInterval(intervalId);
   }, []);
 
-  
-
-  async function startRecording() {
-    try {
-      const record: TrecordResponse = await axios.get(
-        "http://127.0.0.1:8000/record",
-        {
-          responseType: "json",
-        }
-      );
-      if (record.data.message === "RecordStarted") {
-        // Aquí puedes manipular los datos recibidos del backend
-        setRecordData(record.data.message);
-      }
-
-      console.log(record.data.message)
-
-      return;
-    } catch (err: unknown) {
-      console.log(err);
-    }
-  }
   const uploadVideo = api.videos.stopRecording.useMutation();
   // {
   //   onSuccess: () => {
@@ -82,14 +62,12 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step, initialBattery 
   // api.videos.getVideo.useQuery();
   function callHawkeye() {
     try {
-      uploadVideo.mutate()
+      uploadVideo.mutate();
     } catch (err: unknown) {
       console.log(err);
     }
   }
 
-
- 
   return (
     <>
       {step === 1 ? (
@@ -128,11 +106,12 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step, initialBattery 
                 <Image src={video.videoUrl!} alt="video" height={800} width={800} />
               </div>
             ))} */}
-            {
-              recordData && (
-                <h1 className="text-3xl font-semibold text-foreground-important"> {recordData} </h1>
-              )
-            }
+            {recordData && (
+              <h1 className="text-3xl font-semibold text-foreground-important">
+                {" "}
+                {recordData}{" "}
+              </h1>
+            )}
             <hr className="border-background-border" />
             <section className="flex flex-col gap-4 p-8">
               <Button
@@ -158,7 +137,7 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step, initialBattery 
               />
               <Button
                 style="secondary"
-                label="Finish recording"
+                label="Start Recording"
                 icon={
                   <svg
                     width="20"
@@ -174,11 +153,12 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step, initialBattery 
                   </svg>
                 }
                 iconPosition="left"
+                onClick={startRecording}
               />
             </section>
             <hr className="border-background-border" />
             <section className="flex flex-col items-center justify-center gap-4 p-8">
-              <CamBattery battery={battery} />
+              <CamBattery battery={initialBattery} />
             </section>
           </aside>
         </div>
@@ -187,15 +167,7 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step, initialBattery 
   );
 };
 export default Recording;
-export const getServerSideProps = async () => {
-  const initialBattery = await getBattery();
-  console.log(initialBattery)
-  return {
-    props: {
-      initialBattery,
-    },
-  };
-};
+
 /*
 
         step === 1 ? (

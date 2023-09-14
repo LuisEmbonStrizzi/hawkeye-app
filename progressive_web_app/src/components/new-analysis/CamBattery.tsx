@@ -8,12 +8,13 @@ type CamBatteryProps = {
 const CamBattery: React.FC<CamBatteryProps> = ({ battery }) => {
   const radius = 100;
   const circumference = 2 * Math.PI * radius;
-  const percentage = (battery && (battery / 100 * circumference))
+  const percentage = battery && (battery / 100) * circumference;
 
   const circleAnimation = useAnimation();
 
   useEffect(() => {
     void circleAnimation.start({
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       strokeDasharray: `${percentage}px ${circumference}px`,
       strokeDashoffset: 0,
     });
@@ -39,7 +40,7 @@ const CamBattery: React.FC<CamBatteryProps> = ({ battery }) => {
         strokeWidth={3}
         className="stroke-primary"
         strokeDasharray={`${circumference}px ${circumference}px`}
-        strokeDashoffset={percentage!}
+        strokeDashoffset={percentage}
         initial={{ strokeDashoffset: circumference }}
         animate={circleAnimation}
         strokeLinecap={"round"}

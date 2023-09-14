@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import clsx from "clsx";
 
 type AlignCornersProps = {
-  image: string;
+  image?: string;
 };
 
 const AlignCorners: React.FC<AlignCornersProps> = ({ image }) => {
@@ -76,14 +76,14 @@ const AlignCorners: React.FC<AlignCornersProps> = ({ image }) => {
         {magnifyingGlassVisible && (
           <motion.div
             animate={
-              (vertices[selectedIndex]?.x > imgWidth/2) &
-              (vertices[selectedIndex]?.y > imgHeight/2)
+              (vertices[selectedIndex]?.x > imgWidth / 2) &
+              (vertices[selectedIndex]?.y > imgHeight / 2)
                 ? "rightBottom"
-                : (vertices[selectedIndex]?.x > imgWidth/2) &
-                  (vertices[selectedIndex]?.y < imgHeight/2)
+                : (vertices[selectedIndex]?.x > imgWidth / 2) &
+                  (vertices[selectedIndex]?.y < imgHeight / 2)
                 ? "rightTop"
-                : (vertices[selectedIndex]?.x < imgWidth/2) &
-                  (vertices[selectedIndex]?.y > imgHeight/2)
+                : (vertices[selectedIndex]?.x < imgWidth / 2) &
+                  (vertices[selectedIndex]?.y > imgHeight / 2)
                 ? "leftBottom"
                 : "leftTop"
             }

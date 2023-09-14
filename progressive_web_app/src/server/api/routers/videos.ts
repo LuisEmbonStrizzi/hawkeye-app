@@ -5,46 +5,29 @@ import { v1 as uuidv1 } from "uuid";
 import { env } from "~/env.mjs";
 import axios from "axios";
 import { z } from "zod";
-type cameraData = {
+export type cameraData = {
   data: {
-    message: string
-    file_url: string
-
+    message: string;
+    file_url: string;
   };
 };
 export type TgetBattery = {
   data: {
-    message: string
-    battery: number
-
+    message: string;
+    battery: number;
   };
 };
 export type TrecordResponse = {
   data: {
-    message: string
+    message: string;
   };
 };
-
-const Battery = z.object({
-  message: z.string(),
-  battery: z.number(),
-});
-
-type TBattery = z.infer<typeof Battery>;
-
-const CourtPhotoResponse = z.object({
-  message: z.string(),
-  file_url: z.string(),
-});
-
-type TCourtPhotoResponse = z.infer<typeof CourtPhotoResponse>;
-
-const Wificredentials = z.object({
-  networkName: z.string(),
-  password: z.string(),
-});
-
-export type TWificredentials = z.infer<typeof Wificredentials>;
+export type TWificredentials = {
+  data: {
+    networkName: string;
+    password: string;
+  };
+};
 
 const RecordResponse = z.object({
   message: z.string(),
@@ -54,59 +37,7 @@ const RecordResponse = z.object({
 export type TRecordResponse = Omit<z.infer<typeof RecordResponse>, "file_url">;
 export type TStopRecording = z.infer<typeof RecordResponse>;
 
-
-
-
 export const videoRouter = createTRPCRouter({
-  CourtPhoto: protectedProcedure.mutation(async ({ ctx }) => {
-    try {
-      const courtPhoto: TCourtPhotoResponse = await axios.get(
-        "http://127.0.0.1:8080/courtPhoto",
-        {
-          responseType: "json",
-        }
-      );
-
-      const result = await ctx.prisma.videos.create({
-        data: {
-          thumbnailUrl: courtPhoto.file_url,
-          userId: ctx.session.user.id,
-        },
-      });
-
-      return result;
-    } catch (err: unknown) {
-      console.log(err);
-    }
-  }),
-  getCourtPhoto: protectedProcedure.query(async ({ ctx }) => {
-    try {
-      const result = await ctx.prisma.videos.findFirst({
-        where: {
-          userId: ctx.session.user.id,
-        },
-      });
-      console.log(result);
-      return result;
-    } catch (err: unknown) {
-      console.log(err);
-    }
-  }),
-
-  record: protectedProcedure.mutation(async ({}) => {
-    try {
-      const record: TRecordResponse = await axios.get(
-        "http://127.0.0.1:8000/record",
-        {
-          responseType: "json",
-        }
-      );
-      return record;
-    } catch (err: unknown) {
-      console.log(err);
-    }
-  }),
-
   stopRecording: protectedProcedure.mutation(async ({ ctx }) => {
     try {
       const cameraData: cameraData = await axios.get(
@@ -114,7 +45,7 @@ export const videoRouter = createTRPCRouter({
         { responseType: "json" }
       );
 
-      console.log(cameraData)
+      console.log(cameraData);
 
       //Conectarse con el servicio
       if (!env.AZURE_STORAGE_CONNECTION_STRING) {
@@ -180,19 +111,5 @@ export const videoRouter = createTRPCRouter({
     });
     console.log(result);
     return result;
-  }),
-
-  getBattery: protectedProcedure.query(async ({}) => {
-    try {
-      const battery: TBattery = await axios.get(
-        "http://127.0.0.1:8080/getBattery",
-        {
-          responseType: "json",
-        }
-      );
-      return battery;
-    } catch (err: unknown) {
-      console.log(err);
-    }
   }),
 });
