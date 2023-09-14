@@ -7,14 +7,19 @@ import Link from "next/link";
 import NewAnalysisSteps from "~/components/navigation/NewAnalysisSteps";
 import Loading from "~/components/new-analysis/Loading";
 import Error from "~/components/new-analysis/Error";
+import GoproWifi from "~/components/new-analysis/GoproWifi";
 
 const NewAnalysis: NextPage = () => {
-  const [loading, setLoading] = useState<boolean>(true);
+  const [wifi, setWifi] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
+
+  const password = "asn2djk12snd3sk";
+  const name = "qZXA-321"
 
   return (
     <main className="min-h-screen bg-background">
-      {loading ? (
+      {wifi ? <GoproWifi firstOnClick={() => { setWifi(false); setLoading(true) }} name={name} password={password} /> : loading ? (
         <Loading
           firstOnClick={() => {
             setLoading(false);
