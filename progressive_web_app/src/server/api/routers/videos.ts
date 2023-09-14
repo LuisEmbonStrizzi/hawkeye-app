@@ -7,7 +7,21 @@ import axios from "axios";
 import { z } from "zod";
 type cameraData = {
   data: {
-    video: string;
+    message: string
+    file_url: string
+
+  };
+};
+export type TgetBattery = {
+  data: {
+    message: string
+    battery: number
+
+  };
+};
+export type TrecordResponse = {
+  data: {
+    message: string
   };
 };
 
@@ -26,11 +40,11 @@ const CourtPhotoResponse = z.object({
 type TCourtPhotoResponse = z.infer<typeof CourtPhotoResponse>;
 
 const Wificredentials = z.object({
-  netname: z.string(),
+  networkName: z.string(),
   password: z.string(),
 });
 
-type TWificredentials = z.infer<typeof Wificredentials>;
+export type TWificredentials = z.infer<typeof Wificredentials>;
 
 const RecordResponse = z.object({
   message: z.string(),
@@ -40,35 +54,10 @@ const RecordResponse = z.object({
 export type TRecordResponse = Omit<z.infer<typeof RecordResponse>, "file_url">;
 export type TStopRecording = z.infer<typeof RecordResponse>;
 
+
+
+
 export const videoRouter = createTRPCRouter({
-  enableWifi: protectedProcedure.mutation(async ({ ctx }) => {
-    const Wificredentials: TWificredentials = await axios.get(
-      "http://127.0.0.1:8080/enable_Wifi",
-      { responseType: "json" }
-    );
-    const result = await ctx.prisma.videos.create({
-      data: {
-        userId: ctx.session?.user.id,
-        ssid: Wificredentials.netname,
-        Wifipassword: Wificredentials.password,
-      },
-    });
-    console.log(result);
-    return result;
-  }),
-  getWifiCredentials: protectedProcedure.query(async ({ ctx }) => {
-    try {
-      const result = await ctx.prisma.videos.findFirst({
-        where: {
-          userId: ctx.session.user.id,
-        },
-      });
-      console.log(result);
-      return result;
-    } catch (err: unknown) {
-      console.log(err);
-    }
-  }),
   CourtPhoto: protectedProcedure.mutation(async ({ ctx }) => {
     try {
       const courtPhoto: TCourtPhotoResponse = await axios.get(
@@ -121,9 +110,11 @@ export const videoRouter = createTRPCRouter({
   stopRecording: protectedProcedure.mutation(async ({ ctx }) => {
     try {
       const cameraData: cameraData = await axios.get(
-        "http://127.0.0.1:8080/stopRecording",
+        "http://127.0.0.1:8000/stopRecording",
         { responseType: "json" }
       );
+
+      console.log(cameraData)
 
       //Conectarse con el servicio
       if (!env.AZURE_STORAGE_CONNECTION_STRING) {
@@ -146,7 +137,7 @@ export const videoRouter = createTRPCRouter({
       );
 
       //Prueba
-      const response = await axios.get(cameraData.data.video, {
+      const response = await axios.get(cameraData.data.file_url, {
         responseType: "stream",
       });
 
@@ -182,7 +173,7 @@ export const videoRouter = createTRPCRouter({
   }),
 
   getVideo: protectedProcedure.query(async ({ ctx }) => {
-    const result = await ctx.prisma.videos.findFirst({
+    const result = await ctx.prisma.videos.findMany({
       where: {
         userId: ctx.session.user.id,
       },

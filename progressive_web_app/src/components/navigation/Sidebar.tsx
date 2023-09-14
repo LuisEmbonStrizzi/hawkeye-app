@@ -3,6 +3,7 @@ import Profile from "./Profile";
 import Button from "../Button";
 import Link from "next/link";
 import clsx from "clsx";
+import axios from "axios";
 
 type ActiveItem = "analysis" | "favorites" | "downloads";
 type SidebarItemProps = {
@@ -10,6 +11,7 @@ type SidebarItemProps = {
 };
 
 const Sidebar: React.FC<SidebarItemProps> = ({ activeItem }) => {
+  
   return (
     <div className="fixed left-0 top-0 flex h-full w-72 flex-col justify-between border-r border-background-border bg-background p-4">
       <nav className="flex flex-col">

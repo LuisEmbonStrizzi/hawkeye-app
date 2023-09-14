@@ -5,64 +5,91 @@ import { api } from "~/utils/api";
 import axios from "axios";
 import {
   type TRecordResponse,
-  type TStopRecording,
+  type TrecordResponse,
+  type TgetBattery
 } from "~/server/api/routers/videos";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 
 type RecordingProps = {
   handleStep: () => void;
   step: number;
+  initialBattery: number;
 };
 
-type CameraData = {
-  message: string;
-  file_url: string;
+const getBattery = async () => {
+  try {
+    const getBattery: TgetBattery = await axios.get(
+      "http://localhost:8000/getBattery",
+      {
+        responseType: "json",
+      }
+    )
+    console.log(getBattery)
+    return getBattery.data.battery
+  } catch (error) {
+    console.error('Error al obtener los datos:', error);
+  }
 };
 
-const Recording: React.FC<RecordingProps> = ({ handleStep, step }) => {
-  const [recordData, setRecordData] = useState<string | null>();
-  const [cameraInfo, setCameraInfo] = useState<CameraData | null>(null);
+const Recording: React.FC<RecordingProps> = ({ handleStep, step, initialBattery }) => {
+  const [recordData, setRecordData] = useState<string | null>(null);
+  const [battery, setBattery] = useState<number | undefined>(initialBattery);
+
+  
+
+  useEffect(() => {
+    const intervalId = setInterval(async () => {
+      const updatedBattery = await getBattery();
+      console.log(updatedBattery)
+      if (updatedBattery !== null) {
+        setBattery(updatedBattery);
+      }
+    }, 30000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  
 
   async function startRecording() {
     try {
-      handleStep;
-      const record: TRecordResponse = await axios.get(
+      const record: TrecordResponse = await axios.get(
         "http://127.0.0.1:8000/record",
         {
           responseType: "json",
         }
       );
-      if (record.message === "RecordStarted") {
+      if (record.data.message === "RecordStarted") {
         // Aquí puedes manipular los datos recibidos del backend
-        setRecordData(record.message);
+        setRecordData(record.data.message);
       }
+
+      console.log(record.data.message)
 
       return;
     } catch (err: unknown) {
       console.log(err);
     }
   }
-  async function callHawkeye() {
+  const uploadVideo = api.videos.stopRecording.useMutation();
+  // {
+  //   onSuccess: () => {
+  //     void refetchVideos();
+  //   },
+  // }
+  // const { data: videos, refetch: refetchVideos } =
+  // api.videos.getVideo.useQuery();
+  function callHawkeye() {
     try {
-      const stopRecord: TStopRecording = await axios.get(
-        "http://127.0.0.1:8000/stopRecording",
-        {
-          responseType: "json",
-        }
-      );
-      if (stopRecord.message === "CameraConnected") {
-        setCameraInfo({
-          message: stopRecord.message,
-          file_url: stopRecord.file_url,
-        });
-      }
-
-      return;
+      uploadVideo.mutate()
     } catch (err: unknown) {
       console.log(err);
     }
   }
+
+
+ 
   return (
     <>
       {step === 1 ? (
@@ -78,7 +105,7 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step }) => {
               label="Start recording"
               style="primary"
               // eslint-disable-next-line @typescript-eslint/no-misused-promises
-              onClick={startRecording}
+              onClick={handleStep}
             />
           </div>
         </section>
@@ -96,16 +123,16 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step }) => {
             <div className="flex flex-grow flex-col items-center justify-center px-8 py-16">
               <Counter />
             </div>
-            {cameraInfo && (
-              <div>
-                <Image
-                  src={cameraInfo.file_url}
-                  alt=""
-                  width={50}
-                  height={50}
-                />
+            {/* {videos?.map((video) => (
+              <div key={video.id}>
+                <Image src={video.videoUrl!} alt="video" height={800} width={800} />
               </div>
-            )}
+            ))} */}
+            {
+              recordData && (
+                <h1 className="text-3xl font-semibold text-foreground-important"> {recordData} </h1>
+              )
+            }
             <hr className="border-background-border" />
             <section className="flex flex-col gap-4 p-8">
               <Button
@@ -151,7 +178,7 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step }) => {
             </section>
             <hr className="border-background-border" />
             <section className="flex flex-col items-center justify-center gap-4 p-8">
-              <CamBattery battery={getBattery.data?.battery} />
+              <CamBattery battery={battery} />
             </section>
           </aside>
         </div>
@@ -160,6 +187,15 @@ const Recording: React.FC<RecordingProps> = ({ handleStep, step }) => {
   );
 };
 export default Recording;
+export const getServerSideProps = async () => {
+  const initialBattery = await getBattery();
+  console.log(initialBattery)
+  return {
+    props: {
+      initialBattery,
+    },
+  };
+};
 /*
 
         step === 1 ? (

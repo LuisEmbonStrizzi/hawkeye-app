@@ -14,9 +14,21 @@ from tutorial_modules.tutorial_6_send_wifi_commands.wifi_command_get_state impor
 from azure.storage.blob import BlobServiceClient
 import os
 from decouple import config
+from fastapi.middleware.cors import CORSMiddleware
+
 from bleak import BleakClient
 
 app = FastAPI()
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 azure_connection_string = config('AZURE_CONNECTION_STRING')
 container_name = config('AZURE_CONTAINER_NAME')
@@ -54,7 +66,7 @@ async def enableWifi():
 
         print(ble_client.ble_client.services)
 
-        return {"Red": ssid, "Contraseña": password}
+        return {"networkName": ssid, "password": password}
 
     except Exception as e:
         logger.error(e)
@@ -171,7 +183,7 @@ async def courtPhoto():
         # Obtener la URL del blob
         blob_url = blob_client.url
 
-        return {"message": "Camera connected", "file_url": blob_url}
+        return {"message": "PhotoTaken", "file_url": blob_url}
 
     except Exception as e:  # pylint: disable=broad-exception-caught
         logger.error(e)
@@ -361,7 +373,7 @@ async def getBattery():
         response = requests.get(url, timeout=10)
         data = response.json()
 
-        return {"message": "Battery here :)", "battery": data["status"]["70"]}
+        return {"message": "BatteryHere", "battery": data["status"]["70"]}
 
     except Exception as e:
         logger.error(e)

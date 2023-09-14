@@ -2,13 +2,13 @@ import { motion, useAnimation } from "framer-motion";
 import { useEffect } from "react";
 
 type CamBatteryProps = {
-  battery: number;
+  battery?: number;
 };
 
 const CamBattery: React.FC<CamBatteryProps> = ({ battery }) => {
   const radius = 100;
   const circumference = 2 * Math.PI * radius;
-  const percentage = (battery / 100) * circumference;
+  const percentage = (battery && (battery / 100 * circumference))
 
   const circleAnimation = useAnimation();
 
@@ -39,7 +39,7 @@ const CamBattery: React.FC<CamBatteryProps> = ({ battery }) => {
         strokeWidth={3}
         className="stroke-primary"
         strokeDasharray={`${circumference}px ${circumference}px`}
-        strokeDashoffset={percentage}
+        strokeDashoffset={percentage!}
         initial={{ strokeDashoffset: circumference }}
         animate={circleAnimation}
         strokeLinecap={"round"}
