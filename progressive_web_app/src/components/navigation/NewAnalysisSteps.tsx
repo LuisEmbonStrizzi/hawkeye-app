@@ -1,42 +1,73 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AlignCorners from "../new-analysis/AlignCorners";
 import Topbar from "./Topbar";
 import type { Step } from "./Topbar";
-import Recording, { getBattery } from "../new-analysis/Recording";
+import Recording from "../new-analysis/Recording";
 import {
   type TrecordResponse,
   type cameraData,
 } from "~/server/api/routers/videos";
 import axios from "axios";
 import { type InferGetServerSidePropsType } from "next/types";
+import { type TgetBattery } from "~/server/api/routers/videos";
 
-export async function getCourtPhoto() {
-  try {
-    const record: cameraData = await axios.get(
-      "http://127.0.0.1:8000/courtPhoto",
-      {
-        responseType: "json",
-      }
-    );
 
-    return record.data;
-  } catch (err: unknown) {
-    console.log(err);
-  }
+
+
+type courtData = {
+  message: string;
+  file_url: string
 }
 
-type NewAnalysisStepsProps = {
-  image?: string;
-  initialBattery?: number;
-};
 
-const NewAnalysisSteps: React.FC<NewAnalysisStepsProps> = ({
-  image,
-  initialBattery,
+
+
+const NewAnalysisSteps: React.FC = ({
 }) => {
   const [step, setStep] = useState<number>(0);
-  const [recordData, setRecordData] = useState<string | null>(null);
+  const [courtData, setCourtData] = useState<courtData|null>(null); // Define un estado para almacenar los datos
+  const [battery, setBattery] = useState<number | undefined>(undefined);
+  async function getBattery() {
+    try {
+      const getBattery: TgetBattery = await axios.get(
+        "http://localhost:8000/getBattery",
+        {
+          responseType: "json",
+        }
+      );
+      console.log(getBattery);
+      setBattery(getBattery.data.battery)
+      return getBattery.data.battery;
+    } catch (error) {
+      console.error("Error al obtener los datos:", error);
+    }
+  };
 
+  useEffect(() => {
+    
+    
+    // Dentro de useEffect, puedes hacer una solicitud para obtener los datos cuando el componente se monte
+    async function getCourtPhoto() {
+      try {
+        const record: cameraData = await axios.get(
+          "http://127.0.0.1:8000/courtPhoto",
+          {
+            responseType: "json",
+          }
+        );
+        setCourtData(record.data)
+        return record.data;
+      } catch (err: unknown) {
+        console.log(err);
+      }
+    }
+  
+    
+    
+    getBattery()
+    getCourtPhoto();
+  }, [])
+  
   const handleStep = (stepState: Step) => {
     if (stepState === "more") {
       setStep(step + 1);
@@ -45,52 +76,23 @@ const NewAnalysisSteps: React.FC<NewAnalysisStepsProps> = ({
     }
   };
 
-  async function startRecording() {
-    try {
-      const record: TrecordResponse = await axios.get(
-        "http://127.0.0.1:8000/record",
-        {
-          responseType: "json",
-        }
-      );
-      if (record.data.message === "RecordStarted") {
-        // Aquí puedes manipular los datos recibidos del backend
-        setRecordData(record.data.message);
-      }
-
-      console.log(record.data.message);
-    } catch (err: unknown) {
-      console.log(err);
-    }
-  }
+  
 
   return (
     <>
       <Topbar step={step} handleStep={handleStep} />
       {step === 0 ? (
-        <AlignCorners image={image} />
+        <AlignCorners image={courtData?.file_url} />
       ) : (
         <Recording
-          handleStep={() => handleStep("more")}
-          step={step}
-          startRecording={() => startRecording}
-          recordData={recordData}
-          initialBattery={initialBattery}
-        />
+            handleStep={() => handleStep("more")}
+            step={step}
+            initialBattery={battery}
+            getBattery={getBattery}
+            />
       )}
     </>
   );
 };
 export default NewAnalysisSteps;
 
-// export const getServerSideProps = async () => {
-//   const courtPhoto = await getCourtPhoto();
-//   const initialBattery = await getBattery();
-//   console.log(courtPhoto);
-//   return {
-//     props: {
-//       image: courtPhoto?.file_url,
-//       initialBattery,
-//     },
-//   };
-// };

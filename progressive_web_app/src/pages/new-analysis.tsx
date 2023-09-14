@@ -4,40 +4,57 @@ import type {
   GetServerSidePropsContext,
   InferGetServerSidePropsType,
 } from "next/types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "~/components/Button";
 import Link from "next/link";
-import NewAnalysisSteps, {
-  getCourtPhoto,
-} from "~/components/navigation/NewAnalysisSteps";
+import NewAnalysisSteps from "~/components/navigation/NewAnalysisSteps";
 import Loading from "~/components/new-analysis/Loading";
 import Error from "~/components/new-analysis/Error";
 import GoproWifi from "~/components/new-analysis/GoproWifi";
-import { type TWificredentials } from "~/server/api/routers/videos";
+import { type TWificredentials, TgetBattery } from "~/server/api/routers/videos";
 import axios from "axios";
 import { getBattery } from "~/components/new-analysis/Recording";
 
-async function startRecording() {
-  try {
-    const record: TWificredentials = await axios.get(
-      "http://127.0.0.1:8000/enable_Wifi",
-      {
-        responseType: "json",
-      }
-    );
-
-    return record.data;
-  } catch (err: unknown) {
-    console.log(err);
-  }
+type APcredentials = {
+  networkName: string;
+  password: string
 }
 
-const NewAnalysis = (
-  props: InferGetServerSidePropsType<typeof getServerSideProps>
-) => {
+const NewAnalysis = () => {
   const [wifi, setWifi] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
+  const [initialBattery, setInitialBattery] = useState<number | undefined>(undefined);
+  const [wifiCredentials, setWifiCredentials] = useState<APcredentials | null>(null);
+  const [hasFetchedData, setHasFetchedData] = useState(false);
+
+
+
+  
+  async function getWifiCredentials() {
+    try {
+
+      if(!hasFetchedData) {
+        const record: TWificredentials = await axios.get(
+          "http://127.0.0.1:8000/enable_Wifi",
+          {
+            responseType: "json",
+          }
+        );
+
+        console.log("holaaaaaaaaaaa")
+        console.log(record)
+        setWifiCredentials(record.data)
+        setHasFetchedData(true)
+      }
+      
+
+    } catch (err: unknown) {
+      console.log(err);
+    }
+  }
+
+    getWifiCredentials()
 
   return (
     <main className="min-h-screen bg-background">
@@ -47,8 +64,8 @@ const NewAnalysis = (
             setWifi(false);
             setLoading(true);
           }}
-          networkName={props.name}
-          password={props.password}
+          networkName={wifiCredentials?.networkName}
+          password={wifiCredentials?.password}
         />
       ) : loading ? (
         <Loading
@@ -62,10 +79,7 @@ const NewAnalysis = (
           }}
         />
       ) : success ? (
-        <NewAnalysisSteps
-          image={props.image}
-          initialBattery={props.initialBattery}
-        />
+        <NewAnalysisSteps />
       ) : (
         <Error
           firstOnClick={() => {
@@ -79,34 +93,6 @@ const NewAnalysis = (
 };
 
 export default NewAnalysis;
-
-export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  const session = await getSession(ctx);
-  const wifiCredentials = await startRecording();
-  const courtPhoto = wifiCredentials && (await getCourtPhoto());
-  const initialBattery = wifiCredentials && (await getBattery());
-
-  console.log(session);
-
-  if (!session) {
-    return {
-      redirect: {
-        destination: "/log-in",
-        permanent: false,
-      },
-    };
-  }
-
-  return {
-    props: {
-      session,
-      name: wifiCredentials?.networkName,
-      password: wifiCredentials?.password,
-      image: courtPhoto?.file_url,
-      initialBattery,
-    },
-  };
-};
 
 /* Esto es lo que había antes.
 

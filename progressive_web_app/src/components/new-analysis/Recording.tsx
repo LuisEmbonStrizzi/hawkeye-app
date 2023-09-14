@@ -3,54 +3,44 @@ import CamBattery from "./CamBattery";
 import Counter from "./Counter";
 import { api } from "~/utils/api";
 import axios from "axios";
-import { type TgetBattery } from "~/server/api/routers/videos";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import {
+  type TrecordResponse,
+} from "~/server/api/routers/videos";
+type Tbattery = {
+  battery: string;
+}
 
 type RecordingProps = {
-  startRecording: () => void;
+  getBattery: () => any;
   handleStep: () => void;
   step: number;
-  recordData: string | null;
   initialBattery?: number;
 };
 
-export const getBattery = async () => {
-  try {
-    const getBattery: TgetBattery = await axios.get(
-      "http://localhost:8000/getBattery",
-      {
-        responseType: "json",
-      }
-    );
-    console.log(getBattery);
-    return getBattery.data.battery;
-  } catch (error) {
-    console.error("Error al obtener los datos:", error);
-  }
-};
 
 const Recording: React.FC<RecordingProps> = ({
   handleStep,
   step,
-  recordData,
-  startRecording,
   initialBattery,
+  getBattery
 }) => {
   const [battery, setBattery] = useState<number | undefined>(initialBattery);
+  const [recordData, setRecordData] = useState<string | null>(null);
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     const intervalId = setInterval(async () => {
-      const updatedBattery = await getBattery();
-      console.log(updatedBattery);
-      if (updatedBattery !== null) {
-        setBattery(updatedBattery);
-      }
-    }, 30000);
-
-    return () => clearInterval(intervalId);
-  }, []);
+        const updatedBattery = await getBattery();
+        console.log(updatedBattery);
+        if (updatedBattery !== null) {
+          setBattery(updatedBattery);
+        }
+      }, 30000);
+  
+      clearInterval(intervalId);
+  },[])
+   
 
   const uploadVideo = api.videos.stopRecording.useMutation();
   // {
@@ -63,6 +53,26 @@ const Recording: React.FC<RecordingProps> = ({
   function callHawkeye() {
     try {
       uploadVideo.mutate();
+    } catch (err: unknown) {
+      console.log(err);
+    }
+  }
+
+  
+  async function startRecording() {
+    try {
+      const record: TrecordResponse = await axios.get(
+        "http://127.0.0.1:8000/record",
+        {
+          responseType: "json",
+        }
+      );
+      if (record.data.message === "RecordStarted") {
+        // Aquí puedes manipular los datos recibidos del backend
+        setRecordData(record.data.message);
+      }
+
+      console.log(record.data.message);
     } catch (err: unknown) {
       console.log(err);
     }
@@ -158,7 +168,7 @@ const Recording: React.FC<RecordingProps> = ({
             </section>
             <hr className="border-background-border" />
             <section className="flex flex-col items-center justify-center gap-4 p-8">
-              <CamBattery battery={initialBattery} />
+              <CamBattery battery={battery} />
             </section>
           </aside>
         </div>
