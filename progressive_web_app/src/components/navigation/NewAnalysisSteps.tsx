@@ -10,22 +10,15 @@ import {
 import axios from "axios";
 import { type InferGetServerSidePropsType } from "next/types";
 import { type TgetBattery } from "~/server/api/routers/videos";
-
-
-
+import Loading from "../new-analysis/Loading";
 
 type courtData = {
   message: string;
-  file_url: string
-}
+  file_url: string;
+};
 
-
-
-
-const NewAnalysisSteps: React.FC = ({
-}) => {
-  const [step, setStep] = useState<number>(0);
-  const [courtData, setCourtData] = useState<courtData|null>(null); // Define un estado para almacenar los datos
+const NewAnalysisSteps: React.FC = () => {
+  const [courtData, setCourtData] = useState<courtData | null>(null); // Define un estado para almacenar los datos
   const [battery, setBattery] = useState<number | undefined>(undefined);
   async function getBattery() {
     try {
@@ -36,16 +29,14 @@ const NewAnalysisSteps: React.FC = ({
         }
       );
       console.log(getBattery);
-      setBattery(getBattery.data.battery)
+      setBattery(getBattery.data.battery);
       return getBattery.data.battery;
     } catch (error) {
       console.error("Error al obtener los datos:", error);
     }
-  };
+  }
 
   useEffect(() => {
-    
-    
     // Dentro de useEffect, puedes hacer una solicitud para obtener los datos cuando el componente se monte
     async function getCourtPhoto() {
       try {
@@ -55,43 +46,32 @@ const NewAnalysisSteps: React.FC = ({
             responseType: "json",
           }
         );
-        setCourtData(record.data)
+        setCourtData(record.data);
         return record.data;
       } catch (err: unknown) {
         console.log(err);
       }
     }
-  
-    
-    
-    getBattery()
-    getCourtPhoto();
-  }, [])
-  
-  const handleStep = (stepState: Step) => {
-    if (stepState === "more") {
-      setStep(step + 1);
-    } else {
-      setStep(step - 1);
-    }
-  };
 
-  
+    void getBattery();
+    void getCourtPhoto();
+  }, []);
+
+  const [alignedCorners, setAlignedCorners] = useState<boolean>(false);
 
   return (
     <>
-      <Topbar step={step} handleStep={handleStep} />
-      {step === 0 ? (
-        <AlignCorners image={courtData?.file_url} />
+      {alignedCorners ? (
+        <Recording initialBattery={battery} />
+      ) : courtData !== null ? (
+        <AlignCorners
+          image={courtData?.file_url}
+          firstOnClick={() => setAlignedCorners(true)}
+        />
       ) : (
-        <Recording
-            handleStep={() => handleStep("more")}
-            step={step}
-            initialBattery={battery}
-            />
+        <Loading loadingText="Fetching court image..." />
       )}
     </>
   );
 };
 export default NewAnalysisSteps;
-

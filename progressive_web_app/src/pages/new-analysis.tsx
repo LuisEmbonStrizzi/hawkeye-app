@@ -55,7 +55,7 @@ const NewAnalysis = () => {
     }
   }
 
-  getWifiCredentials();
+  void getWifiCredentials();
 
   return (
     <main className="min-h-screen bg-background">
@@ -69,13 +69,40 @@ const NewAnalysis = () => {
           password={wifiCredentials?.password}
         />
       ) : (
-        <Loading loadingText="Fetching GoPro data..."/>
+        <Loading loadingText="Fetching GoPro network..." />
       )}
     </main>
   );
 };
 
+//Loading de GoProWifi: Correcto
+//GoProWifi: Correcto
+//Loading de AlignCorners: Correcto
+//AlignCorners: Correcto
+//Recording: Correcto
+//Toast de finish recording: No aun
+//Loading de call hawkeye: No aun
+
 export default NewAnalysis;
+
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  const session = await getSession(ctx);
+  console.log(session);
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/log-in",
+        permanent: false,
+      },
+    };
+  }
+  return {
+    props: {
+      session,
+    },
+  };
+};
 
 /*
 
