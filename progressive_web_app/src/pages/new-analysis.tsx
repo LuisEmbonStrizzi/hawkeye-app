@@ -11,82 +11,28 @@ import NewAnalysisSteps from "~/components/navigation/NewAnalysisSteps";
 import Loading from "~/components/new-analysis/Loading";
 import Error from "~/components/new-analysis/Error";
 import GoproWifi from "~/components/new-analysis/GoproWifi";
-import {
-  type TWificredentials,
-  TgetBattery,
-} from "~/server/api/routers/videos";
-import axios from "axios";
-import { getBattery } from "~/components/new-analysis/Recording";
+import AlignCorners from "~/components/new-analysis/AlignCorners";
+import Recording from "~/components/new-analysis/Recording";
 
-type APcredentials = {
-  networkName: string;
-  password: string;
-};
-
-const NewAnalysis = () => {
+const NewAnalysis: NextPage = () => {
   const [wifi, setWifi] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
-  const [initialBattery, setInitialBattery] = useState<number | undefined>(
-    undefined
-  );
-  const [wifiCredentials, setWifiCredentials] = useState<APcredentials | null>(
-    null
-  );
-  const [hasFetchedData, setHasFetchedData] = useState(false);
+  const [alignedCorners, setAlignedCorners] = useState<boolean>(false);
 
-  async function getWifiCredentials() {
-    try {
-      if (!hasFetchedData) {
-        const record: TWificredentials = await axios.get(
-          "http://127.0.0.1:8000/enable_Wifi",
-          {
-            responseType: "json",
-          }
-        );
-
-        console.log("holaaaaaaaaaaa");
-        console.log(record);
-        setWifiCredentials(record.data);
-        setHasFetchedData(true);
-      }
-    } catch (err: unknown) {
-      console.log(err);
-    }
-  }
-
-  getWifiCredentials();
+  const password = "asn2djk12snd3sk";
+  const name = "qZXA-321";
 
   return (
     <main className="min-h-screen bg-background">
-      {hasFetchedData ? (
-        <GoproWifi
-          firstOnClick={() => {
-            setWifi(false);
-            setLoading(true);
-          }}
-          networkName={wifiCredentials?.networkName}
-          password={wifiCredentials?.password}
-        />
-      ) : (
-        <Loading loadingText="Fetching GoPro data..."/>
-      )}
-    </main>
-  );
-};
-
-export default NewAnalysis;
-
-/*
-
       {wifi ? (
         <GoproWifi
           firstOnClick={() => {
             setWifi(false);
             setLoading(true);
           }}
-          networkName={wifiCredentials?.networkName}
-          password={wifiCredentials?.password}
+          name={name}
+          password={password}
         />
       ) : loading ? (
         <Loading
@@ -100,7 +46,14 @@ export default NewAnalysis;
           }}
         />
       ) : success ? (
-        <NewAnalysisSteps />
+        alignedCorners ? (
+          <Recording />
+        ) : (
+          <AlignCorners
+            image="/img/test.png"
+            firstOnClick={() => setAlignedCorners(true)}
+          />
+        )
       ) : (
         <Error
           firstOnClick={() => {
