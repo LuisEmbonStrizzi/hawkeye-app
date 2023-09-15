@@ -1,8 +1,9 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import Button from "../Button";
 import Link from "next/link";
+import axios from "axios";
 
 type AlignCornersProps = {
   image: string | undefined;
@@ -77,8 +78,17 @@ const AlignCorners: React.FC<AlignCornersProps> = ({ image, firstOnClick }) => {
 
   */
 
+      const handleCorners = async ()=>{
+        //Código para enviar "vertices" state
+        const sendCorners = await axios.post("http://20.226.51.27/predict", {
+          esquinas: vertices,
+          //Ver si lo mando desde videos.ts
+        });
+        firstOnClick;
+      }
+
   return (
-    <div className="mx-auto my-auto flex h-screen w-full flex-col items-center justify-center gap-6 p-6 pt-[64px]">
+    <div className="mx-auto my-auto flex h-screen w-full flex-col items-center justify-center gap-6 p-6 pt-[63px]">
       <header className="fixed top-0 flex w-full justify-center border-b border-background-border bg-background px-4 py-[10px]">
         <div className="flex w-full items-center justify-between max-w-7xl whitespace-nowrap text-base font-semibold text-foreground-important">
           <Link href="/home">
@@ -227,7 +237,7 @@ const AlignCorners: React.FC<AlignCornersProps> = ({ image, firstOnClick }) => {
         <div className="flex flex-col pt-6">
           <Button
             style="primary"
-            onClick={firstOnClick}
+            onClick={handleCorners}
             icon={
               <svg
                 width="20"
