@@ -1,6 +1,7 @@
 import Button from "../Button";
 import CamBattery from "./CamBattery";
 import Counter from "./Counter";
+import { toast } from "react-hot-toast";
 import { api } from "~/utils/api";
 import axios from "axios";
 import React, { useEffect, useState, useRef } from "react";
@@ -35,10 +36,9 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
   const [startRecord, setStartRecord] = useState<boolean>(false);
   const [stopRecord, setStopRecord] = useState<boolean>(false);
   const [continueRecord, setContinueRecord] = useState<boolean>(false);
-  const [hasFetchedData, setHasFetchedData] = useState<boolean>(true);
+  const [hasFetchedData, setHasFetchedData] = useState<boolean>(false);
   const [repe, setRepe] = useState<string>("");
   const [video, setVideo] = useState<boolean>(false);
-
 
   async function getBattery() {
     try {
@@ -50,15 +50,14 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
       );
       console.log(getBattery);
       setBattery(getBattery.data.battery);
-      setBatteryPrev(battery)
+      setBatteryPrev(battery);
       return getBattery.data.battery;
     } catch (error) {
       console.error("Error al obtener los datos:", error);
     }
   }
   useEffect(() => {
-
-    if(!continueRecord) {
+    if (!continueRecord) {
       const intervalId = setInterval(async () => {
         const updatedBattery = await getBattery();
         console.log(updatedBattery);
@@ -66,17 +65,15 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
           setBattery(updatedBattery!);
         }
       }, 30000);
-  
+
       return () => clearInterval(intervalId);
-    }
-    else {
+    } else {
       const intervalId = setInterval(async () => {
         setBattery(battery - 1);
       }, 60000);
-  
+
       return () => clearInterval(intervalId);
     }
-    
   }, [continueRecord]);
 
   // const uploadVideo = api.videos.stopRecording.useMutation({
@@ -110,16 +107,19 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
         // Aquí puedes manipular los datos recibidos del backend
         setRecordData(record.data.message);
         setStartRecord(true);
+        toast.success("Recording started");
       }
 
       console.log(record.data.message);
     } catch (err: unknown) {
+      toast.error("Error while trying to start recording");
       console.log(err);
     }
   }
 
   async function stopRecording() {
     try {
+      setHasFetchedData(true);
       const stopRecording: cameraData = await axios.get(
         "http://127.0.0.1:8000/stopRecording",
         {
@@ -127,24 +127,25 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
         }
       );
 
-      console.log(stopRecording)
+      console.log(stopRecording);
 
-      const analysedVideo: cameraData2 = await axios.post("http://localhost:8080/predict", {
-        url: stopRecording.data.file_url,
-        });
-        
-
-        if (analysedVideo.data.file_url !== null) {
-          // Aquí puedes manipular los datos recibidos del backend
-          setRepe(analysedVideo.data.file_url)
-          setHasFetchedData(true)
+      const analysedVideo: cameraData2 = await axios.post(
+        "http://localhost:8080/predict",
+        {
+          url: stopRecording.data.file_url,
         }
-      }     
-    catch (err: unknown) {
+      );
+
+      if (analysedVideo.data.file_url !== null) {
+        // Aquí puedes manipular los datos recibidos del backend
+        setRepe(analysedVideo.data.file_url);
+        setVideo(true);
+      }
+    } catch (err: unknown) {
+      toast.error("Error while trying to call hawkeye");
       console.log(err);
     }
   }
-
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   let hasReachedZoomMoment = false;
@@ -181,7 +182,6 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
     }
   };
 
-  
   return (
     <div className="flex h-screen w-full">
       <aside
@@ -199,7 +199,6 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
             style="primary"
             label="Call hawkeye"
             onClick={() => {
-              setVideo(true);
               void stopRecording();
             }}
             icon={
@@ -222,7 +221,6 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
             style="secondary"
             label="Finish recording"
             onClick={() => {
-              setVideo(false);
               void startRecording();
             }}
             icon={
@@ -244,13 +242,11 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
         </section>
         <hr className="border-background-border" />
         <section className="flex flex-col items-center justify-center gap-4 p-8">
-          {
-            battery == null ? (
-              <CamBattery battery={batteryPrev} />
-            ) : (
-              <CamBattery battery={battery} />
-            )
-          }
+          {battery == null ? (
+            <CamBattery battery={batteryPrev} />
+          ) : (
+            <CamBattery battery={battery} />
+          )}
         </section>
       </aside>
       <section
@@ -258,14 +254,22 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
           video ? "flex" : "hidden md:flex",
           "relative h-full w-full flex-col items-center justify-center gap-4 pt-[64px] "
         )}
-
       >
-        <main className="min-h-screen bg-background">
-    
-  </main>
-      {hasFetchedData ? (
-          video ? (
-            <>
+        {!hasFetchedData ? (
+          <>
+            {" "}
+            <h1 className="text-3xl font-semibold text-foreground-important">
+              No hawkeye call yet
+            </h1>
+            <p className="text-foreground">
+              Here you will see the clip of the point you want to analyze.
+            </p>
+          </>
+        ) : !video ? (
+          <Loading loadingText="Calling hawkeye..." />
+        ) : (
+          <>
+            {" "}
             <div className="absolute top-0 z-10 flex w-full items-center justify-between gap-4 border-b border-background-border bg-background p-8 py-[10px] md:justify-end">
               {
                 <div className="md:hidden">
@@ -333,27 +337,18 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
                 />
               </div>
             </div>
-                <video autoPlay className="h-full" ref={videoRef} controls>
-                  <source src={repe} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>            
+            <video autoPlay className="h-full" ref={videoRef} controls>
+              <source src={repe} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
           </>
-          ) : (
-            <>
-            {" "}
-            <h1 className="text-3xl font-semibold text-foreground-important">
-              No hawkeye call yet
-            </h1>
-            <p className="text-foreground">
-              Here you will see the clip of the point you want to analyze.
-            </p>
-          </>
-          )
-        ) : (
-          <Loading loadingText="Fetching GoPro network..." />
         )}
       </section>
     </div>
   );
 };
 export default Recording;
+
+//Si no llame al ojo de halcón (!hasFetchedData): <Contenido/>
+//Si llame al ojo de halcón (hasFetchedData) y no hay video (!video): <Loading/>
+//Si llame al ojo de halcón (hasFetchedData) y hay video (video): <Video/>

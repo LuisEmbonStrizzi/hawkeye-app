@@ -16,7 +16,7 @@ import {
   TgetBattery,
 } from "~/server/api/routers/videos";
 import axios from "axios";
-import { getBattery } from "~/components/new-analysis/Recording";
+import Recording, { getBattery } from "~/components/new-analysis/Recording";
 
 type APcredentials = {
   networkName: string;
@@ -59,22 +59,7 @@ const NewAnalysis = () => {
 
   return (
     <main className="min-h-screen bg-background">
-      {hasFetchedData ? (
-        wifi ? (
-          <GoproWifi
-            firstOnClick={() => {
-              setWifi(false);
-              setLoading(true);
-            }}
-            networkName={wifiCredentials?.networkName}
-            password={wifiCredentials?.password}
-          />
-        ) : (
-          <NewAnalysisSteps />
-        )
-      ) : (
-        <Loading loadingText="Fetching GoPro network..." />
-      )}
+      <Recording initialBattery={90}/>
     </main>
   );
 };
