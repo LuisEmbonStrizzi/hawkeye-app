@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import Button from "../Button";
 import Link from "next/link";
 
@@ -78,9 +78,9 @@ const AlignCorners: React.FC<AlignCornersProps> = ({ image, firstOnClick }) => {
   */
 
   return (
-    <div className="mx-auto my-auto flex h-screen w-full flex-col items-center justify-center gap-6 p-6 pt-[64px]">
+    <div className="mx-auto my-auto flex h-screen w-full flex-col items-center justify-center gap-6 p-6 pt-[63px]">
       <header className="fixed top-0 flex w-full justify-center border-b border-background-border bg-background px-4 py-[10px]">
-        <div className="flex w-full items-center justify-between max-w-7xl whitespace-nowrap text-base font-semibold text-foreground-important">
+        <div className="flex w-full max-w-7xl items-center justify-between whitespace-nowrap text-base font-semibold text-foreground-important">
           <Link href="/home">
             <Button
               style="secondary"
