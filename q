@@ -1,0 +1,215 @@
+[33mcommit 5487fc3d581180086d435c7929481d32ad56f73e[m[33m ([m[1;36mHEAD -> [m[1;32mfeature/connection_with_backend2[m[33m, [m[1;31morigin/feature/connection_with_backend3[m[33m, [m[1;31morigin/feature/connection_with_backend2[m[33m, [m[1;32mfeature/connection_with_backend3[m[33m)[m
+Author: ArielAlzogarayFlores <102029851+ArielAlzogarayFlores@users.noreply.github.com>
+Date:   Thu Sep 14 22:46:25 2023 -0300
+
+    Minor changes
+
+[33mcommit ba9ed171ca3c514eb978cc0f545e11306a5a5a6a[m
+Merge: ed7b0fa 1cf72a9
+Author: ArielAlzogarayFlores <102029851+ArielAlzogarayFlores@users.noreply.github.com>
+Date:   Thu Sep 14 22:23:06 2023 -0300
+
+    Merge branch 'feature/new-analysis' into feature/connection_with_backend2
+
+[33mcommit ed7b0fac2f706b83f321164176881352e9b68a54[m
+Author: ArielAlzogarayFlores <102029851+ArielAlzogarayFlores@users.noreply.github.com>
+Date:   Thu Sep 14 22:04:47 2023 -0300
+
+    Loading while fetching GoPro data
+
+[33mcommit 209c04bf7d955050094295b30d16caf7649c3f4c[m
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Thu Sep 14 20:29:27 2023 -0300
+
+    minor changes
+
+[33mcommit 1cf72a93ba07d6a1912d1140a6353c007d90fa1c[m[33m ([m[1;31morigin/feature/new-analysis[m[33m, [m[1;32mfeature/new-analysis[m[33m)[m
+Author: ArielAlzogarayFlores <102029851+ArielAlzogarayFlores@users.noreply.github.com>
+Date:   Thu Sep 14 20:28:23 2023 -0300
+
+    Zoom feature implemented
+
+[33mcommit 0efdb4b5e9750f0b96fe50ca7daa5d02b022a6ca[m
+Author: ArielAlzogarayFlores <102029851+ArielAlzogarayFlores@users.noreply.github.com>
+Date:   Thu Sep 14 15:08:24 2023 -0300
+
+    Minor changes
+
+[33mcommit 9eff609ae7a3461a225b1f2b5f46b06fe07583b7[m
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Thu Sep 14 14:42:27 2023 -0300
+
+    Connection improved
+
+[33mcommit b0e093a5f7dce16a3d837ffa08575279989a379e[m
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Wed Sep 13 23:53:08 2023 -0300
+
+    Improved connection
+
+[33mcommit c49c237b36ca238809993e72af301faf84206330[m
+Merge: bd1c4ae 632b3f6
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Wed Sep 13 22:27:52 2023 -0300
+
+    Merge branch 'feature/new-analysis' into feature/connection_with_backend2
+
+[33mcommit bd1c4aea2948d4d4004c70cbc7608a430b03c462[m[33m ([m[1;31morigin/feature/connection_with_backend[m[33m)[m
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Wed Sep 13 22:13:37 2023 -0300
+
+    Connection started
+
+[33mcommit 7b68515419d0d2ffed06e895e78b53c8b719ef21[m
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Wed Sep 13 16:19:45 2023 -0300
+
+    minor changes
+
+[33mcommit 6f844b7f754933c3960e92b4b2657a26037aafaf[m
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Wed Sep 13 13:08:29 2023 -0300
+
+    started connection
+
+[33mcommit 632b3f689122f60334b8d4769abce4de5862267b[m
+Author: ArielAlzo <110468040+ArielAlzo@users.noreply.github.com>
+Date:   Wed Sep 13 12:01:24 2023 -0300
+
+    Copy to clipboard feature added
+
+[33mcommit c07f334278a29f7fb83199de8621e545cbd9734d[m
+Author: ArielAlzogarayFlores <102029851+ArielAlzogarayFlores@users.noreply.github.com>
+Date:   Wed Sep 13 07:05:16 2023 -0300
+
+    Developing the Wifi connection UI
+
+[33mcommit 7adc01cbf16f6af6e4d78a0747dcf8215766a9e6[m
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Tue Sep 12 22:58:14 2023 -0300
+
+    minor changes
+
+[33mcommit 622885d4155e346838d0d75649ab423cf366f757[m
+Merge: 6939aa8 f367366
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Tue Sep 12 22:27:19 2023 -0300
+
+    Merge branch 'feature/full_dockerization_process' into feature/connection_with_backend
+
+[33mcommit 6939aa88128e897afe6ef19f914f7ee7a868cd50[m
+Author: ArielAlzogarayFlores <102029851+ArielAlzogarayFlores@users.noreply.github.com>
+Date:   Tue Sep 12 07:04:15 2023 -0300
+
+    minor changes
+
+[33mcommit d9aea6441f2b81760518b9353939813a688ac87b[m
+Author: ArielAlzogarayFlores <102029851+ArielAlzogarayFlores@users.noreply.github.com>
+Date:   Mon Sep 11 04:44:08 2023 -0300
+
+    Big changes
+    
+    AlignCorners improvements. Searchbar, Sideba & Topbar minor changes. NewAnalysis new set-up and NewAnalysis new set of components.
+
+[33mcommit f3673667ed2c0716b61417254111ffb54ee33f5e[m
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Sat Sep 9 17:37:28 2023 -0300
+
+    Improved gopro api
+
+[33mcommit f4f6f54a7a979572140d75bf6ef1f15eacfa6146[m
+Merge: dcdeff3 63321b0
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Fri Sep 8 18:14:51 2023 -0300
+
+    Merge branch 'feature/gopro_api' into feature/full_dockerization_process
+
+[33mcommit 63321b065728d424aca631e28088dcf619facc10[m[33m ([m[1;31morigin/feature/gopro_api[m[33m)[m
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Fri Sep 8 18:09:07 2023 -0300
+
+    some changes done in the api
+
+[33mcommit 890ed210f5d05d0e81b416fcfdba2a6d40cb16ae[m
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Fri Sep 8 10:45:05 2023 -0300
+
+    Added get battery route
+
+[33mcommit 90393d9c4f3703f18bb4f7d193a26790d60ba528[m
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Thu Sep 7 22:42:18 2023 -0300
+
+    minor changes
+
+[33mcommit 1dedac1765acbfeef9dc5cb97c6e900f1bbf8d19[m
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Thu Sep 7 22:09:14 2023 -0300
+
+    Done some endpoints
+
+[33mcommit dbb4619248fc8375b7f5ab780b0940e123fbe0c3[m
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Wed Sep 6 12:08:56 2023 -0300
+
+    Added useful files
+
+[33mcommit 6920927595e74c486530964fb8a57eb6bef96948[m
+Author: ArielAlzogarayFlores <102029851+ArielAlzogarayFlores@users.noreply.github.com>
+Date:   Wed Sep 6 06:48:32 2023 -0300
+
+    Minor changes
+
+[33mcommit 2e7dc31dfeb43d5e7c8a42c3d054dc7b475b2252[m
+Author: ArielAlzogarayFlores <102029851+ArielAlzogarayFlores@users.noreply.github.com>
+Date:   Wed Sep 6 00:29:41 2023 -0300
+
+    Magnifying glass transition on vertex drag event
+
+[33mcommit 0a643a1824083d7e5fc32fe65ba90ba273ad7da4[m
+Author: ArielAlzogarayFlores <102029851+ArielAlzogarayFlores@users.noreply.github.com>
+Date:   Tue Sep 5 22:57:41 2023 -0300
+
+    The first version of AlignCorners is finished
+
+[33mcommit 15c82969120c347b54e83db5827e2f093f5b06c0[m
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Tue Sep 5 21:41:16 2023 -0300
+
+    Added useful files
+
+[33mcommit c3b38d1f0fc03878c91cc3a4474eece93f7206b6[m
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Tue Sep 5 13:16:23 2023 -0300
+
+    Some tests done with differents sdks
+
+[33mcommit 17065d9761d6dd797b67b19aca0a04f09a54b307[m
+Author: ArielAlzogarayFlores <102029851+ArielAlzogarayFlores@users.noreply.github.com>
+Date:   Mon Sep 4 07:17:54 2023 -0300
+
+    Progress in corner alignment step - New Analysis
+
+[33mcommit 826cff789d8995aef4e414547801bbf5f11d5164[m
+Author: ArielAlzogarayFlores <102029851+ArielAlzogarayFlores@users.noreply.github.com>
+Date:   Mon Aug 28 19:46:10 2023 -0300
+
+    Minor changes
+
+[33mcommit dcdeff3f86c219dbe59b708b5ed8eca03926f392[m
+Author: LuisEmbonStrizzi <101569004+LuisEmbonStrizzi@users.noreply.github.com>
+Date:   Wed Aug 9 23:14:16 2023 -0300
+
+    pwa dockerized
+
+[33mcommit 1e642cd9f52d537a1fd899f03b769918c889d771[m
+Author: ArielAlzogarayFlores <102029851+ArielAlzogarayFlores@users.noreply.github.com>
+Date:   Tue Aug 8 20:28:41 2023 -0300
+
+    Camera loading simulation
+
+[33mcommit df0ed8b8053bcb2cf33ebef81da41d312f6eff33[m[33m ([m[1;31morigin/feature/home[m[33m, [m[1;32mfeature/home[m[33m)[m
+Author: ArielAlzogarayFlores <102029851+ArielAlzogarayFlores@users.noreply.github.com>
+Date:   Tue Aug 8 11:42:27 2023 -0300
+
+    Minor changes and bug fix

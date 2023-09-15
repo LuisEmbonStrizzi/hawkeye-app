@@ -1,5 +1,151 @@
 import { type NextPage } from "next";
-import React from "react";
+import { getSession } from "next-auth/react";
+import type {
+  GetServerSidePropsContext,
+  InferGetServerSidePropsType,
+} from "next/types";
+import { useEffect, useState } from "react";
+import Button from "~/components/Button";
+import Link from "next/link";
+import NewAnalysisSteps from "~/components/navigation/NewAnalysisSteps";
+import Loading from "~/components/new-analysis/Loading";
+import Error from "~/components/new-analysis/Error";
+import GoproWifi from "~/components/new-analysis/GoproWifi";
+import {
+  type TWificredentials,
+  TgetBattery,
+} from "~/server/api/routers/videos";
+import axios from "axios";
+import { getBattery } from "~/components/new-analysis/Recording";
+
+type APcredentials = {
+  networkName: string;
+  password: string;
+};
+
+const NewAnalysis = () => {
+  const [wifi, setWifi] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [success, setSuccess] = useState<boolean>(false);
+  const [initialBattery, setInitialBattery] = useState<number | undefined>(
+    undefined
+  );
+  const [wifiCredentials, setWifiCredentials] = useState<APcredentials | null>(
+    null
+  );
+  const [hasFetchedData, setHasFetchedData] = useState(false);
+
+  async function getWifiCredentials() {
+    try {
+      if (!hasFetchedData) {
+        const record: TWificredentials = await axios.get(
+          "http://127.0.0.1:8000/enable_Wifi",
+          {
+            responseType: "json",
+          }
+        );
+
+        console.log("holaaaaaaaaaaa");
+        console.log(record);
+        setWifiCredentials(record.data);
+        setHasFetchedData(true);
+      }
+    } catch (err: unknown) {
+      console.log(err);
+    }
+  }
+
+  void getWifiCredentials();
+
+  return (
+    <main className="min-h-screen bg-background">
+    {hasFetchedData ? (
+      wifi ? (
+        <GoproWifi
+          firstOnClick={() => {
+            setWifi(false);
+            setLoading(true);
+          }}
+          networkName={wifiCredentials?.networkName}
+          password={wifiCredentials?.password}
+        />
+      ) : (
+        <NewAnalysisSteps />
+      )
+    ) : (
+      <Loading loadingText="Fetching GoPro network..." />
+    )}
+  </main>
+  );
+};
+
+//Loading de GoProWifi: Correcto
+//GoProWifi: Correcto
+//Loading de AlignCorners: Correcto
+//AlignCorners: Correcto
+//Recording: Correcto
+//Toast de finish recording: No aun
+//Loading de call hawkeye: No aun
+
+export default NewAnalysis;
+
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  const session = await getSession(ctx);
+  console.log(session);
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/log-in",
+        permanent: false,
+      },
+    };
+  }
+  return {
+    props: {
+      session,
+    },
+  };
+};
+
+/*
+
+      {wifi ? (
+        <GoproWifi
+          firstOnClick={() => {
+            setWifi(false);
+            setLoading(true);
+          }}
+          networkName={wifiCredentials?.networkName}
+          password={wifiCredentials?.password}
+        />
+      ) : loading ? (
+        <Loading
+          firstOnClick={() => {
+            setLoading(false);
+            setSuccess(true);
+          }}
+          secondOnClick={() => {
+            setLoading(false);
+            setSuccess(false);
+          }}
+        />
+      ) : success ? (
+        <NewAnalysisSteps />
+      ) : (
+        <Error
+          firstOnClick={() => {
+            setSuccess(true);
+            setLoading(true);
+          }}
+        />
+      )}
+
+*/
+
+/* Esto es lo que había antes.
+
+import { type NextPage } from "next";
 import { api } from "~/utils/api";
 const NewAnalysis: NextPage = () => {
   const uploadVideo = api.videos.uploadVideo.useMutation();
@@ -36,3 +182,4 @@ const NewAnalysis: NextPage = () => {
 };
 
 export default NewAnalysis;
+*/

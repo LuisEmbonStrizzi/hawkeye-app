@@ -71,4 +71,4 @@ def zoomear_video(url_video : str, pique : list[(int, int), int]):
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    zoomear_video("../InkedInkedTennisBrothersVideo1080p.mp4", [(1321, 587), 1380])
+    zoomear_video(r"C:\Users\47205114\Documents\hawkeye-app\gopro_api\official_sdk\GH010130.mp4", [(1321, 587), 150])

@@ -3,13 +3,18 @@ from pydantic import BaseModel
 from azure.storage.blob import BlobServiceClient
 import os
 from decouple import config
-from ball_tracking2_cpp import tracking
+from ball_tracking2_timed import tracking
 from zoomear_video import zoomear_video
 
 azure_connection_string = config('AZURE_CONNECTION_STRING')
 container_name = config('AZURE_CONTAINER_NAME')
 
 app = FastAPI()
+
+
+@app.get("/")
+def test():
+    return {"message": "Hello World"}
 
 
 class Msg(BaseModel):

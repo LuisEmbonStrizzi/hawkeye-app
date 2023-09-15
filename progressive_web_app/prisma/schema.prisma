@@ -2,7 +2,9 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
+    provider      = "prisma-client-js"
+    engineType    = "binary"
+    binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -78,13 +80,15 @@ model Videos {
     typeOfAnalysis String?
     isFavorite     Boolean?
     matchDate      DateTime?
-    boundsArray    String?  @db.Text
+    boundsArray    String?   @db.Text
     heatmapUrl     String?
     speeds         String?
     videoUrl       String?   @db.Text
     thumbnailUrl   String?
     prediction     String?
     userId         String
+    ssid           String?
+    Wifipassword   String?
     createdAt      DateTime  @default(now())
     updatedAt      DateTime  @updatedAt
     user           User      @relation(fields: [userId], references: [id])

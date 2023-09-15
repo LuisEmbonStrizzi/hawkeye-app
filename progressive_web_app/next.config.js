@@ -15,12 +15,13 @@ const withPWA = require("next-pwa")({
 });
 
 module.exports = withPWA({
-  reactStrictMode: true,
+  reactStrictMode: false,
   i18n: {
     locales: ["en"],
     defaultLocale: "en",
   },
   images: {
-    domains: ["storage.googleapis.com", "storage.cloud.google.com"],
+    domains: ["storage.googleapis.com", "storage.cloud.google.com", "hawkeyevideos1.blob.core.windows.net"],
   },
+  output: "standalone",
 });

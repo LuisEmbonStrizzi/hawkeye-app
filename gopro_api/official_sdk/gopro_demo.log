@@ -1,0 +1,1 @@
+   MainThread:12:48:21.981 gopro_wireless.py                         172 ERROR    | Could not find a suitable Wifi Interface. If there is an available Wifi interface, try passing it manually with the 'wifi_interface' argument.
