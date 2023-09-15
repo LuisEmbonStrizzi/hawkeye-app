@@ -1,12 +1,8 @@
-import React from "react";
-import Button from "../Button";
-
 type LoadingProps = {
-  firstOnClick: () => void;
-  secondOnClick: () => void;
+  loadingText?: string;
 };
 
-const Loading: React.FC<LoadingProps> = ({ firstOnClick, secondOnClick }) => {
+const Loading: React.FC<LoadingProps> = ({ loadingText }) => {
   return (
     <div className="mx-auto my-auto flex h-screen w-full flex-col items-center justify-center gap-4 p-4">
       <svg
@@ -22,13 +18,7 @@ const Loading: React.FC<LoadingProps> = ({ firstOnClick, secondOnClick }) => {
           className="fill-primary"
         />
       </svg>
-      <p className="font-medium text-foreground-important">
-        Establishing and checking the connection with the cameras...
-      </p>
-      <div className="flex w-full flex-col items-center justify-center gap-4 sm:flex-row">
-        <Button label="Success" style="primary" onClick={firstOnClick} />
-        <Button label="Failure" style="secondary" onClick={secondOnClick} />
-      </div>
+      <p className="font-medium text-foreground-important">{loadingText}</p>
     </div>
   );
 };
