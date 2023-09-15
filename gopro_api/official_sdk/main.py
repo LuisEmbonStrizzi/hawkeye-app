@@ -15,7 +15,8 @@ from azure.storage.blob import BlobServiceClient
 import os
 from decouple import config
 from fastapi.middleware.cors import CORSMiddleware
-
+import cloudinary
+from cloudinary.uploader import upload
 from bleak import BleakClient
 
 app = FastAPI()
@@ -33,6 +34,11 @@ app.add_middleware(
 azure_connection_string = config('AZURE_CONNECTION_STRING')
 container_name = config('AZURE_CONTAINER_NAME')
 
+cloudinary.config( 
+  cloud_name = "dvqscievu", 
+  api_key = "854818866781352", 
+  api_secret = "S3AII2Api56P0plGeaJlx6gImoo" 
+)
 
 class BleClientManager:
     def __init__(self):
@@ -339,25 +345,37 @@ async def stopRecording():
                 logger.info(f"receiving binary stream to {file}...")
                 for chunk in request.iter_content(chunk_size=8192):
                     f.write(chunk)
+        
+            # Sube el video a Cloudinary
+        upload_result = upload(file, resource_type="video")
+        
+        # Obtiene la URL pública del video subido
+        public_url = upload_result["secure_url"]
+        
+        print(f"Video subido a Cloudinary: {public_url}")
 
-        blob_service_client = BlobServiceClient.from_connection_string(
-            azure_connection_string)
-        container_client = blob_service_client.get_container_client(
-            container_name)
-        # Nombre del archivo en Azure será el mismo que local
-        blob_name = os.path.basename(file)
-        logger.info(f"Tamaño del archivo local: {os.path.getsize(file)} bytes")
+        return {"message": "CameraConnected", "file_url": public_url}
 
-        blob_client = container_client.get_blob_client(blob_name)
 
-        with open(file, "rb") as f:
-            blob_client.upload_blob(f, overwrite=True)
-        logger.info(f"Archivo '{blob_name}' cargado correctamente en Azure.")
+        # blob_service_client = BlobServiceClient.from_connection_string(
+        #     azure_connection_string)
+        # container_client = blob_service_client.get_container_client(
+        #     container_name)
+        # container_client.set_container_access_policy(public_access="container")
 
-        # Obtener la URL del blob
-        blob_url = blob_client.url
+        # # Nombre del archivo en Azure será el mismo que local
+        # blob_name = os.path.basename(file)
+        # logger.info(f"Tamaño del archivo local: {os.path.getsize(file)} bytes")
 
-        return {"message": "CameraConnected", "file_url": blob_url}
+        # blob_client = container_client.get_blob_client(blob_name)
+
+        # with open(file, "rb") as f:
+        #     blob_client.upload_blob(f, overwrite=True)
+        # logger.info(f"Archivo '{blob_name}' cargado correctamente en Azure.")
+
+        # # Obtener la URL del blob
+        # blob_url = blob_client.url
+
 
     except Exception as e:
         logger.error(e)

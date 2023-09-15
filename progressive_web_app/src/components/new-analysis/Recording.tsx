@@ -15,7 +15,7 @@ type Tbattery = {
 export type cameraData = {
   data: {
     message: string;
-    url: string;
+    file_url: string;
   };
 };
 export type cameraData2 = {
@@ -34,8 +34,10 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
   const [startRecord, setStartRecord] = useState<boolean>(false);
   const [stopRecord, setStopRecord] = useState<boolean>(false);
   const [continueRecord, setContinueRecord] = useState<boolean>(false);
-  const [hasFetchedData, setHasFetchedData] = useState(false);
+  const [hasFetchedData, setHasFetchedData] = useState<boolean>(true);
   const [repe, setRepe] = useState<string>("");
+  const [video, setVideo] = useState<boolean>(false);
+
 
   async function getBattery() {
     try {
@@ -116,7 +118,6 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
 
   async function stopRecording() {
     try {
-      setHasFetchedData(true)
       const stopRecording: cameraData = await axios.get(
         "http://127.0.0.1:8000/stopRecording",
         {
@@ -124,25 +125,25 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
         }
       );
 
+      console.log(stopRecording)
+
       const analysedVideo: cameraData2 = await axios.post("http://localhost:8080/predict", {
-        url: stopRecording.data.url,
-      });
+        url: stopRecording.data.file_url,
+        });
+        
 
-      if (analysedVideo.data.file_url !== null) {
-        // Aquí puedes manipular los datos recibidos del backend
-        setRepe(analysedVideo.data.file_url)
-        setVideo(true)
-        setStopRecord(true);
-
-      }
-
-    } catch (err: unknown) {
+        if (analysedVideo.data.file_url !== null) {
+          // Aquí puedes manipular los datos recibidos del backend
+          setRepe(analysedVideo.data.file_url)
+          setHasFetchedData(true)
+        }
+      }     
+    catch (err: unknown) {
       console.log(err);
     }
   }
 
 
-  const [video, setVideo] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   let hasReachedZoomMoment = false;
   const zoomMoment = 6.97;
