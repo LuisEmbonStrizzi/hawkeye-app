@@ -12,11 +12,11 @@ type Tbattery = {
 };
 
 type RecordingProps = {
-  initialBattery?: number;
+  initialBattery: number;
 };
 
 const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
-  const [battery, setBattery] = useState<number | undefined>(initialBattery);
+  const [battery, setBattery] = useState<number>(initialBattery);
   const [recordData, setRecordData] = useState<string | null>(null);
   const [startRecord, setStartRecord] = useState<boolean>(false);
   const [stopRecord, setStopRecord] = useState<boolean>(false);
@@ -36,20 +36,27 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
     }
   }
   useEffect(() => {
-    const intervalId = setInterval(async () => {
-      const updatedBattery = await getBattery();
-      console.log(updatedBattery);
-      if (updatedBattery !== null) {
-        setBattery(updatedBattery);
-      }
-    }, 30000);
 
-    // No deberías usar clearInterval aquí, ya que detendría el intervalo inmediatamente
-    // clearInterval(intervalId);
-
-    // Limpieza del intervalo cuando el componente se desmonta
-    return () => clearInterval(intervalId);
-  }, []);
+    if(!startRecord) {
+      const intervalId = setInterval(async () => {
+        const updatedBattery = await getBattery();
+        console.log(updatedBattery);
+        if (updatedBattery !== null) {
+          setBattery(updatedBattery!);
+        }
+      }, 30000);
+  
+      return () => clearInterval(intervalId);
+    }
+    else {
+      const intervalId = setInterval(async () => {
+        setBattery(battery - 1);
+      }, 60000);
+  
+      return () => clearInterval(intervalId);
+    }
+    
+  }, [startRecord]);
 
   const uploadVideo = api.videos.stopRecording.useMutation();
   // {
@@ -65,7 +72,7 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
   function callHawkeye() {
     try {
       uploadVideo.mutate();
-      setStopRecord(true);
+      setStopRecord(false);
     } catch (err: unknown) {
       console.log(err);
     }

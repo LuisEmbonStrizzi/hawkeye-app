@@ -19,7 +19,7 @@ type courtData = {
 
 const NewAnalysisSteps: React.FC = () => {
   const [courtData, setCourtData] = useState<courtData | null>(null); // Define un estado para almacenar los datos
-  const [battery, setBattery] = useState<number | undefined>(undefined);
+  const [battery, setBattery] = useState<number>(0);
   async function getBattery() {
     try {
       const getBattery: TgetBattery = await axios.get(

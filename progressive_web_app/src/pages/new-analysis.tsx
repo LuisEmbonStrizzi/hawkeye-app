@@ -59,7 +59,8 @@ const NewAnalysis = () => {
 
   return (
     <main className="min-h-screen bg-background">
-      {hasFetchedData ? (
+    {hasFetchedData ? (
+      wifi ? (
         <GoproWifi
           firstOnClick={() => {
             setWifi(false);
@@ -69,9 +70,12 @@ const NewAnalysis = () => {
           password={wifiCredentials?.password}
         />
       ) : (
-        <Loading loadingText="Fetching GoPro network..." />
-      )}
-    </main>
+        <NewAnalysisSteps />
+      )
+    ) : (
+      <Loading loadingText="Fetching GoPro network..." />
+    )}
+  </main>
   );
 };
 
