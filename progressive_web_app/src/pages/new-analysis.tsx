@@ -14,17 +14,87 @@ import GoproWifi from "~/components/new-analysis/GoproWifi";
 import AlignCorners from "~/components/new-analysis/AlignCorners";
 import Recording from "~/components/new-analysis/Recording";
 
-const NewAnalysis: NextPage = () => {
-  const [wifi, setWifi] = useState<boolean>(true);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [success, setSuccess] = useState<boolean>(false);
-  const [alignedCorners, setAlignedCorners] = useState<boolean>(false);
+type APcredentials = {
+  networkName: string;
+  password: string;
+};
 
-  const password = "asn2djk12snd3sk";
-  const name = "qZXA-321";
+const NewAnalysis: NextPage = () => {
+  const [alignedCorners, setAlignedCorners] = useState<boolean>(false);
+  const [wifi, setWifi] = useState<boolean>(true);
+  const [hasFetchedData, setHasFetchedData] = useState<boolean>(false);
+
+  const [wifiCredentials, setWifiCredentials] = useState<APcredentials | null>(
+    null
+  );
+
+  async function getWifiCredentials() {
+    try {
+      if (!hasFetchedData) {
+        const record: TWificredentials = await axios.get(
+          "http://127.0.0.1:8000/enable_Wifi",
+          {
+            responseType: "json",
+          }
+        );
+
+        console.log("holaaaaaaaaaaa");
+        console.log(record);
+        setWifiCredentials(record.data);
+        setHasFetchedData(true);
+      }
+    } catch (err: unknown) {
+      console.log(err);
+    }
+  }
+
+  getWifiCredentials();
 
   return (
     <main className="min-h-screen bg-background">
+      {alignedCorners ? (
+        <Recording />
+      ) : wifi ? (
+        <AlignCorners firstOnClick={()=>{
+          setWifi(false);
+          setAlignedCorners(true);
+        }}/>
+      ) : hasFetchedData ? (
+        <GoproWifi
+          firstOnClick={() => {
+            setWifi(true);
+          }}
+          networkName={wifiCredentials?.networkName}
+          password={wifiCredentials?.password}
+        />
+      ) : (
+        <Loading loadingText="Fetching GoPro data..." />
+      )}
+    </main>
+  );
+};
+
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  const session = await getSession(ctx);
+  console.log(session);
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/log-in",
+        permanent: false,
+      },
+    };
+  }
+  return {
+    props: {
+      session,
+    },
+  };
+};
+
+/*
+
       {wifi ? (
         <GoproWifi
           firstOnClick={() => {
@@ -65,43 +135,118 @@ const NewAnalysis: NextPage = () => {
 
 */
 
-/* Esto es lo que había antes.
+/*
 
 import { type NextPage } from "next";
-import { api } from "~/utils/api";
-const NewAnalysis: NextPage = () => {
-  const uploadVideo = api.videos.uploadVideo.useMutation();
-  const { data: videos } = api.videos.getVideo.useQuery(undefined, {
-    refetchInterval: 3000,
-  });
+import { getSession } from "next-auth/react";
+import type {
+  GetServerSidePropsContext,
+  InferGetServerSidePropsType,
+} from "next/types";
+import { useEffect, useState } from "react";
+import Button from "~/components/Button";
+import Link from "next/link";
+import NewAnalysisSteps from "~/components/navigation/NewAnalysisSteps";
+import Loading from "~/components/new-analysis/Loading";
+import Error from "~/components/new-analysis/Error";
+import GoproWifi from "~/components/new-analysis/GoproWifi";
+import {
+  type TWificredentials,
+  TgetBattery,
+} from "~/server/api/routers/videos";
+import axios from "axios";
+import { getBattery } from "~/components/new-analysis/Recording";
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    uploadVideo.mutate();
-  };
+type APcredentials = {
+  networkName: string;
+  password: string;
+};
+
+const NewAnalysis = () => {
+  const [wifi, setWifi] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [success, setSuccess] = useState<boolean>(false);
+  const [initialBattery, setInitialBattery] = useState<number | undefined>(
+    undefined
+  );
+  const [wifiCredentials, setWifiCredentials] = useState<APcredentials | null>(
+    null
+  );
+  const [hasFetchedData, setHasFetchedData] = useState(false);
+
+  async function getWifiCredentials() {
+    try {
+      if (!hasFetchedData) {
+        const record: TWificredentials = await axios.get(
+          "http://127.0.0.1:8000/enable_Wifi",
+          {
+            responseType: "json",
+          }
+        );
+
+        console.log("holaaaaaaaaaaa");
+        console.log(record);
+        setWifiCredentials(record.data);
+        setHasFetchedData(true);
+      }
+    } catch (err: unknown) {
+      console.log(err);
+    }
+  }
+
+  getWifiCredentials();
 
   return (
-    <>
-      <h1>NewAnalysis</h1>
-      <form className="flex flex-col gap-[20px] " onSubmit={handleSubmit}>
-        <button
-          type="submit"
-          className="rounded-md bg-blue-800 px-4 py-3 text-white"
-        >
-          Llamar al ojo de halcón
-        </button>
-      </form>
-      <br />
-
-      {videos?.map((video) => (
-        <div key={video.id}>
-          <video src={video.videoUrl!} height={800} width={800}></video>
-          <pre> {video.boundsArray} </pre>
-        </div>
-      ))}
-    </>
+    <main className="min-h-screen bg-background">
+      {hasFetchedData ? (
+        <GoproWifi
+          firstOnClick={() => {
+            setWifi(false);
+            setLoading(true);
+          }}
+          networkName={wifiCredentials?.networkName}
+          password={wifiCredentials?.password}
+        />
+      ) : (
+        <Loading loadingText="Fetching GoPro data..."/>
+      )}
+    </main>
   );
 };
 
 export default NewAnalysis;
+
+/*
+
+      {wifi ? (
+        <GoproWifi
+          firstOnClick={() => {
+            setWifi(false);
+            setLoading(true);
+          }}
+          networkName={wifiCredentials?.networkName}
+          password={wifiCredentials?.password}
+        />
+      ) : loading ? (
+        <Loading
+          firstOnClick={() => {
+            setLoading(false);
+            setSuccess(true);
+          }}
+          secondOnClick={() => {
+            setLoading(false);
+            setSuccess(false);
+          }}
+        />
+      ) : success ? (
+        <NewAnalysisSteps />
+      ) : (
+        <Error
+          firstOnClick={() => {
+            setSuccess(true);
+            setLoading(true);
+          }}
+        />
+      )}
+
 */
