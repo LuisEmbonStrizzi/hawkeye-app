@@ -30,6 +30,7 @@ type RecordingProps = {
 
 const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
   const [battery, setBattery] = useState<number>(initialBattery);
+  const [batteryPrev, setBatteryPrev] = useState<number>(initialBattery);
   const [recordData, setRecordData] = useState<string | null>(null);
   const [startRecord, setStartRecord] = useState<boolean>(false);
   const [stopRecord, setStopRecord] = useState<boolean>(false);
@@ -49,6 +50,7 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
       );
       console.log(getBattery);
       setBattery(getBattery.data.battery);
+      setBatteryPrev(battery)
       return getBattery.data.battery;
     } catch (error) {
       console.error("Error al obtener los datos:", error);
@@ -242,7 +244,13 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
         </section>
         <hr className="border-background-border" />
         <section className="flex flex-col items-center justify-center gap-4 p-8">
-          <CamBattery battery={battery} />
+          {
+            battery == null ? (
+              <CamBattery battery={batteryPrev} />
+            ) : (
+              <CamBattery battery={battery} />
+            )
+          }
         </section>
       </aside>
       <section
