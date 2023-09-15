@@ -11,7 +11,7 @@ frame_width = int(vs.get(3))
 frame_height = int(vs.get(4))
 out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'XVID'), fps, (frame_width, frame_height))
 zooming = False
-zoom_coords = (487, 599)
+zoom_coords = (1919, 1079)
 
 #Centro de la imagen: 960 x 540
 

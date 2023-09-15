@@ -31,6 +31,8 @@ def zoomear_video(url_video : str, pique : list[(int, int), int]):
             # Congela el último fotograma antes del inicio del zoom
             frame = vs.read()[1]
             frozen_frame = frame.copy()
+            for _ in range(5):
+                out.write(frame_zoomed)
 
         elif num_frame <= start_frame + zoom_duration:
             zoom_factor = 1.0 + (num_frame - start_frame) / zoom_duration
