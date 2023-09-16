@@ -7,7 +7,7 @@ const withPWA = require("next-pwa")({
     Deshabilitar la PWA en desarrollo pero habilitarla en producción. Para evitar sobrecarga en la consola.
   */
 
-  disable: process.env.NODE_ENV === "development",
+  // disable: process.env.NODE_ENV === "development",
   // register: true,
   // scope: '/app',
   // sw: 'service-worker.js',

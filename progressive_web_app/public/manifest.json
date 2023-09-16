@@ -1,11 +1,11 @@
 {
-    "theme_color": "#000000",
-    "background_color": "#ffffff",
+    "theme_color": "#E2E8F5",
+    "background_color": "#181B27",
     "display": "standalone",
     "scope": "/",
     "start_url": "/",
-    "name": "Next PWA",
-    "short_name": "PWA",
+    "name": "Hawkeye",
+    "short_name": "Hawkeye",
     "description": "This app is to demo PWA in Next.js",
     "icons": [
       {
