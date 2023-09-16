@@ -35,19 +35,22 @@ const NewAnalysis = () => {
   );
   const [hasFetchedData, setHasFetchedData] = useState(false);
 
-  async function getWifiCredentials() {
+  function getWifiCredentials() {
     try {
       if (!hasFetchedData) {
-        const record: TWificredentials = await axios.get(
-          "http://127.0.0.1:8000/enable_Wifi",
-          {
-            responseType: "json",
-          }
-        );
+        // const record: TWificredentials = await axios.get(
+        //   "http://127.0.0.1:8000/enable_Wifi",
+        //   {
+        //     responseType: "json",
+        //   }
+        // );
 
-        console.log("holaaaaaaaaaaa");
-        console.log(record);
-        setWifiCredentials(record.data);
+        // console.log("holaaaaaaaaaaa");
+        // console.log(record);
+        setWifiCredentials({
+          networkName: "GP27978370",
+          password: "MG6-zdT-Kky",
+        });
         setHasFetchedData(true);
       }
     } catch (err: unknown) {
@@ -60,21 +63,21 @@ const NewAnalysis = () => {
   return (
     <main className="min-h-screen bg-background">
       {hasFetchedData ? (
-      wifi ? (
-        <GoproWifi
-          firstOnClick={() => {
-            setWifi(false);
-            setLoading(true);
-          }}
-          networkName={wifiCredentials?.networkName}
-          password={wifiCredentials?.password}
-        />
+        wifi ? (
+          <GoproWifi
+            firstOnClick={() => {
+              setWifi(false);
+              setLoading(true);
+            }}
+            networkName={wifiCredentials?.networkName}
+            password={wifiCredentials?.password}
+          />
+        ) : (
+          <NewAnalysisSteps />
+        )
       ) : (
-        <NewAnalysisSteps />
-      )
-    ) : (
-      <Loading loadingText="Fetching GoPro network..." />
-    )}
+        <Loading loadingText="Fetching GoPro network..." />
+      )}
     </main>
   );
 };

@@ -7,7 +7,10 @@ import axios from "axios";
 import React, { useEffect, useState, useRef } from "react";
 import clsx from "clsx";
 import Image from "next/image";
-import { TgetBattery, type TrecordResponse } from "~/server/api/routers/videos";
+import {
+  type TgetBattery,
+  type TrecordResponse,
+} from "~/server/api/routers/videos";
 import Loading from "./Loading";
 type Tbattery = {
   battery: string;
@@ -123,29 +126,31 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
   async function stopRecording() {
     try {
       setHasFetchedData(true);
-      setStopRecord(true)
+      setStopRecord(true);
 
-      const stopRecording: cameraData = await axios.get(
-        "http://127.0.0.1:8000/stopRecording",
-        {
-          responseType: "json",
-        }
-      );
+      // const stopRecording: cameraData = await axios.get(
+      //   "http://127.0.0.1:8000/stopRecording",
+      //   {
+      //     responseType: "json",
+      //   }
+      // );
 
-      console.log(stopRecording);
+      // console.log(stopRecording);
 
-      const analysedVideo: cameraData2 = await axios.post(
-        "http://localhost:8080/predict",
-        {
-          url: stopRecording.data.file_url,
-        }
-      );
+      // const analysedVideo: cameraData2 = await axios.post(
+      //   "http://localhost:8080/predict",
+      //   {
+      //     url: stopRecording.data.file_url,
+      //   }
+      // );
 
-      if (analysedVideo.data.file_url !== null) {
-        // Aquí puedes manipular los datos recibidos del backend
-        setRepe(analysedVideo.data.file_url);
-        setVideo(true);
-      }
+      // if (analysedVideo.data.file_url !== null) {
+      //   // Aquí puedes manipular los datos recibidos del backend
+      //   setRepe(analysedVideo.data.file_url);
+      //   setVideo(true);
+      // }
+      setRepe("");
+      setVideo(true);
     } catch (err: unknown) {
       toast.error("Error while trying to call hawkeye");
       console.log(err);
