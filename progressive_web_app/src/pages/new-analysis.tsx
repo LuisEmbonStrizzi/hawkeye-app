@@ -47,11 +47,13 @@ const NewAnalysis = () => {
 
         // console.log("holaaaaaaaaaaa");
         // console.log(record);
-        setWifiCredentials({
-          networkName: "GP27978370",
-          password: "MG6-zdT-Kky",
-        });
-        setHasFetchedData(true);
+        setTimeout(() => {
+          setWifiCredentials({
+            networkName: "GP27978370",
+            password: "MG6-zdT-Kky",
+          });
+          setHasFetchedData(true);
+        }, 10000);
       }
     } catch (err: unknown) {
       console.log(err);

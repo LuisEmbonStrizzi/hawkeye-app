@@ -45,10 +45,12 @@ const NewAnalysisSteps: React.FC = () => {
         //     responseType: "json",
         //   }
         // );
-        setCourtData({
-          message: "Cancha encontrada",
-          file_url: "/img/cancha.jpg",
-        });
+        setTimeout(() => {
+          setCourtData({
+            message: "Cancha encontrada",
+            file_url: "/img/cancha.jpg",
+          });
+        }, 7000);
       } catch (err: unknown) {
         console.log(err);
       }
@@ -63,7 +65,7 @@ const NewAnalysisSteps: React.FC = () => {
   return (
     <>
       {alignedCorners ? (
-        <Recording initialBattery={battery} />
+        <Recording initialBattery={90} />
       ) : courtData !== null ? (
         <AlignCorners
           image={courtData?.file_url}

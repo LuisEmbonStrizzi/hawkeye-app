@@ -12,9 +12,9 @@ type AlignCornersProps = {
 const AlignCorners: React.FC<AlignCornersProps> = ({ image, firstOnClick }) => {
   const initialVertices = [
     { x: 100, y: 100 },
-    { x: 100, y: 200 },
+    { x: 100, y: 150 },
     { x: 200, y: 100 },
-    { x: 200, y: 200 },
+    { x: 200, y: 150 },
   ];
   const [vertices, setVertices] = useState(initialVertices);
   const [selectedVertex, setSelectedVertex] = useState({ x: 0, y: 0 });
@@ -182,7 +182,7 @@ const AlignCorners: React.FC<AlignCornersProps> = ({ image, firstOnClick }) => {
         {vertices.map((vertex, index) => (
           <motion.span
             key={index}
-            dragConstraints={constraintsRef}
+            dragConstraints={imageRef}
             drag
             ref={vertexRefs[index]}
             dragElastic={0}
