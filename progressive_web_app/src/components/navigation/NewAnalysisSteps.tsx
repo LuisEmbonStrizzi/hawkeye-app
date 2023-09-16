@@ -65,7 +65,7 @@ const NewAnalysisSteps: React.FC = () => {
         <Recording initialBattery={battery} />
       ) : courtData !== null ? (
         <AlignCorners
-          image={courtData?.file_url}
+          image="/img/cancha.jpg"
           firstOnClick={() => setAlignedCorners(true)}
         />
       ) : (
@@ -75,3 +75,13 @@ const NewAnalysisSteps: React.FC = () => {
   );
 };
 export default NewAnalysisSteps;
+
+
+/*
+
+        <AlignCorners
+          image={courtData?.file_url}
+          firstOnClick={() => setAlignedCorners(true)}
+        />
+
+*/
