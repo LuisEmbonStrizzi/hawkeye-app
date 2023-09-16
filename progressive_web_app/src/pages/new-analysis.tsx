@@ -59,7 +59,22 @@ const NewAnalysis = () => {
 
   return (
     <main className="min-h-screen bg-background">
-      <Recording initialBattery={90}/>
+      {hasFetchedData ? (
+      wifi ? (
+        <GoproWifi
+          firstOnClick={() => {
+            setWifi(false);
+            setLoading(true);
+          }}
+          networkName={wifiCredentials?.networkName}
+          password={wifiCredentials?.password}
+        />
+      ) : (
+        <NewAnalysisSteps />
+      )
+    ) : (
+      <Loading loadingText="Fetching GoPro network..." />
+    )}
     </main>
   );
 };
@@ -76,7 +91,6 @@ export default NewAnalysis;
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const session = await getSession(ctx);
-  console.log(session);
 
   if (!session) {
     return {

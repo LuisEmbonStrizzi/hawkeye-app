@@ -97,20 +97,23 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
 
   async function startRecording() {
     try {
-      const record: TrecordResponse = await axios.get(
-        "http://127.0.0.1:8000/record",
-        {
-          responseType: "json",
-        }
-      );
-      if (record.data.message === "RecordStarted") {
-        // Aquí puedes manipular los datos recibidos del backend
-        setRecordData(record.data.message);
-        setStartRecord(true);
-        toast.success("Recording started");
-      }
+      // const record: TrecordResponse = await axios.get(
+      //   "http://127.0.0.1:8000/record",
+      //   {
+      //     responseType: "json",
+      //   }
+      // );
+      // if (record.data.message === "RecordStarted") {
+      //   // Aquí puedes manipular los datos recibidos del backend
+      //   setRecordData(record.data.message);
+      //   setStartRecord(true);
+      //   toast.success("Recording started");
+      // }
+      setStartRecord(true);
 
-      console.log(record.data.message);
+      toast.success("Recording started");
+
+      // console.log(record.data.message);
     } catch (err: unknown) {
       toast.error("Error while trying to start recording");
       console.log(err);
@@ -120,6 +123,8 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
   async function stopRecording() {
     try {
       setHasFetchedData(true);
+      setStopRecord(true)
+
       const stopRecording: cameraData = await axios.get(
         "http://127.0.0.1:8000/stopRecording",
         {

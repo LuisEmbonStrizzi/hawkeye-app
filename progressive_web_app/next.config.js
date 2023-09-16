@@ -21,7 +21,7 @@ module.exports = withPWA({
     defaultLocale: "en",
   },
   images: {
-    domains: ["storage.googleapis.com", "storage.cloud.google.com", "hawkeyevideos1.blob.core.windows.net"],
+    domains: ["storage.googleapis.com", "storage.cloud.google.com", "hawkeyevideos1.blob.core.windows.net","www.m1tennis.com"],
   },
   output: "standalone",
 });

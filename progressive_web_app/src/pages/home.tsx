@@ -22,7 +22,6 @@ export default Home;
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const session = await getSession(ctx);
-  console.log(session);
 
   if (!session) {
     return {
