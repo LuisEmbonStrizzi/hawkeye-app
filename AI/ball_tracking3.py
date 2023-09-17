@@ -273,8 +273,8 @@ def main(frame):
     #if numeroFrame == 55: cv2.imwrite("Frame55.jpg", frame)
     #if numeroFrame == 56: cv2.imwrite("Frame56.jpg", frame)
 
-    if numeroFrame == 18: cv2.imwrite("Frame18.jpg", frame)
-    if numeroFrame == 19: cv2.imwrite("Frame19.jpg", frame)
+    #if numeroFrame == 18: cv2.imwrite("Frame18.jpg", frame)
+    #if numeroFrame == 19: cv2.imwrite("Frame19.jpg", frame)
 
     #ultFrames.appendleft(imutils.resize(frame, anchoOG, altoOG))
     ultFrames.appendleft(frame)
@@ -1831,8 +1831,8 @@ for _ in range(frame_count - aSaltear):
     frame = vs.read()
     frame = frame[1] if args.get("video", False) else frame
 
-    frameSiguiente = vs2.read()
-    frameSiguiente = frameSiguiente[1] if args.get("video", False) else frameSiguiente
+    #frameSiguiente = vs2.read()
+    #frameSiguiente = frameSiguiente[1] if args.get("video", False) else frameSiguiente
 
     #for circulo in circulosAIgnorar:
         #cv2.circle(frame, (int(circulo[0] / resizer), int(circulo[1] / resizer)), int(circulo[2] / resizer), (255, 255, 255), 2)
@@ -1846,7 +1846,7 @@ for _ in range(frame_count - aSaltear):
         estaCercaY = altoOG * 10/100
         #################
 
-    frameSiguiente = imutils.resize(frameSiguiente, anchoOG * resizer, altoOG * resizer)
+    #frameSiguiente = imutils.resize(frameSiguiente, anchoOG * resizer, altoOG * resizer)
 
     # Cuando termina las iteraciones y no hay frames. Se usa al no saber la duración del video
     if frame is None:
