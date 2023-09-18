@@ -1215,18 +1215,18 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
             cv2.circle(imagen_recortada, (np.round(x).astype(int), np.round(y).astype(int)), np.round(r).astype(int), (0, 255, 0), 2)
         #if numeroFrame == 68: cv2.imwrite("imagen_recortada68.png", imagen_recortada)
         cv2.imwrite("imagen_recortada68.png", imagen_recortada)
-        cv2.imwrite("imagen_recortada68SinCirculos.png", imagen_recortada_copia)
+        #cv2.imwrite("imagen_recortada68SinCirculos.png", imagen_recortada_copia)
 
     imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
     cv2.imshow("Imagen recortada", imagen_recortada)
     cv2.imshow("Imagen recortada copia", imagen_recortada_copia)
         
-    a = False
+    a = True
     
     if a:
         pausado = True
 
-        if numeroFrame > 95:
+        if numeroFrame > 40:
             while True:
                 # Verificar si se debe pausar la imagen
                 if pausado:
