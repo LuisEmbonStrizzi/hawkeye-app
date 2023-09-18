@@ -38,24 +38,25 @@ async def predict(inp: Msg):
 
     print(inp.url)
 
-    # pique = tracking(inp.url)
-    # print(pique)
-    # zoomear_video(inp.url, pique)
+    pique = tracking(inp.url)
+    print(pique)
+    zoomear_video(inp.url, pique)
 
-    # file = "video_zoom.mp4"
+    file = "video_zoom.mp4"
 
-    # blob_service_client = BlobServiceClient.from_connection_string(azure_connection_string)
-    # container_client = blob_service_client.get_container_client(container_name)
+    blob_service_client = BlobServiceClient.from_connection_string(
+        azure_connection_string)
+    container_client = blob_service_client.get_container_client(container_name)
 
-    # blob_name = os.path.basename(file)
-    # print(f"Tamaño del archivo local: {os.path.getsize(file)} bytes")
+    blob_name = os.path.basename(file)
+    print(f"Tamaño del archivo local: {os.path.getsize(file)} bytes")
 
-    # blob_client = container_client.get_blob_client(blob_name)
+    blob_client = container_client.get_blob_client(blob_name)
 
-    # with open(file, "rb") as f:
-    #     blob_client.upload_blob(f, overwrite=True)
-    # print(f"Archivo '{blob_name}' cargado correctamente en Azure.")
+    with open(file, "rb") as f:
+        blob_client.upload_blob(f, overwrite=True)
+    print(f"Archivo '{blob_name}' cargado correctamente en Azure.")
 
-    # blob_url = blob_client.url
+    blob_url = blob_client.url
 
-    return {"file_url": "https://www.m1tennis.com/img/cms/pista.jpg"}
+    return {"file_url": blob_url}

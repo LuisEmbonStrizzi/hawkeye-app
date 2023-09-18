@@ -13,8 +13,8 @@ import { type TgetBattery } from "~/server/api/routers/videos";
 import Loading from "../new-analysis/Loading";
 
 type courtData = {
-  message: string;
-  file_url: string;
+  message?: string;
+  file_url?: string;
 };
 
 const NewAnalysisSteps: React.FC = () => {
