@@ -561,7 +561,8 @@ def main(frame):
     cv2.imshow("Copia", frameCopia)
     cv2.imshow("Normal", frame)
 
-    out.write(frame)
+    return frame
+
 
 # Función que recibe el centro de la pelota y pasa sus coordenadas a un plano 2D de la cancha de tenis
 def coordenadaPorMatriz(centro):
@@ -1888,7 +1889,9 @@ for _ in range(frame_count - aSaltear):
         #cv2.imwrite('zoomed_image.jpg', zoomed_area)
         #break
 
-    main(frame)
+    aGuardar = main(frame)
+
+    out.write(aGuardar)
 
     #print("pts_piques", pts_piques_finales)
     #print("pts_golpes", pts_golpes_finales)
