@@ -561,6 +561,8 @@ def main(frame):
     cv2.imshow("Copia", frameCopia)
     cv2.imshow("Normal", frame)
 
+    out.write(frame)
+
 # Función que recibe el centro de la pelota y pasa sus coordenadas a un plano 2D de la cancha de tenis
 def coordenadaPorMatriz(centro):
     # Adapto la variable centro para que sea siempre de esta forma ((x, y), r)
@@ -1802,6 +1804,16 @@ radio = None
 corregir = (False, 0)
 
 color_pre_centro = None
+
+# Configura los parámetros para el nuevo video de salida
+output_video_path = 'video_procesado.mp4'  # Ruta para el nuevo video de salida
+frame_width = int(vs.get(3))  # Ancho del cuadro del video original
+frame_height = int(vs.get(4))  # Altura del cuadro del video original
+output_fps = 30  # Fotogramas por segundo para el nuevo video
+
+# Crea un objeto VideoWriter para escribir el video procesado
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec para el formato de salida (puedes cambiarlo)
+out = cv2.VideoWriter(output_video_path, fourcc, output_fps, (frame_width, frame_height))
 
 # Abrir el archivo en modo de lectura
 with open(ruta_archivo, "r") as archivo:
