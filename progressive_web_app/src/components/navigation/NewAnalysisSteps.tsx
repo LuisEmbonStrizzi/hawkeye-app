@@ -55,7 +55,7 @@ const NewAnalysisSteps: React.FC = () => {
 
     void getBattery();
     void getCourtPhoto();
-  }, []);
+  }, [courtData]);
 
   const [alignedCorners, setAlignedCorners] = useState<boolean>(false);
 
