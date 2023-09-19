@@ -59,22 +59,22 @@ const NewAnalysis = () => {
 
   return (
     <main className="min-h-screen bg-background">
-      {/* {hasFetchedData ? (
-      wifi ? (
-        <GoproWifi
-          firstOnClick={() => {
-            setWifi(false);
-            setLoading(true);
-          }}
-          networkName={wifiCredentials?.networkName}
-          password={wifiCredentials?.password}
-        />
+      {hasFetchedData ? (
+        wifi ? (
+          <GoproWifi
+            firstOnClick={() => {
+              setWifi(false);
+              setLoading(true);
+            }}
+            networkName={wifiCredentials?.networkName}
+            password={wifiCredentials?.password}
+          />
+        ) : (
+          <NewAnalysisSteps />
+        )
       ) : (
-        <NewAnalysisSteps />
-      )
-    ) : (
-      <Loading loadingText="Fetching GoPro network..." />
-    )} */}
+        <Loading loadingText="Fetching GoPro network..." />
+      )}
     </main>
   );
 };
