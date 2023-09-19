@@ -3,13 +3,19 @@ import { motion } from "framer-motion";
 import { useState, useRef } from "react";
 import Button from "../Button";
 import Link from "next/link";
+import { type courtData } from "../navigation/NewAnalysisSteps";
 
 type AlignCornersProps = {
   image: string | undefined;
   firstOnClick: () => void;
+  setCourtData: React.Dispatch<React.SetStateAction<courtData | null>>;
 };
 
-const AlignCorners: React.FC<AlignCornersProps> = ({ image, firstOnClick }) => {
+const AlignCorners: React.FC<AlignCornersProps> = ({
+  image,
+  firstOnClick,
+  setCourtData,
+}) => {
   const initialVertices = [
     { x: 100, y: 100 },
     { x: 100, y: 200 },
@@ -247,6 +253,26 @@ const AlignCorners: React.FC<AlignCornersProps> = ({ image, firstOnClick }) => {
           />
         </div>
       </section>
+      <Button
+        style="primary"
+        onClick={() => setCourtData(null)}
+        icon={
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M8 15L6.9375 13.9375L10.875 10L6.9375 6.0625L8 5L13 10L8 15Z"
+              fill="#181B27"
+            />
+          </svg>
+        }
+        label="Submit corners"
+        padding="both-left"
+      />
     </div>
   );
 };

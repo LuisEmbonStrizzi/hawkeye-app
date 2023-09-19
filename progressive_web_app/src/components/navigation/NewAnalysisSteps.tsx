@@ -12,7 +12,7 @@ import { type InferGetServerSidePropsType } from "next/types";
 import { type TgetBattery } from "~/server/api/routers/videos";
 import Loading from "../new-analysis/Loading";
 
-type courtData = {
+export type courtData = {
   message?: string;
   file_url?: string;
 };
@@ -67,6 +67,7 @@ const NewAnalysisSteps: React.FC = () => {
         <AlignCorners
           image={courtData?.file_url}
           firstOnClick={() => setAlignedCorners(true)}
+          setCourtData={setCourtData}
         />
       ) : (
         <Loading loadingText="Fetching court image..." />
