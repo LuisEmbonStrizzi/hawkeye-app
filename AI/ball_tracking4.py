@@ -1085,72 +1085,15 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
             circles_copia.append(circulo)
 
     if circles_copia is not None:
-        todos_pixeles = []
         promedios_colores = []
-        for circulo in circles_copia:
-            pixeles_colores = []
-            x, y, radius = circulo
-            x, y, radius = int(x), int(y), int(radius)
-            pixeles = []
+        pixeles = []
+        for i in range(imagen_recortada_copia.shape[1]):
+            for h in range(imagen_recortada_copia.shape[0]):
+                promedios_colores.append((imagen_recortada_copia[i, h]))
+                pixeles.append((i, h))
 
-            if x < imagen_recortada_copia.shape[1] and y < imagen_recortada_copia.shape[0]: pixeles.append((x, y))
-
-            for i in range(1, radius + 1):
-                if x + i < imagen_recortada_copia.shape[1] and y < imagen_recortada_copia.shape[0]: pixeles.append((x + i, y))
-                if x - i < imagen_recortada_copia.shape[1] and y < imagen_recortada_copia.shape[0]: pixeles.append((x - i, y))
-
-            for i in range(1, radius + 1):
-                if x < imagen_recortada_copia.shape[1] and y + i < imagen_recortada_copia.shape[0]: pixeles.append((x, y + i))
-                if x < imagen_recortada_copia.shape[1] and y - i < imagen_recortada_copia.shape[0]: pixeles.append((x, y - i))
-
-            for i in range(1, radius + 1):
-                for h in range(1, radius + 1):
-                    if math.sqrt(h **2 + i **2) <= radius:
-                        if x + h < imagen_recortada_copia.shape[1] and y + i < imagen_recortada_copia.shape[0]: pixeles.append((x + h, y + i))
-                        if x - h < imagen_recortada_copia.shape[1] and y + i < imagen_recortada_copia.shape[0]: pixeles.append((x - h, y + i))
-                        if x + h < imagen_recortada_copia.shape[1] and y - i < imagen_recortada_copia.shape[0]: pixeles.append((x + h, y - i))
-                        if x - h < imagen_recortada_copia.shape[1] and y - i < imagen_recortada_copia.shape[0]: pixeles.append((x - h, y - i))
-                    else: break
-
-            #if len(pixeles) == 0: print("Circulo", circulo)
-
-            for pixel in pixeles:
-                color = imagen_recortada_copia[pixel[1], pixel[0]]
-                pixeles_colores.append(color)
-
-            if pixeles is not None:
-                # Calcula el promedio de cada posición utilizando comprensiones de listas
-                promedio_primer_valor = sum(sublista[0] for sublista in pixeles_colores) / len(pixeles_colores)
-                promedio_segundo_valor = sum(sublista[1] for sublista in pixeles_colores) / len(pixeles_colores)
-                promedio_tercer_valor = sum(sublista[2] for sublista in pixeles_colores) / len(pixeles_colores)
-
-                #print("Pixeles colores aaaaaaaaaaaaaaa", pixeles_colores[0])
-
-                # print("Promedio primer valor", promedio_primer_valor)
-                # print("Promedio segundo valor", promedio_segundo_valor)
-                # print("Promedio tercer valor", promedio_tercer_valor)
-                
-                todos_pixeles.append(pixeles)
-                promedios_colores.append((promedio_primer_valor, promedio_segundo_valor, promedio_tercer_valor))
-
-        #print("Promedios colores", promedios_colores)
-
-        #for x, y, radius in circles_copia:
-        #    cv2.circle(imagen_recortada_copia, (int(x), int(y)), int(radius), (0, 0, 255), 5)
-        #    break
-        
-        #for pixel in todos_pixeles:
-        #    for pxl in pixel:
-        #        imagen_recortada_copia[int(pxl[1]), int(pxl[0])] = [0, 0, 0]
-        #    break
-
-        # Definir el color verde como un vector RGB normalizado (0, 255, 0)
-        #color_verde = np.array([0, 255, 0]) / np.linalg.norm(np.array([0, 255, 0]))
         color_pre_centro = np.array(color_pre_centro) / np.linalg.norm(np.array(color_pre_centro))
-        #print("Color pre centro", color_pre_centro)
 
-        # Calcular las similitudes de coseno entre los colores promedio y el color verde
-        #similitudes_coseno = [np.dot(color / np.linalg.norm(color), color_verde) for color in promedios_colores]
         similitudes_coseno = [np.dot(color / np.linalg.norm(color), color_pre_centro) for color in promedios_colores]
 
         # Encontrar el índice de la similitud de coseno más alta (el color más similar al verde)
@@ -1162,16 +1105,14 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
 
         #if numeroFrame == 312: cv2.imwrite("imagen_recortada312SinCirculos.png", imagen_recortada_copia)
 
-        # Mostrar el círculo más cercano al verde en la imagen original
-        cv2.circle(imagen_recortada_copia, (int(circles_copia[indice_similitud_mas_alta][0]), int(circles_copia[indice_similitud_mas_alta][1])),
-            int(circles_copia[indice_similitud_mas_alta][2]), (0, 255, 0), 2)
+        cv2.circle(imagen_recortada_copia, (int(pixeles[indice_similitud_mas_alta][0]), int(pixeles[indice_similitud_mas_alta][1])), 5, (0, 0, 255), 5)
     
     #print("Circles", circles_copia)
     #print("Pixeles", todos_pixeles[0])
 
     if circles_copia is not None:
         circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * resizer), 0.2, True, imagen_recortada, (x1, y1), False, False)
-        circuloDetectado = [circles_copia[indice_similitud_mas_alta][0] * resizer, circles_copia[indice_similitud_mas_alta][1] * resizer, circles_copia[indice_similitud_mas_alta][2] * resizer]
+        #circuloDetectado = [circles_copia[indice_similitud_mas_alta][0] * resizer, circles_copia[indice_similitud_mas_alta][1] * resizer, circles_copia[indice_similitud_mas_alta][2] * resizer]
         
         #if numeroFrame == 51: 
             #cv2.imwrite("Frame51.jpg", frame)
