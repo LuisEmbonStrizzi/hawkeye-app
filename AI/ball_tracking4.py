@@ -474,58 +474,8 @@ def main(frame):
     
     ultimosFrames.append(frameCopia)
 
-    pixeles = []
-    pixeles_colores = []
-
-    if centro is not None:
-        if centro[0][0] < frame.shape[1] and centro[0][1] < frame.shape[0]: pixeles.append((centro[0][0], centro[0][1]))
-
-        for i in range(1, centro[1] + 1):
-            if centro[0][0] + i < frame.shape[1] and centro[0][1] < frame.shape[0]: pixeles.append((centro[0][0] + i, centro[0][1]))
-            if centro[0][0] - i < frame.shape[1] and centro[0][1] < frame.shape[0]: pixeles.append((centro[0][0] - i, centro[0][1]))
-
-        for i in range(1, centro[1] + 1):
-            if centro[0][0] < frame.shape[1] and centro[0][1] + i < frame.shape[0]: pixeles.append((centro[0][0], centro[0][1] + i))
-            if centro[0][0] < frame.shape[1] and centro[0][1] - i < frame.shape[0]: pixeles.append((centro[0][0], centro[0][1] - i))
-
-        for i in range(1, centro[1] + 1):
-            for h in range(1, centro[1] + 1):
-                if math.sqrt(h **2 + i **2) <= centro[1]:
-                    if centro[0][0] + h < frame.shape[1] and centro[0][1] + i < frame.shape[0]: pixeles.append((centro[0][0] + h, centro[0][1] + i))
-                    if centro[0][0] - h < frame.shape[1] and centro[0][1] + i < frame.shape[0]: pixeles.append((centro[0][0] - h, centro[0][1] + i))
-                    if centro[0][0] + h < frame.shape[1] and centro[0][1] - i < frame.shape[0]: pixeles.append((centro[0][0] + h, centro[0][1] - i))
-                    if centro[0][0] - h < frame.shape[1] and centro[0][1] - i < frame.shape[0]: pixeles.append((centro[0][0] - h, centro[0][1] - i))
-                else: break
-    
-        for pixel in pixeles:
-            color = frameCopia[pixel[1], pixel[0]]
-            pixeles_colores.append(color)
-
-        # Calcula el promedio de cada posición utilizando comprensiones de listas
-        promedio_primer_valor = sum(sublista[0] for sublista in pixeles_colores) / len(pixeles_colores)
-        promedio_segundo_valor = sum(sublista[1] for sublista in pixeles_colores) / len(pixeles_colores)
-        promedio_tercer_valor = sum(sublista[2] for sublista in pixeles_colores) / len(pixeles_colores)
-
-        color_pre_centro = (int(promedio_primer_valor), int(promedio_segundo_valor), int(promedio_tercer_valor))
-
-        #cv2.circle(frameCopia, centro[0], centro[1], (0, 0, 255), 2)
-        #for pixel in pixeles:
-        #    frameCopia[int(pixel[1]), int(pixel[0])] = [0, 0, 0]
-
-        # suma1 = 0
-        # suma2 = 0
-        # suma3 = 0
-        # for sublista in pixeles_colores:
-        #     suma1 += sublista[0]
-        #     suma2 += sublista[1]
-        #     print("sublista", sublista)
-        #     suma3 += sublista[2]
-
-        # suma1 /= len(pixeles_colores)
-        # suma2 /= len(pixeles_colores)
-        # suma3 /= len(pixeles_colores)
-
-        # print("Promedio de colores", suma1, suma2, suma3)
+    color_pre_centro = frameCopia[centro[0][1], centro[0][0]]
+    color_pre_centro = (color_pre_centro[0], color_pre_centro[1], color_pre_centro[2])
 
     #if numeroFrame == 50: cv2.imwrite("Frame50Copia.jpg", frameCopia)
     #if numeroFrame == 51: cv2.imwrite("Frame51Copia.jpg", frameCopia)
@@ -967,7 +917,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     imagen_recortada_copia = imagen_recortada.copy()
 
     # Agrandamos el frame para ver más la pelota
-    imagen_recortada = imutils.resize(imagen_recortada, imagen_recortada.shape[1] * resizer, imagen_recortada.shape[0] * resizer)
+    #imagen_recortada = imutils.resize(imagen_recortada, imagen_recortada.shape[1] * resizer, imagen_recortada.shape[0] * resizer)
 
     # Convertir la imagen a escala de grises
     imagen_gris = cv2.cvtColor(imagen_recortada, cv2.COLOR_BGR2GRAY)
@@ -1077,35 +1027,79 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
         # cv2.circle(imagen_recortada, (circles[0, indice_color_mas_cercano, 0], circles[0, indice_color_mas_cercano, 1]),
         #         circles[0, indice_color_mas_cercano, 2], (0, 0, 255), 5)
 
-    circles_casi_copia = [[[valor/resizer for valor in sublista] for sublista in sublista_exterior] for sublista_exterior in circles]
+    circles_casi_copia = None
+    circles_copia = None
+    if circles is not None:
+        circles_casi_copia = [[[valor/resizer for valor in sublista] for sublista in sublista_exterior] for sublista_exterior in circles]
 
-    circles_copia = []
-    for circulo in circles_casi_copia[0]:
-        if abs(circulo[2] - radioDeteccionPorCirculo) <= 15:
-            circles_copia.append(circulo)
+        circles_copia = []
+        for circulo in circles_casi_copia[0]:
+            if abs(circulo[2] - radioDeteccionPorCirculo) <= 15:
+                circles_copia.append(circulo)
 
-    if circles_copia is not None:
-        promedios_colores = []
-        pixeles = []
-        for i in range(imagen_recortada_copia.shape[1]):
-            for h in range(imagen_recortada_copia.shape[0]):
-                promedios_colores.append((imagen_recortada_copia[i, h]))
-                pixeles.append((i, h))
+        if circles_copia is not None:
+            promedios_colores = []
+            pixeles = []
+            color_pre_centro = np.array([color_pre_centro[0], color_pre_centro[1], color_pre_centro[2]])
+            # Inicializar una variable para el color más cercano y la distancia más corta
+            color_mas_cercano = None
+            distancia_mas_corta = float('inf')
+            for i in range(imagen_recortada_copia.shape[1]):
+                for h in range(imagen_recortada_copia.shape[0]):
+                    color = imagen_recortada_copia[h, i]
+                    distancia = np.linalg.norm(color - color_pre_centro)
+                    #promedios_colores.append((color[0], color[1], color[2]))
+                    #pixeles.append((i, h))
 
-        color_pre_centro = np.array(color_pre_centro) / np.linalg.norm(np.array(color_pre_centro))
+                     # Si la distancia actual es menor que la distancia más corta encontrada hasta ahora
+                    if distancia < distancia_mas_corta:
+                        distancia_mas_corta = distancia
+                        color_mas_cercano = color
+                        pixel = (i, h)
+            
+            # El color más cercano se encuentra en color_mas_cercano
+            print("El color más cercano a", color_pre_centro, "es", color_mas_cercano)
 
-        similitudes_coseno = [np.dot(color / np.linalg.norm(color), color_pre_centro) for color in promedios_colores]
+            # color_pre_centro = np.array(color_pre_centro) / np.linalg.norm(np.array(color_pre_centro))
 
-        # Encontrar el índice de la similitud de coseno más alta (el color más similar al verde)
-        indice_similitud_mas_alta = np.argmax(similitudes_coseno)
+            # similitudes_coseno = [np.dot(color / np.linalg.norm(color), color_pre_centro) for color in promedios_colores]
 
-        #print("Es este", circles_copia[indice_similitud_mas_alta])
-        print("Coseno más alto", similitudes_coseno[indice_similitud_mas_alta])
-        if not correccion: ultimosSimilitudesCoseno.append(similitudes_coseno[indice_similitud_mas_alta])
+            # # Encontrar el índice de la similitud de coseno más alta (el color más similar al verde)
+            # indice_similitud_mas_alta = np.argmax(similitudes_coseno)
 
-        #if numeroFrame == 312: cv2.imwrite("imagen_recortada312SinCirculos.png", imagen_recortada_copia)
+            #print("Promedios Colores", promedios_colores)
 
-        cv2.circle(imagen_recortada_copia, (int(pixeles[indice_similitud_mas_alta][0]), int(pixeles[indice_similitud_mas_alta][1])), 5, (0, 0, 255), 5)
+            # Valor de referencia BGR
+            #color_pre_centro = np.array([color_pre_centro[0], color_pre_centro[1], color_pre_centro[2]])
+
+            # Calcula la distancia entre el valor de referencia y cada valor en la lista
+            #distancias = [distancia_bgr(color_pre_centro, np.array(color)) for color in promedios_colores]
+
+            # Encuentra el índice del valor más cercano
+            #indice_mas_cercano = np.argmin(distancias)
+
+            # El valor más cercano en la lista
+            #color_mas_cercano = promedios_colores[indice_mas_cercano]
+
+            #print(f"El color más cercano a ({color_pre_centro}) en la lista es ({color_mas_cercano})")
+
+            #print("Es este", circles_copia[indice_similitud_mas_alta])
+            #print("color pre centro", color_pre_centro)
+            #print("indice mas cercano", indice_mas_cercano)
+            #print("Promedios colores", promedios_colores[81795])
+            #print("Pixeles", pixeles[81795])
+            #print("Distancias", distancias)
+            #print("Len promedios colores", len(promedios_colores))
+            #print("Len pixeles", len(pixeles))
+            #print("Len distancias", len(distancias))
+            #print("Pixel", pixeles[indice_mas_cercano])
+            #print("Color", promedios_colores[indice_mas_cercano])
+            #print("Distancia más baja", distancias[indice_mas_cercano])
+            if not correccion: ultimosSimilitudesCoseno.append(distancia_mas_corta)
+
+            #if numeroFrame == 312: cv2.imwrite("imagen_recortada312SinCirculos.png", imagen_recortada_copia)
+
+            cv2.circle(imagen_recortada_copia, (pixel[0], pixel[1]), 5, (0, 0, 255), 5)
     
     #print("Circles", circles_copia)
     #print("Pixeles", todos_pixeles[0])
@@ -1129,7 +1123,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
 
             centro = ((xr, yr), rr)
             if correccion:
-                cv2.imwrite("imagen_recortada" + str(contadorCorreccion) + ".png", imagen_recortada) 
+                #cv2.imwrite("imagen_recortada" + str(contadorCorreccion) + ".png", imagen_recortada) 
                 return centro, similitudes_coseno[indice_similitud_mas_alta], promedios_colores[indice_similitud_mas_alta]
             centroConDecimales = ((x1 + circuloDetectado[0] / resizer, y1 + circuloDetectado[1] / resizer), circuloDetectado[2] / resizer)
             ultimosCentrosCirculo.appendleft(centroConDecimales)
@@ -1161,7 +1155,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
             cv2.circle(imagen_recortada, (np.round(x).astype(int) * resizer, np.round(y).astype(int) * resizer), np.round(r).astype(int) * resizer, (0, 255, 0), 2)
         #if numeroFrame == 68: cv2.imwrite("imagen_recortada68.png", imagen_recortada)
         #cv2.imwrite("imagen_recortada68.png", imagen_recortada)
-        if numeroFrame == 312: cv2.imwrite("imagen_recortada312ConCirculo.png", imagen_recortada_copia)
+        #if numeroFrame == 312: cv2.imwrite("imagen_recortada312ConCirculo.png", imagen_recortada_copia)
 
     imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
     cv2.imshow("Imagen recortada", imagen_recortada)
@@ -1596,7 +1590,11 @@ def cambiosDeDireccion(ultCentros, correccion):
     print("Cambios de Dirección", cambios_de_direccion)
     return cambios_de_direccion
 
-
+def distancia_bgr(color1, color2):
+    """
+    Calcula la distancia euclidiana entre dos colores BGR.
+    """
+    return np.sqrt(np.sum((color1 - color2) ** 2))
         
 # Toma la cámara si no recibe video
 if not args.get("video", False):
@@ -1605,7 +1603,7 @@ if not args.get("video", False):
     # Toma video en caso de haber
 else:
     vs = cv2.VideoCapture(args["video"])
-    vs2 = cv2.VideoCapture(args["video"])
+    #vs2 = cv2.VideoCapture(args["video"])
 
 # Rango de deteccion de verdes
 greenLower = np.array([29, 50, 110])
@@ -1716,6 +1714,7 @@ previous_time = start_time
 
 aSaltear = 100
 aSaltear = 0
+aSaltear = 280
 
 ultFrames = deque(maxlen=5)
 
@@ -1749,16 +1748,6 @@ corregir = (False, 0)
 
 color_pre_centro = None
 
-# Configura los parámetros para el nuevo video de salida
-output_video_path = 'video_procesado.mp4'  # Ruta para el nuevo video de salida
-frame_width = int(vs.get(3))  # Ancho del cuadro del video original
-frame_height = int(vs.get(4))  # Altura del cuadro del video original
-output_fps = 30  # Fotogramas por segundo para el nuevo video
-
-# Crea un objeto VideoWriter para escribir el video procesado
-fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec para el formato de salida (puedes cambiarlo)
-out = cv2.VideoWriter(output_video_path, fourcc, output_fps, (frame_width, frame_height))
-
 # Abrir el archivo en modo de lectura
 with open(ruta_archivo, "r") as archivo:
     # Leer el contenido del archivo
@@ -1776,7 +1765,7 @@ with open(ruta_archivo, "r") as archivo:
 
         circulosAIgnorar.append(lista_enteros)
 
-vs2.read()
+#vs2.read()
 
 # Se corre el for la cantidad de frames que contiene el video
 for _ in range(frame_count - aSaltear):
@@ -1832,9 +1821,7 @@ for _ in range(frame_count - aSaltear):
         #cv2.imwrite('zoomed_image.jpg', zoomed_area)
         #break
 
-    aGuardar = main(frame)
-
-    out.write(aGuardar)
+    main(frame)
 
     #print("pts_piques", pts_piques_finales)
     #print("pts_golpes", pts_golpes_finales)

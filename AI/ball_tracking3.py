@@ -536,6 +536,7 @@ def main(frame):
     #if numeroFrame == 56: cv2.imwrite("Frame56Copia.jpg", frameCopia)
 
     print("Color centro", color_pre_centro)
+    print("type color centro", type(color_pre_centro))
     print("Centro", centro)
     print("Centro con decimales", centroConDecimales)
     #print("Radio de la pelota", radio)
