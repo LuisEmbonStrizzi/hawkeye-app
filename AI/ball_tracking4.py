@@ -1038,8 +1038,8 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
                 circles_copia.append(circulo)
 
         if circles_copia is not None:
-            promedios_colores = []
-            pixeles = []
+            #promedios_colores = []
+            #pixeles = []
             color_pre_centro = np.array([color_pre_centro[0], color_pre_centro[1], color_pre_centro[2]])
             # Inicializar una variable para el color más cercano y la distancia más corta
             color_mas_cercano = None
@@ -1048,6 +1048,10 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
                 for h in range(imagen_recortada_copia.shape[0]):
                     color = imagen_recortada_copia[h, i]
                     distancia = np.linalg.norm(color - color_pre_centro)
+                    distancia = abs(int(color[0]) - int(color_pre_centro[0])) + abs(int(color[1]) - int(color_pre_centro[1])) + abs(int(color[2]) - int(color_pre_centro[2]))
+                    #if h == 214 and i == 202:
+                    #    print("Color", color)
+                    #    print("Distancia", distancia)
                     #promedios_colores.append((color[0], color[1], color[2]))
                     #pixeles.append((i, h))
 
@@ -1059,6 +1063,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
             
             # El color más cercano se encuentra en color_mas_cercano
             print("El color más cercano a", color_pre_centro, "es", color_mas_cercano)
+            print("Distancia más corta", distancia_mas_corta)
 
             # color_pre_centro = np.array(color_pre_centro) / np.linalg.norm(np.array(color_pre_centro))
 
@@ -1097,7 +1102,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
             #print("Distancia más baja", distancias[indice_mas_cercano])
             if not correccion: ultimosSimilitudesCoseno.append(distancia_mas_corta)
 
-            #if numeroFrame == 312: cv2.imwrite("imagen_recortada312SinCirculos.png", imagen_recortada_copia)
+            if numeroFrame == 93: cv2.imwrite("imagen_recortada93SinCirculos.png", imagen_recortada_copia)
 
             cv2.circle(imagen_recortada_copia, (pixel[0], pixel[1]), 5, (0, 0, 255), 5)
     
@@ -1107,7 +1112,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     if circles_copia is not None:
         circuloDetectado = tp_fix(circles[0], ((imagen_recortada.shape[0] / 2, imagen_recortada.shape[1] / 2), radioDeteccionPorCirculo * resizer), 0.2, True, imagen_recortada, (x1, y1), False, False)
         #circuloDetectado = [circles_copia[indice_similitud_mas_alta][0] * resizer, circles_copia[indice_similitud_mas_alta][1] * resizer, circles_copia[indice_similitud_mas_alta][2] * resizer]
-        
+        circuloDetectado = [pixel[0], pixel[1], 5]
         #if numeroFrame == 51: 
             #cv2.imwrite("Frame51.jpg", frame)
             #print("Circulo detectado: ", circuloDetectado)
@@ -1119,15 +1124,21 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
             yr = int(y1 + circuloDetectado[1] / resizer)
             rr = int(circuloDetectado[2] / resizer)
 
+            xr = int(x1 + circuloDetectado[0])
+            yr = int(y1 + circuloDetectado[1])
+            rr = int(circuloDetectado[2])
+
             cv2.circle(frame, (xr, yr), rr, (255, 255, 0), thickness = 2)
 
             centro = ((xr, yr), rr)
             if correccion:
                 #cv2.imwrite("imagen_recortada" + str(contadorCorreccion) + ".png", imagen_recortada) 
-                return centro, similitudes_coseno[indice_similitud_mas_alta], promedios_colores[indice_similitud_mas_alta]
+                return centro, distancia_mas_corta, color_mas_cercano
             centroConDecimales = ((x1 + circuloDetectado[0] / resizer, y1 + circuloDetectado[1] / resizer), circuloDetectado[2] / resizer)
+            centroConDecimales = ((x1 + circuloDetectado[0], y1 + circuloDetectado[1]), circuloDetectado[2])
             ultimosCentrosCirculo.appendleft(centroConDecimales)
             radioDeteccionPorCirculo = circuloDetectado[2] / resizer
+            radioDeteccionPorCirculo = circuloDetectado[2]
             TiempoDeteccionUltimaPelota = 0
             deteccionPorColor = False
 
@@ -1157,7 +1168,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
         #cv2.imwrite("imagen_recortada68.png", imagen_recortada)
         #if numeroFrame == 312: cv2.imwrite("imagen_recortada312ConCirculo.png", imagen_recortada_copia)
 
-    imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
+    #imagen_recortada = imutils.resize(imagen_recortada, int(imagen_recortada.shape[1] / resizer), int(imagen_recortada.shape[0] / resizer))
     cv2.imshow("Imagen recortada", imagen_recortada)
     cv2.imshow("Imagen recortada copia", imagen_recortada_copia)
         
@@ -1715,6 +1726,7 @@ previous_time = start_time
 aSaltear = 100
 aSaltear = 0
 aSaltear = 280
+aSaltear = 0
 
 ultFrames = deque(maxlen=5)
 
