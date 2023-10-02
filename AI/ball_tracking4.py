@@ -1251,23 +1251,38 @@ def cambiosDeDireccion(ultCentros, correccion):
     global color_pre_centro
     global ultimosCentrosGlobales
 
-    #for i in ultCentros:
-    #    print("ultCentros", i[0])
-
     cambios_de_direccion = 0
     movimiento_en_x = []
     movimiento_en_y = []
     deteccionesPorColor = []
     deteccionesPorColorCambio = []
+    referencia_x = None
+    referencia_y = None
     for i in range(len(ultCentros) - 1):
-        if abs(ultCentros[i + 1][0][0][0] - ultCentros[i][0][0][0]) <= 5 and len(movimiento_en_x) > 0: derecha = movimiento_en_x[-1]
-        elif ultCentros[i + 1][0][0][0] < ultCentros[i][0][0][0]: derecha = False
-        elif ultCentros[i + 1][0][0][0] > ultCentros[i][0][0][0]: derecha = True
+        if referencia_x is not None:
+            comparador1_x = referencia_x
+            referencia_x = None
+        else: comparador1_x = ultCentros[i][0][0][0]
+        comparador2_x = ultCentros[i + 1][0][0][0]
+
+        if abs(comparador2_x - comparador1_x) <= 10 and len(movimiento_en_x) > 0: 
+            derecha = movimiento_en_x[-1]
+            referencia_x = comparador1_x
+        elif comparador2_x < comparador1_x: derecha = False
+        elif comparador2_x > comparador1_x: derecha = True
         else: derecha = None
 
-        if abs(ultCentros[i + 1][0][0][1] - ultCentros[i][0][0][1]) <= 5 and len(movimiento_en_y) > 0: abajo = movimiento_en_y[-1]
-        elif ultCentros[i + 1][0][0][1] < ultCentros[i][0][0][1]: abajo = False
-        elif ultCentros[i + 1][0][0][1] > ultCentros[i][0][0][1]: abajo = True
+        if referencia_y is not None:
+            comparador1_y = referencia_y
+            referencia_y = None
+        else: comparador1_y = ultCentros[i][0][0][1]
+        comparador2_y = ultCentros[i + 1][0][0][1]
+
+        if abs(comparador2_y - comparador1_y) <= 10 and len(movimiento_en_y) > 0: 
+            abajo = movimiento_en_y[-1]
+            referencia_y = comparador1_y
+        elif comparador2_y < comparador1_y: abajo = False
+        elif comparador2_y > comparador1_y: abajo = True
         else: abajo = None
 
         movimiento_en_x.append(derecha)
