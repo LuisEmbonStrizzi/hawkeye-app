@@ -245,7 +245,7 @@ def main(frame):
             if radio > 0 and casiCentro is not None and centro is not None:
                 # Dibuja el círculo en la pelota
                 cv2.circle(frame, (int(x), int(y)), int(radio), (0, 255, 255), 2)
-                cv2.circle(frame, (centro[0][0], centro[0][1]), 5, (0, 0, 255), -1)
+                #cv2.circle(frame, (centro[0][0], centro[0][1]), 5, (0, 0, 255), -1)
         
         # Si no se encuentra la pelota, se cambian algunas variables para poder determinar mejor su posición en los siguientes frame
         else:
@@ -265,7 +265,7 @@ def main(frame):
         TiempoTresCentrosConsecutivos = 0
         deteccionColorUltimosFrames.append(None)
 
-    #if numeroFrame == 50: cv2.imwrite("Frame50.jpg", frame)
+    if numeroFrame == 317: cv2.imwrite("Frame317.jpg", frame)
     #if numeroFrame == 51: cv2.imwrite("Frame51.jpg", frame)
     #if numeroFrame == 52: cv2.imwrite("Frame52.jpg", frame)
     #if numeroFrame == 53: cv2.imwrite("Frame53.jpg", frame)
@@ -466,6 +466,32 @@ def main(frame):
     if afterVelocidad and centro is not None:
         afterVelocidad = False
 
+    color_pre_centro = frameCopia[centro[0][1], centro[0][0]]
+    color_pre_centro = (color_pre_centro[0], color_pre_centro[1], color_pre_centro[2])
+
+    centro_lista = [(centro[0])]
+    contador = 1
+
+    while contador > 0:
+        contador = 0
+        for pxl in centro_lista: 
+            for i in range(-1, 2):
+                for h in range(-1, 2):
+                    #print("pxl: ", pxl[0] + i, pxl[1] + h)
+                    if (pxl[0] + i, pxl[1] + h) not in centro_lista:
+                        color = frameCopia[pxl[1] + h, pxl[0] + i]
+                        #print("Color", color)
+                        distancia = abs(int(color[0]) - int(color_pre_centro[0])) + abs(int(color[1]) - int(color_pre_centro[1])) + abs(int(color[2]) - int(color_pre_centro[2]))
+                        if distancia <= 20: 
+                            centro_lista.append((pxl[0] + i, pxl[1] + h))
+                            contador += 1
+
+    print("Centro lista", centro_lista)
+
+    centroConDecimales = cv2.minEnclosingCircle(np.array(centro_lista))
+    radioDeteccionPorCirculo = centroConDecimales[1]
+    centro = ((int(np.rint(centroConDecimales[0][0])), int(np.rint(centroConDecimales[0][1]))), int(np.rint(centroConDecimales[1])))
+
     if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro))
 
     if centro is not None:
@@ -477,7 +503,8 @@ def main(frame):
     color_pre_centro = frameCopia[centro[0][1], centro[0][0]]
     color_pre_centro = (color_pre_centro[0], color_pre_centro[1], color_pre_centro[2])
 
-    #if numeroFrame == 50: cv2.imwrite("Frame50Copia.jpg", frameCopia)
+    cv2.circle(frameCopia, (centro[0][0], centro[0][1]), centro[1], (0, 0, 255), 1)
+    if numeroFrame == 317: cv2.imwrite("Frame317Copia.jpg", frameCopia)
     #if numeroFrame == 51: cv2.imwrite("Frame51Copia.jpg", frameCopia)
     #if numeroFrame == 52: cv2.imwrite("Frame52Copia.jpg", frameCopia)
     #if numeroFrame == 53: cv2.imwrite("Frame53Copia.jpg", frameCopia)
@@ -912,7 +939,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
 
     centro = None
 
-    #if numeroFrame == 67: cv2.imwrite("imagen_recortada67-SinCirculos.png", imagen_recortada)
+    if numeroFrame == 317: cv2.imwrite("imagen_recortada317-SinCirculos.png", imagen_recortada)
 
     color_pre_centro = np.array([color_pre_centro[0], color_pre_centro[1], color_pre_centro[2]])
     
@@ -938,19 +965,43 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
 
     if not correccion: ultimosSimilitudesCoseno.append(distancia_mas_corta)
 
-    if numeroFrame == 93: cv2.imwrite("imagen_recortada93SinCirculos.png", imagen_recortada_copia)
+    #if numeroFrame == 93: cv2.imwrite("imagen_recortada93SinCirculos.png", imagen_recortada_copia)
 
-    cv2.circle(imagen_recortada_copia, (pixel[0], pixel[1]), 5, (0, 0, 255), 5)
+    # centro_lista = [(pixel)]
+    # contador = 1
+
+    # while contador > 0:
+    #     contador = 0
+    #     for pxl in centro_lista: 
+    #         for i in range(-1, 2):
+    #             for h in range(-1, 2):
+    #                 #print("pxl: ", pxl[0] + i, pxl[1] + h)
+    #                 if (pxl[0] + i, pxl[1] + h) not in centro_lista:
+    #                     color = imagen_recortada_copia[pxl[1] + h, pxl[0] + i]
+    #                     #print("Color", color)
+    #                     distancia = abs(int(color[0]) - int(color_mas_cercano[0])) + abs(int(color[1]) - int(color_mas_cercano[1])) + abs(int(color[2]) - int(color_mas_cercano[2]))
+    #                     if distancia <= 15: 
+    #                         centro_lista.append((pxl[0] + i, pxl[1] + h))
+    #                         contador += 1
+
+    # print("Centro lista", centro_lista)
 
     if color_mas_cercano is not None:
         circuloDetectado = [pixel[0], pixel[1], 5]
+        #circuloDetectado = cv2.minEnclosingCircle(np.array(centro_lista))
         
         if circuloDetectado is not None:
+            cv2.circle(imagen_recortada_copia, (pixel[0], pixel[1]), 5, (0, 0, 255), 5)
             cv2.circle(imagen_recortada, (int(circuloDetectado[0]), int(circuloDetectado[1])), 50, (0, 255, 0), thickness = 2)
+            #cv2.circle(imagen_recortada, (int(circuloDetectado[0][0]), int(circuloDetectado[0][1])), int(circuloDetectado[1]), (0, 255, 0), thickness = 2)
 
             xr = int(x1 + circuloDetectado[0])
             yr = int(y1 + circuloDetectado[1])
             rr = int(circuloDetectado[2])
+
+            #xr = int(x1 + circuloDetectado[0][0])
+            #yr = int(y1 + circuloDetectado[0][1])
+            #rr = int(circuloDetectado[1])
 
             cv2.circle(frame, (xr, yr), rr, (255, 255, 0), thickness = 2)
 
@@ -959,8 +1010,10 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
             if correccion: return centro, distancia_mas_corta, color_mas_cercano
             
             centroConDecimales = ((x1 + circuloDetectado[0], y1 + circuloDetectado[1]), circuloDetectado[2])
+            #centroConDecimales = ((x1 + circuloDetectado[0][0], y1 + circuloDetectado[0][1]), circuloDetectado[1])
             ultimosCentrosCirculo.appendleft(centroConDecimales)
             radioDeteccionPorCirculo = circuloDetectado[2]
+            #radioDeteccionPorCirculo = circuloDetectado[1]
             TiempoDeteccionUltimaPelota = 0
             deteccionPorColor = False
             checkRecorteCerca = False
@@ -984,7 +1037,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     cv2.imshow("Imagen recortada", imagen_recortada)
     cv2.imshow("Imagen recortada copia", imagen_recortada_copia)
         
-    a = True
+    a = False
     
     if a:
         pausado = True
@@ -1284,6 +1337,9 @@ def cambiosDeDireccion(ultCentros, correccion):
         elif comparador2_y < comparador1_y: abajo = False
         elif comparador2_y > comparador1_y: abajo = True
         else: abajo = None
+
+        #print("Comparador1_x", comparador1_x, "Comparador2_x", comparador2_x)
+        #print("Comparador1_y", comparador1_y, "Comparador2_y", comparador2_y)
 
         movimiento_en_x.append(derecha)
         movimiento_en_y.append(abajo)
