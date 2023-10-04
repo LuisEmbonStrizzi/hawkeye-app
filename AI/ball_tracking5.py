@@ -59,7 +59,7 @@ def main(frame):
     global ultimosCentrosGlobales
 
     # Agrandamos el frame para ver más la pelota
-    frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
+    #frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
 
     frameCopia = frame.copy()
 
@@ -303,7 +303,9 @@ def main(frame):
     if corregir[0] == True and numeroFrame == corregir[1]:
         #corregirPosicionPelota(ultimosCentrosGlobales)
         corregir = (False, 0)
-        #primeraVez = True
+        primeraVez = True
+        centro = None
+        preCentro = None
         ultimosCentrosCirculo.clear()
 
     #if len(ultimosCentrosGlobales) >= 10 and abs(ultimosCentrosGlobales[0][1] - ultimosCentrosGlobales[1][1]) > 2:
@@ -466,31 +468,32 @@ def main(frame):
     if afterVelocidad and centro is not None:
         afterVelocidad = False
 
-    color_pre_centro = frameCopia[centro[0][1], centro[0][0]]
-    color_pre_centro = (color_pre_centro[0], color_pre_centro[1], color_pre_centro[2])
+    if centro is not None:
+        color_pre_centro = frameCopia[centro[0][1], centro[0][0]]
+        color_pre_centro = (color_pre_centro[0], color_pre_centro[1], color_pre_centro[2])
 
-    centro_lista = [(centro[0])]
-    contador = 1
+        centro_lista = [(centro[0])]
+        contador = 1
 
-    while contador > 0:
-        contador = 0
-        for pxl in centro_lista: 
-            for i in range(-1, 2):
-                for h in range(-1, 2):
-                    #print("pxl: ", pxl[0] + i, pxl[1] + h)
-                    if (pxl[0] + i, pxl[1] + h) not in centro_lista:
-                        color = frameCopia[pxl[1] + h, pxl[0] + i]
-                        #print("Color", color)
-                        distancia = abs(int(color[0]) - int(color_pre_centro[0])) + abs(int(color[1]) - int(color_pre_centro[1])) + abs(int(color[2]) - int(color_pre_centro[2]))
-                        if distancia <= 20: 
-                            centro_lista.append((pxl[0] + i, pxl[1] + h))
-                            contador += 1
+        while contador > 0:
+            contador = 0
+            for pxl in centro_lista: 
+                for i in range(-1, 2):
+                    for h in range(-1, 2):
+                        #print("pxl: ", pxl[0] + i, pxl[1] + h)
+                        if (pxl[0] + i, pxl[1] + h) not in centro_lista:
+                            color = frameCopia[pxl[1] + h, pxl[0] + i]
+                            #print("Color", color)
+                            distancia = abs(int(color[0]) - int(color_pre_centro[0])) + abs(int(color[1]) - int(color_pre_centro[1])) + abs(int(color[2]) - int(color_pre_centro[2]))
+                            if distancia <= 20: 
+                                centro_lista.append((pxl[0] + i, pxl[1] + h))
+                                contador += 1
 
-    print("Centro lista", centro_lista)
+        #print("Centro lista", centro_lista)
 
-    centroConDecimales = cv2.minEnclosingCircle(np.array(centro_lista))
-    radioDeteccionPorCirculo = centroConDecimales[1]
-    centro = ((int(np.rint(centroConDecimales[0][0])), int(np.rint(centroConDecimales[0][1]))), int(np.rint(centroConDecimales[1])))
+        centroConDecimales = cv2.minEnclosingCircle(np.array(centro_lista))
+        radioDeteccionPorCirculo = centroConDecimales[1]
+        centro = ((int(np.rint(centroConDecimales[0][0])), int(np.rint(centroConDecimales[0][1]))), int(np.rint(centroConDecimales[1])))
 
     if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro))
 
@@ -499,11 +502,12 @@ def main(frame):
         preCentroConDecimales = centroConDecimales
     
     ultimosFrames.append(frameCopia)
+    if centro is not None:
+        color_pre_centro = frameCopia[centro[0][1], centro[0][0]]
+        color_pre_centro = (color_pre_centro[0], color_pre_centro[1], color_pre_centro[2])
 
-    color_pre_centro = frameCopia[centro[0][1], centro[0][0]]
-    color_pre_centro = (color_pre_centro[0], color_pre_centro[1], color_pre_centro[2])
+        cv2.circle(frameCopia, (centro[0][0], centro[0][1]), centro[1], (0, 0, 255), 1)
 
-    cv2.circle(frameCopia, (centro[0][0], centro[0][1]), centro[1], (0, 0, 255), 1)
     if numeroFrame == 317: cv2.imwrite("Frame317Copia.jpg", frameCopia)
     #if numeroFrame == 51: cv2.imwrite("Frame51Copia.jpg", frameCopia)
     #if numeroFrame == 52: cv2.imwrite("Frame52Copia.jpg", frameCopia)
@@ -527,11 +531,11 @@ def main(frame):
     
     # Resizea el frame al tamaño original y lo muestra
     frame = imutils.resize(frame, anchoOG, altoOG)
-    frame = imutils.resize(frame, height= 700)
+    frame = imutils.resize(frame, width= 1000)
     frameCopia = imutils.resize(frameCopia, anchoOG, altoOG)
-    frameCopia = imutils.resize(frameCopia, height= 700)
+    frameCopia = imutils.resize(frameCopia, width= 1000)
     mascara = imutils.resize(mascara, anchoOG, altoOG)
-    mascara = imutils.resize(mascara, height= 700)
+    mascara = imutils.resize(mascara, width= 1000)
     
     # También muestra la máscara
     cv2.imshow("Mascara Normal", mascara)
@@ -1037,7 +1041,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     cv2.imshow("Imagen recortada", imagen_recortada)
     cv2.imshow("Imagen recortada copia", imagen_recortada_copia)
         
-    a = True
+    a = False
     
     if a:
         pausado = True
@@ -1386,95 +1390,101 @@ def cambiosDeDireccion(ultCentros, correccion):
     #         diferenciaY = abs(centro1[0][1] - centro2[0][1])
         
     #     print("NumeroFramePelotaIncorrecta", numeroFramePelotaIncorrecta + 1)
-
-    if cambios_de_direccion >= 3 and deteccionesPorColorCambio.count(False) >= 2 and not correccion:
-        circulosCorreccion = []
-        color_preCentro = None
-        contador = -7
-        #print("Deteccion Color Ultimos Frames", list(deteccionColorUltimosFrames)[-7:])
-        for i in ultCentros:
-            verdeCerca = None
-            if i[1] == True:
-                if len(circulosCorreccion) != 0: preCentroCorreccion2 = circulosCorreccion[-1][0] 
-                else: preCentroCorreccion2 = i[4]
-                circulosCorreccion.append((i[0], True, i[2], i[3], preCentroCorreccion2))
-            else:
-                if len(circulosCorreccion) == 0 and i[4] is not None: preCentroCorreccion = i[4]
-                elif len(circulosCorreccion) != 0: preCentroCorreccion = circulosCorreccion[-1][0]
-                else: continue
-                if deteccionColorUltimosFrames[contador] is not None: verdeCerca = tp_fix(deteccionColorUltimosFrames[contador], preCentroCorreccion, 0.2, False, None, (1,0), False, True)
-                if verdeCerca is None:
-                    if color_preCentro is None: color_preCentro = i[3]
-                    correccionCirculos, coseno, casi_color_preCentro = deteccionPorCirculos(preCentroCorreccion, i[2], 300, True, color_preCentro, 4)
-                    if coseno > ultimosSimilitudesCoseno[contador]:
-                        #print("AAAAAAAAAAAAAAAAAAA")
-                        if len(circulosCorreccion) != 0: preCentroCorreccion2 = circulosCorreccion[-1][0] 
-                        else: preCentroCorreccion2 = i[4]
-                        circulosCorreccion.append((correccionCirculos, False, i[2], casi_color_preCentro, preCentroCorreccion2))
-                        color_preCentro = casi_color_preCentro
-                    else:
-                        #print("BBBBBBBBBBBBBBBBBB", correccionCirculos)
-                        if len(circulosCorreccion) != 0: preCentroCorreccion2 = circulosCorreccion[-1][0] 
-                        else: preCentroCorreccion2 = i[4]
-                        circulosCorreccion.append((i[0], False, i[2], i[3], preCentroCorreccion2))
-                        color_preCentro = i[3]
-                    #circulosCorreccion.append(deteccionPorCirculos(i[4], i[2], 300, True, i[3], 4))
-                else:
-                    pixeles = []
-                    pixeles_colores = []
-
-                    if verdeCerca[0][0] < i[2].shape[1] and verdeCerca[0][1] < i[2].shape[0]: pixeles.append((verdeCerca[0][0], verdeCerca[0][1]))
-
-                    for i in range(1, int(verdeCerca[1]) + 1):
-                        if verdeCerca[0][0] + i < i[2].shape[1] and verdeCerca[0][1] < i[2].shape[0]: pixeles.append((verdeCerca[0][0] + i, verdeCerca[0][1]))
-                        if verdeCerca[0][0] - i < i[2].shape[1] and verdeCerca[0][1] < i[2].shape[0]: pixeles.append((verdeCerca[0][0] - i, verdeCerca[0][1]))
-
-                    for i in range(1, int(verdeCerca[1]) + 1):
-                        if verdeCerca[0][0] < i[2].shape[1] and verdeCerca[0][1] + i < i[2].shape[0]: pixeles.append((verdeCerca[0][0], verdeCerca[0][1] + i))
-                        if verdeCerca[0][0] < i[2].shape[1] and verdeCerca[0][1] - i < i[2].shape[0]: pixeles.append((verdeCerca[0][0], verdeCerca[0][1] - i))
-
-                    for i in range(1, int(verdeCerca[1]) + 1):
-                        for h in range(1, verdeCerca[1] + 1):
-                            if math.sqrt(h **2 + i **2) <= verdeCerca[1]:
-                                if verdeCerca[0][0] + h < i[2].shape[1] and verdeCerca[0][1] + i < i[2].shape[0]: pixeles.append((verdeCerca[0][0] + h, verdeCerca[0][1] + i))
-                                if verdeCerca[0][0] - h < i[2].shape[1] and verdeCerca[0][1] + i < i[2].shape[0]: pixeles.append((verdeCerca[0][0] - h, verdeCerca[0][1] + i))
-                                if verdeCerca[0][0] + h < i[2].shape[1] and verdeCerca[0][1] - i < i[2].shape[0]: pixeles.append((verdeCerca[0][0] + h, verdeCerca[0][1] - i))
-                                if verdeCerca[0][0] - h < i[2].shape[1] and verdeCerca[0][1] - i < i[2].shape[0]: pixeles.append((verdeCerca[0][0] - h, verdeCerca[0][1] - i))
-                            else: break
-                
-                    for pixel in pixeles:
-                        color = i[2][pixel[1], pixel[0]]
-                        pixeles_colores.append(color)
-
-                    # Calcula el promedio de cada posición utilizando comprensiones de listas
-                    promedio_primer_valor = sum(sublista[0] for sublista in pixeles_colores) / len(pixeles_colores)
-                    promedio_segundo_valor = sum(sublista[1] for sublista in pixeles_colores) / len(pixeles_colores)
-                    promedio_tercer_valor = sum(sublista[2] for sublista in pixeles_colores) / len(pixeles_colores)
-
-                    color_preCentro = (int(promedio_primer_valor), int(promedio_segundo_valor), int(promedio_tercer_valor))
+    while True:
+        if cambios_de_direccion >= 3:
+            primeraVez = True 
+            break
+        if cambios_de_direccion >= 3 and deteccionesPorColorCambio.count(False) >= 2 and not correccion:
+            primeraVez = True
+            break
+            circulosCorreccion = []
+            color_preCentro = None
+            contador = -7
+            #print("Deteccion Color Ultimos Frames", list(deteccionColorUltimosFrames)[-7:])
+            for i in ultCentros:
+                verdeCerca = None
+                if i[1] == True:
                     if len(circulosCorreccion) != 0: preCentroCorreccion2 = circulosCorreccion[-1][0] 
                     else: preCentroCorreccion2 = i[4]
-                    circulosCorreccion.append((verdeCerca, True, i[2], color_preCentro, preCentroCorreccion2))
-            
-            contador += 1
-    
-        #print("Circulos Correccion", circulosCorreccion)
-        print("Cambios de Direccion Correccion", cambiosDeDireccion(circulosCorreccion, True))
-    
-        if cambiosDeDireccion(circulosCorreccion, True) >= 3:
-            primeraVez = True
-            preCentro = None
-            ultimosCentrosGlobales.clear()
-        else:
-            centroConDecimales = circulosCorreccion[-1][0]
-            radioDeteccionPorCirculo = circulosCorreccion[-1][0][1]
-            ((x, y), radio) = circulosCorreccion[-1][0]
-            preCentro = ((int(x), int(y)), int(radio))
-            color_pre_centro = color_preCentro
-            contador = 0
-            for i in range(-7, 0):
-                ultimosCentrosGlobales[i] = circulosCorreccion[contador]
+                    circulosCorreccion.append((i[0], True, i[2], i[3], preCentroCorreccion2))
+                else:
+                    if len(circulosCorreccion) == 0 and i[4] is not None: preCentroCorreccion = i[4]
+                    elif len(circulosCorreccion) != 0: preCentroCorreccion = circulosCorreccion[-1][0]
+                    else: continue
+                    if deteccionColorUltimosFrames[contador] is not None: verdeCerca = tp_fix(deteccionColorUltimosFrames[contador], preCentroCorreccion, 0.2, False, None, (1,0), False, True)
+                    if verdeCerca is None:
+                        if color_preCentro is None: color_preCentro = i[3]
+                        correccionCirculos, coseno, casi_color_preCentro = deteccionPorCirculos(preCentroCorreccion, i[2], 300, True, color_preCentro, 4)
+                        if coseno > ultimosSimilitudesCoseno[contador]:
+                            #print("AAAAAAAAAAAAAAAAAAA")
+                            if len(circulosCorreccion) != 0: preCentroCorreccion2 = circulosCorreccion[-1][0] 
+                            else: preCentroCorreccion2 = i[4]
+                            circulosCorreccion.append((correccionCirculos, False, i[2], casi_color_preCentro, preCentroCorreccion2))
+                            color_preCentro = casi_color_preCentro
+                        else:
+                            #print("BBBBBBBBBBBBBBBBBB", correccionCirculos)
+                            if len(circulosCorreccion) != 0: preCentroCorreccion2 = circulosCorreccion[-1][0] 
+                            else: preCentroCorreccion2 = i[4]
+                            circulosCorreccion.append((i[0], False, i[2], i[3], preCentroCorreccion2))
+                            color_preCentro = i[3]
+                        #circulosCorreccion.append(deteccionPorCirculos(i[4], i[2], 300, True, i[3], 4))
+                    else:
+                        pixeles = []
+                        pixeles_colores = []
+
+                        if verdeCerca[0][0] < i[2].shape[1] and verdeCerca[0][1] < i[2].shape[0]: pixeles.append((verdeCerca[0][0], verdeCerca[0][1]))
+
+                        for i in range(1, int(verdeCerca[1]) + 1):
+                            if verdeCerca[0][0] + i < i[2].shape[1] and verdeCerca[0][1] < i[2].shape[0]: pixeles.append((verdeCerca[0][0] + i, verdeCerca[0][1]))
+                            if verdeCerca[0][0] - i < i[2].shape[1] and verdeCerca[0][1] < i[2].shape[0]: pixeles.append((verdeCerca[0][0] - i, verdeCerca[0][1]))
+
+                        for i in range(1, int(verdeCerca[1]) + 1):
+                            if verdeCerca[0][0] < i[2].shape[1] and verdeCerca[0][1] + i < i[2].shape[0]: pixeles.append((verdeCerca[0][0], verdeCerca[0][1] + i))
+                            if verdeCerca[0][0] < i[2].shape[1] and verdeCerca[0][1] - i < i[2].shape[0]: pixeles.append((verdeCerca[0][0], verdeCerca[0][1] - i))
+
+                        for i in range(1, int(verdeCerca[1]) + 1):
+                            for h in range(1, verdeCerca[1] + 1):
+                                if math.sqrt(h **2 + i **2) <= verdeCerca[1]:
+                                    if verdeCerca[0][0] + h < i[2].shape[1] and verdeCerca[0][1] + i < i[2].shape[0]: pixeles.append((verdeCerca[0][0] + h, verdeCerca[0][1] + i))
+                                    if verdeCerca[0][0] - h < i[2].shape[1] and verdeCerca[0][1] + i < i[2].shape[0]: pixeles.append((verdeCerca[0][0] - h, verdeCerca[0][1] + i))
+                                    if verdeCerca[0][0] + h < i[2].shape[1] and verdeCerca[0][1] - i < i[2].shape[0]: pixeles.append((verdeCerca[0][0] + h, verdeCerca[0][1] - i))
+                                    if verdeCerca[0][0] - h < i[2].shape[1] and verdeCerca[0][1] - i < i[2].shape[0]: pixeles.append((verdeCerca[0][0] - h, verdeCerca[0][1] - i))
+                                else: break
+                    
+                        for pixel in pixeles:
+                            color = i[2][pixel[1], pixel[0]]
+                            pixeles_colores.append(color)
+
+                        # Calcula el promedio de cada posición utilizando comprensiones de listas
+                        promedio_primer_valor = sum(sublista[0] for sublista in pixeles_colores) / len(pixeles_colores)
+                        promedio_segundo_valor = sum(sublista[1] for sublista in pixeles_colores) / len(pixeles_colores)
+                        promedio_tercer_valor = sum(sublista[2] for sublista in pixeles_colores) / len(pixeles_colores)
+
+                        color_preCentro = (int(promedio_primer_valor), int(promedio_segundo_valor), int(promedio_tercer_valor))
+                        if len(circulosCorreccion) != 0: preCentroCorreccion2 = circulosCorreccion[-1][0] 
+                        else: preCentroCorreccion2 = i[4]
+                        circulosCorreccion.append((verdeCerca, True, i[2], color_preCentro, preCentroCorreccion2))
+                
                 contador += 1
+        
+            #print("Circulos Correccion", circulosCorreccion)
+            print("Cambios de Direccion Correccion", cambiosDeDireccion(circulosCorreccion, True))
+        
+            if cambiosDeDireccion(circulosCorreccion, True) >= 3:
+                primeraVez = True
+                preCentro = None
+                ultimosCentrosGlobales.clear()
+            else:
+                centroConDecimales = circulosCorreccion[-1][0]
+                radioDeteccionPorCirculo = circulosCorreccion[-1][0][1]
+                ((x, y), radio) = circulosCorreccion[-1][0]
+                preCentro = ((int(x), int(y)), int(radio))
+                color_pre_centro = color_preCentro
+                contador = 0
+                for i in range(-7, 0):
+                    ultimosCentrosGlobales[i] = circulosCorreccion[contador]
+                    contador += 1
+        else: break
         
         #for i in circulosCorreccion:
         #    print("Circulos Correccion", i[0])
@@ -1514,6 +1524,15 @@ bottomLeftX = 206
 bottomLeftY = 797
 bottomRightX = 1518
 bottomRightY = 785
+
+topLeftX = 2544
+topLeftY = 1611
+topRightX = 3364
+topRightY = 1583
+bottomLeftX = 1200
+bottomLeftY = 2806
+bottomRightX = 4956
+bottomRightY = 2675
 
 puntoMaximoArribaCancha = min(topLeftY, topRightY)
 puntoMaximoAbajoCancha = max(bottomLeftY, bottomRightY)
@@ -1718,7 +1737,18 @@ for _ in range(frame_count - aSaltear):
         #cv2.imwrite('zoomed_image.jpg', zoomed_area)
         #break
 
-    main(frame)
+    # Ajustar los puntos de recorte si están fuera de rango
+    # x1 = max(preCentro[0][0] - recorteCerca, 0)
+    # y1 = max(preCentro[0][1] - recorteCerca, 0)
+    # x2 = min(preCentro[0][0] + recorteCerca, anchoOG * 3)
+    # y2 = min(preCentro[0][1] + recorteCerca, altoOG * 3)
+
+    frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
+    imagen_cancha = frame[int(min(topLeftY, topRightY) - 150):int(max(bottomRightY, bottomLeftY) + 150), int(min(bottomLeftX, topLeftX) - 150):int(max(bottomRightX, topRightX) + 150)]
+    cv2.imwrite("imagen_cancha.jpg", imagen_cancha)
+
+    #main(frame)
+    main(imagen_cancha)
 
     #print("pts_piques", pts_piques_finales)
     #print("pts_golpes", pts_golpes_finales)
