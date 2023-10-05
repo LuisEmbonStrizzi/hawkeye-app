@@ -93,7 +93,7 @@ def main(frame):
     if circulosAIgnorar is None:
         if (numeroFrame == 1 or numeroFrame == 2 or numeroFrame == 3 or numeroFrame == 4 or numeroFrame == 5):
             # Hacemos una copia del frame
-            frame2 = frame
+            frame2 = frame.copy()
 
             # Agrandamos el frame para ver más la pelota
             frame2 = imutils.resize(frame2, frame2.shape[1] * resizer, frame2.shape[0] * resizer)
@@ -1544,7 +1544,7 @@ duracion = frame_count / fps
 print("FPS: ", fps)
 print("Duracion: ", duracion)
 
-time.sleep(2.0)
+#time.sleep(2.0)
 
 # Indica el tiempo que pasó desde que se detectó la última pelota
 TiempoDeteccionUltimaPelota = 0
