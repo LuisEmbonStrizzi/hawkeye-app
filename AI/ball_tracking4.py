@@ -466,31 +466,32 @@ def main(frame):
     if afterVelocidad and centro is not None:
         afterVelocidad = False
 
-    color_pre_centro = frameCopia[centro[0][1], centro[0][0]]
-    color_pre_centro = (color_pre_centro[0], color_pre_centro[1], color_pre_centro[2])
+    if centro is not None:
+        color_pre_centro = frameCopia[centro[0][1], centro[0][0]]
+        color_pre_centro = (color_pre_centro[0], color_pre_centro[1], color_pre_centro[2])
 
-    centro_lista = [(centro[0])]
-    contador = 1
+        centro_lista = [(centro[0])]
+        contador = 1
 
-    while contador > 0:
-        contador = 0
-        for pxl in centro_lista: 
-            for i in range(-1, 2):
-                for h in range(-1, 2):
-                    #print("pxl: ", pxl[0] + i, pxl[1] + h)
-                    if (pxl[0] + i, pxl[1] + h) not in centro_lista:
-                        color = frameCopia[pxl[1] + h, pxl[0] + i]
-                        #print("Color", color)
-                        distancia = abs(int(color[0]) - int(color_pre_centro[0])) + abs(int(color[1]) - int(color_pre_centro[1])) + abs(int(color[2]) - int(color_pre_centro[2]))
-                        if distancia <= 20: 
-                            centro_lista.append((pxl[0] + i, pxl[1] + h))
-                            contador += 1
+        while contador > 0:
+            contador = 0
+            for pxl in centro_lista: 
+                for i in range(-1, 2):
+                    for h in range(-1, 2):
+                        #print("pxl: ", pxl[0] + i, pxl[1] + h)
+                        if (pxl[0] + i, pxl[1] + h) not in centro_lista:
+                            color = frameCopia[pxl[1] + h, pxl[0] + i]
+                            #print("Color", color)
+                            distancia = abs(int(color[0]) - int(color_pre_centro[0])) + abs(int(color[1]) - int(color_pre_centro[1])) + abs(int(color[2]) - int(color_pre_centro[2]))
+                            if distancia <= 20: 
+                                centro_lista.append((pxl[0] + i, pxl[1] + h))
+                                contador += 1
 
-    print("Centro lista", centro_lista)
+        #print("Centro lista", centro_lista)
 
-    centroConDecimales = cv2.minEnclosingCircle(np.array(centro_lista))
-    radioDeteccionPorCirculo = centroConDecimales[1]
-    centro = ((int(np.rint(centroConDecimales[0][0])), int(np.rint(centroConDecimales[0][1]))), int(np.rint(centroConDecimales[1])))
+        centroConDecimales = cv2.minEnclosingCircle(np.array(centro_lista))
+        radioDeteccionPorCirculo = centroConDecimales[1]
+        centro = ((int(np.rint(centroConDecimales[0][0])), int(np.rint(centroConDecimales[0][1]))), int(np.rint(centroConDecimales[1])))
 
     if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro))
 
@@ -500,10 +501,12 @@ def main(frame):
     
     ultimosFrames.append(frameCopia)
 
-    color_pre_centro = frameCopia[centro[0][1], centro[0][0]]
-    color_pre_centro = (color_pre_centro[0], color_pre_centro[1], color_pre_centro[2])
+    if centro is not None:
+        color_pre_centro = frameCopia[centro[0][1], centro[0][0]]
+        color_pre_centro = (color_pre_centro[0], color_pre_centro[1], color_pre_centro[2])
 
-    cv2.circle(frameCopia, (centro[0][0], centro[0][1]), centro[1], (0, 0, 255), 1)
+        cv2.circle(frameCopia, (centro[0][0], centro[0][1]), centro[1], (0, 0, 255), 1)
+        
     if numeroFrame == 317: cv2.imwrite("Frame317Copia.jpg", frameCopia)
     #if numeroFrame == 51: cv2.imwrite("Frame51Copia.jpg", frameCopia)
     #if numeroFrame == 52: cv2.imwrite("Frame52Copia.jpg", frameCopia)
@@ -1037,7 +1040,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     cv2.imshow("Imagen recortada", imagen_recortada)
     cv2.imshow("Imagen recortada copia", imagen_recortada_copia)
         
-    a = True
+    a = False
     
     if a:
         pausado = True
@@ -1515,6 +1518,15 @@ bottomLeftY = 797
 bottomRightX = 1518
 bottomRightY = 785
 
+topLeftX = 2544
+topLeftY = 1611
+topRightX = 3364
+topRightY = 1583
+bottomLeftX = 1200
+bottomLeftY = 2806
+bottomRightX = 4956
+bottomRightY = 2675
+
 puntoMaximoArribaCancha = min(topLeftY, topRightY)
 puntoMaximoAbajoCancha = max(bottomLeftY, bottomRightY)
 puntoMaximoIzquierdaCancha = min(topLeftX, bottomLeftX)
@@ -1611,7 +1623,7 @@ previous_time = start_time
 aSaltear = 100
 aSaltear = 0
 aSaltear = 280
-#aSaltear = 0
+aSaltear = 0
 
 ultFrames = deque(maxlen=5)
 
