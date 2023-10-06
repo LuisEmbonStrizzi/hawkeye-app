@@ -974,15 +974,23 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
             if distancia <= 30: pixelesColoresCercanos.append((i, h))
 
             # Si la distancia actual es menor que la distancia más corta encontrada hasta ahora
-            if distancia < distancia_mas_corta:
-                distancia_mas_corta = distancia
-                color_mas_cercano = color
-                pixel = (i, h)
+            #if distancia < distancia_mas_corta:
+            #    distancia_mas_corta = distancia
+            #    color_mas_cercano = color
+            #    pixel = (i, h)
 
     #print("Colores", colores[pixel])
     print("len coloresCercanos", len(pixelesColoresCercanos))
+    
     centros_posibles = []
     for pixelColorCercano in pixelesColoresCercanos:
+        pixelEstaEnCentrosPosibles = False
+        for i in centros_posibles:
+            if pixelColorCercano in i[0]:
+                pixelEstaEnCentrosPosibles = True
+                break
+        
+        if pixelEstaEnCentrosPosibles: continue
         
         centro_posible_actual = [(pixelColorCercano)]
         contador = 1
@@ -995,7 +1003,9 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
                 color_a_comparar = colores[(pxl[0], pxl[1])]
                 #color_a_comparar = imagen_recortada_copia[pxl[1], pxl[0]]
                 for i in range(-1, 2):
+                    if pxl[0] + i < 0 or pxl[0] + i >= imagen_recortada_copia.shape[1]: continue
                     for h in range(-1, 2):
+                        if pxl[1] + h < 0 or pxl[1] + h >= imagen_recortada_copia.shape[0]: continue
                         if (pxl[0] + i, pxl[1] + h) not in centro_posible_actual:
                             color = colores[(pxl[0] + i, pxl[1] + h)]
                             #color = imagen_recortada_copia[pxl[1] + h, pxl[0] + i]
@@ -1008,60 +1018,31 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
                                 contador += 1
         
         # Calcula el promedio de cada posición utilizando comprensiones de listas
-        promedio_primer_valor = sum(sublista[0] for sublista in colores_centro) / len(colores_centro)
-        promedio_segundo_valor = sum(sublista[1] for sublista in colores_centro) / len(colores_centro)
-        promedio_tercer_valor = sum(sublista[2] for sublista in colores_centro) / len(colores_centro)
+        promedio_primer_valor = sum(sublista[0] for sublista in colores_posible_centro) / len(colores_posible_centro)
+        promedio_segundo_valor = sum(sublista[1] for sublista in colores_posible_centro) / len(colores_posible_centro)
+        promedio_tercer_valor = sum(sublista[2] for sublista in colores_posible_centro) / len(colores_posible_centro)
 
         color_posible_centro = (int(promedio_primer_valor), int(promedio_segundo_valor), int(promedio_tercer_valor))
 
-        centros_posibles.append((centro_posible_actual, color_posible_centro))
-        
-        
-
-
-    if centro is not None:
-        color_pre_centro = frameCopia[centro[0][1], centro[0][0]]
-        color_pre_centro = (color_pre_centro[0], color_pre_centro[1], color_pre_centro[2])
-
-        centro_lista = [(centro[0])]
-        contador = 1
-
-        colores_centro = []
-
-        while contador > 0:
-            contador = 0
-            for pxl in centro_lista: 
-                for i in range(-1, 2):
-                    for h in range(-1, 2):
-                        #print("pxl: ", pxl[0] + i, pxl[1] + h)
-                        if (pxl[0] + i, pxl[1] + h) not in centro_lista:
-                            color = frameCopia[pxl[1] + h, pxl[0] + i]
-                            colores_centro.append(color)
-                            #print("Color", color)
-                            distancia = abs(int(color[0]) - int(color_pre_centro[0])) + abs(int(color[1]) - int(color_pre_centro[1])) + abs(int(color[2]) - int(color_pre_centro[2]))
-                            if distancia <= 20:
-                                centro_lista.append((pxl[0] + i, pxl[1] + h))
-                                contador += 1
-
-        #print("Centro lista", centro_lista)
-
-        centroConDecimales = cv2.minEnclosingCircle(np.array(centro_lista))
+        centroConDecimales = cv2.minEnclosingCircle(np.array(centro_posible_actual))
         radioDeteccionPorCirculo = centroConDecimales[1]
         centro = ((int(np.rint(centroConDecimales[0][0])), int(np.rint(centroConDecimales[0][1]))), int(np.rint(centroConDecimales[1])))
 
-        #print("colores centro", colores_centro)
+        centros_posibles.append((centro_posible_actual, color_posible_centro, centro))
+    
+    print("Len Centros posibles", len(centros_posibles))
 
-        # Calcula el promedio de cada posición utilizando comprensiones de listas
-        promedio_primer_valor = sum(sublista[0] for sublista in colores_centro) / len(colores_centro)
-        promedio_segundo_valor = sum(sublista[1] for sublista in colores_centro) / len(colores_centro)
-        promedio_tercer_valor = sum(sublista[2] for sublista in colores_centro) / len(colores_centro)
+    distancia_mas_corta = float('inf')
 
-        color_pre_centro = (int(promedio_primer_valor), int(promedio_segundo_valor), int(promedio_tercer_valor))
+    for circle in centros_posibles:
+        cv2.circle(imagen_recortada, (circle[2][0][0], circle[2][0][1]), circle[2][1], (0, 0, 255), 5)
+        distancia = abs(int(circle[1][0]) - int(color_pre_centro[0])) + abs(int(circle[1][1]) - int(color_pre_centro[1])) + abs(int(circle[1][2]) - int(color_pre_centro[2]))
 
-        #color_pre_centro = frameCopia[centro[0][1], centro[0][0]]
-        #color_pre_centro = (color_pre_centro[0], color_pre_centro[1], color_pre_centro[2])
-
-        cv2.circle(frameCopia, (centro[0][0], centro[0][1]), centro[1], (0, 0, 255), 1)
+        # Si la distancia actual es menor que la distancia más corta encontrada hasta ahora
+        if distancia < distancia_mas_corta:
+            distancia_mas_corta = distancia
+            color_mas_cercano = circle[1]
+            pixel = circle[2][0]
     
     # El color más cercano se encuentra en color_mas_cercano
     print("El color más cercano a", color_pre_centro, "es", color_mas_cercano)
@@ -1070,25 +1051,6 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     if not correccion: ultimosSimilitudesCoseno.append(distancia_mas_corta)
 
     #if numeroFrame == 93: cv2.imwrite("imagen_recortada93SinCirculos.png", imagen_recortada_copia)
-
-    # centro_lista = [(pixel)]
-    # contador = 1
-
-    # while contador > 0:
-    #     contador = 0
-    #     for pxl in centro_lista: 
-    #         for i in range(-1, 2):
-    #             for h in range(-1, 2):
-    #                 #print("pxl: ", pxl[0] + i, pxl[1] + h)
-    #                 if (pxl[0] + i, pxl[1] + h) not in centro_lista:
-    #                     color = imagen_recortada_copia[pxl[1] + h, pxl[0] + i]
-    #                     #print("Color", color)
-    #                     distancia = abs(int(color[0]) - int(color_mas_cercano[0])) + abs(int(color[1]) - int(color_mas_cercano[1])) + abs(int(color[2]) - int(color_mas_cercano[2]))
-    #                     if distancia <= 15: 
-    #                         centro_lista.append((pxl[0] + i, pxl[1] + h))
-    #                         contador += 1
-
-    # print("Centro lista", centro_lista)
 
     if color_mas_cercano is not None:
         circuloDetectado = [pixel[0], pixel[1], 5]
