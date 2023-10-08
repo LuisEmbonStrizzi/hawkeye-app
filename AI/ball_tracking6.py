@@ -971,15 +971,18 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
             distancia = np.linalg.norm(color - color_pre_centro)
             distancia = abs(int(color[0]) - int(color_pre_centro[0])) + abs(int(color[1]) - int(color_pre_centro[1])) + abs(int(color[2]) - int(color_pre_centro[2]))
             colores[(i, h)] = color
-            if distancia <= 30: pixelesColoresCercanos.append((i, h))
+            if distancia <= 23: pixelesColoresCercanos.append((i, h))
 
             # Si la distancia actual es menor que la distancia más corta encontrada hasta ahora
-            #if distancia < distancia_mas_corta:
-            #    distancia_mas_corta = distancia
-            #    color_mas_cercano = color
-            #    pixel = (i, h)
+            if distancia < distancia_mas_corta:
+                distancia_mas_corta = distancia
+                color_mas_cercano = color
+                pixel = (i, h)
 
     #print("Colores", colores[pixel])
+    print("Distancia", distancia_mas_corta)
+    print("Color", color_mas_cercano)
+    print("Pixel", pixel)
     print("len coloresCercanos", len(pixelesColoresCercanos))
     
     centros_posibles = []
@@ -1050,7 +1053,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
 
     if not correccion: ultimosSimilitudesCoseno.append(distancia_mas_corta)
 
-    #if numeroFrame == 93: cv2.imwrite("imagen_recortada93SinCirculos.png", imagen_recortada_copia)
+    #if numeroFrame == 314: cv2.imwrite("imagen_recortada314SinCirculos.png", imagen_recortada_copia)
 
     if color_mas_cercano is not None:
         circuloDetectado = [pixel[0], pixel[1], 5]
@@ -1686,7 +1689,7 @@ previous_time = start_time
 aSaltear = 100
 aSaltear = 0
 aSaltear = 280
-aSaltear = 0
+#aSaltear = 0
 
 ultFrames = deque(maxlen=5)
 

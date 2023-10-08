@@ -63,6 +63,8 @@ def main(frame):
 
     frameCopia = frame.copy()
 
+    ultimosFrames.append(frameCopia)
+
     # if numeroFrame == 100:
     #     # Agrandamos el frame para ver más la pelota
     #     frame3 = frame
@@ -466,55 +468,21 @@ def main(frame):
     if afterVelocidad and centro is not None:
         afterVelocidad = False
 
+    #if numeroFrame == 316: cv2.imwrite("Frame316Copia.jpg", frameCopia)
+    #if numeroFrame == 317: cv2.imwrite("Frame317Copia.jpg", frameCopia)
+    #if numeroFrame == 318: cv2.imwrite("Frame318Copia.jpg", frameCopia)
+    #if numeroFrame == 319: cv2.imwrite("Frame319Copia.jpg", frameCopia)
+    #if numeroFrame == 320: cv2.imwrite("Frame320Copia.jpg", frameCopia)
+
     if centro is not None:
-        color_pre_centro = frameCopia[centro[0][1], centro[0][0]]
-        color_pre_centro = (color_pre_centro[0], color_pre_centro[1], color_pre_centro[2])
-
-        centro_lista = [(centro[0])]
-        contador = 1
-
-        while contador > 0:
-            contador = 0
-            for pxl in centro_lista: 
-                for i in range(-1, 2):
-                    for h in range(-1, 2):
-                        #print("pxl: ", pxl[0] + i, pxl[1] + h)
-                        if (pxl[0] + i, pxl[1] + h) not in centro_lista:
-                            color = frameCopia[pxl[1] + h, pxl[0] + i]
-                            #print("Color", color)
-                            distancia = abs(int(color[0]) - int(color_pre_centro[0])) + abs(int(color[1]) - int(color_pre_centro[1])) + abs(int(color[2]) - int(color_pre_centro[2]))
-                            if distancia <= 20: 
-                                centro_lista.append((pxl[0] + i, pxl[1] + h))
-                                contador += 1
-
-        #print("Centro lista", centro_lista)
-
-        centroConDecimales = cv2.minEnclosingCircle(np.array(centro_lista))
-        radioDeteccionPorCirculo = centroConDecimales[1]
-        centro = ((int(np.rint(centroConDecimales[0][0])), int(np.rint(centroConDecimales[0][1]))), int(np.rint(centroConDecimales[1])))
+        centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro = circuloPorCentro(frameCopia, centro)
 
     if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro))
 
     if centro is not None:
         preCentro = centro
         preCentroConDecimales = centroConDecimales
-    
-    ultimosFrames.append(frameCopia)
-
-    if centro is not None:
-        color_pre_centro = frameCopia[centro[0][1], centro[0][0]]
-        color_pre_centro = (color_pre_centro[0], color_pre_centro[1], color_pre_centro[2])
-
-        cv2.circle(frameCopia, (centro[0][0], centro[0][1]), centro[1], (0, 0, 255), 1)
         
-    if numeroFrame == 317: cv2.imwrite("Frame317Copia.jpg", frameCopia)
-    #if numeroFrame == 51: cv2.imwrite("Frame51Copia.jpg", frameCopia)
-    #if numeroFrame == 52: cv2.imwrite("Frame52Copia.jpg", frameCopia)
-    #if numeroFrame == 53: cv2.imwrite("Frame53Copia.jpg", frameCopia)
-    #if numeroFrame == 54: cv2.imwrite("Frame54Copia.jpg", frameCopia)
-    #if numeroFrame == 55: cv2.imwrite("Frame55Copia.jpg", frameCopia)
-    #if numeroFrame == 56: cv2.imwrite("Frame56Copia.jpg", frameCopia)
-
     print("Color centro", color_pre_centro)
     print("Centro", centro)
     print("Centro con decimales", centroConDecimales)
@@ -949,18 +917,59 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     # Inicializar una variable para el color más cercano y la distancia más corta
     color_mas_cercano = None
     distancia_mas_corta = float('inf')
+
+    colores = {}
+    pixelesColoresCercanos = []
     
     for i in range(imagen_recortada_copia.shape[1]):
         for h in range(imagen_recortada_copia.shape[0]):
             color = imagen_recortada_copia[h, i]
-            distancia = np.linalg.norm(color - color_pre_centro)
+            #distancia = np.linalg.norm(color - color_pre_centro)
             distancia = abs(int(color[0]) - int(color_pre_centro[0])) + abs(int(color[1]) - int(color_pre_centro[1])) + abs(int(color[2]) - int(color_pre_centro[2]))
 
+            colores[(i, h)] = color
+            #if x1 + i == 3110 and y1 + h == 1540: print("Color", color)
+            if distancia <= 50: pixelesColoresCercanos.append(((i, h), distancia))
+
             # Si la distancia actual es menor que la distancia más corta encontrada hasta ahora
-            if distancia < distancia_mas_corta:
-                distancia_mas_corta = distancia
-                color_mas_cercano = color
-                pixel = (i, h)
+            #if distancia < distancia_mas_corta:
+            #    _, _, posibleNuevoRadio, _ = circuloPorCentro(ultimosFrames[-1], ((x1 + i, y1 + h), 5))
+            #    if abs(posibleNuevoRadio - radioDeteccionPorCirculo) < 3:
+            #        if len(ultimosFrames) >= 5 and pixelColorIgual((x1 + i, y1 + h), list(ultimosFrames)[-5:], False) == False:
+            #            distancia_mas_corta = distancia
+            #            color_mas_cercano = color
+            #            pixel = (i, h)
+
+            #        elif len(ultimosFrames) < 5:
+            #            distancia_mas_corta = distancia
+            #            color_mas_cercano = color
+            #            pixel = (i, h)
+    
+    pixelesColoresCercanos = sorted(pixelesColoresCercanos, key=lambda x: x[1])
+    print("AaAAA", pixelesColoresCercanos[0:40])
+
+    centroEncontrado = False
+    while centroEncontrado == False:
+        for pixelCercano in pixelesColoresCercanos:
+            print("Pixel Cercano", pixelCercano)
+            _, _, posibleNuevoRadio, _ = circuloPorCentro(ultimosFrames[-1], ((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), 5))
+            if abs(posibleNuevoRadio - radioDeteccionPorCirculo) < 3:
+                if len(ultimosFrames) >= 5 and pixelColorIgual((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), list(ultimosFrames)[-5:], False) == False:
+                    distancia_mas_corta = pixelCercano[1]
+                    color_mas_cercano = colores[pixelCercano[0]]
+                    pixel = pixelCercano[0]
+                    centroEncontrado = True
+                    break
+
+                elif len(ultimosFrames) < 5:
+                    distancia_mas_corta = pixelCercano[1]
+                    color_mas_cercano = colores[pixelCercano[0]]
+                    pixel = pixelCercano[0]
+                    centroEncontrado = True
+                    break
+    
+    print(pixelColorIgual((x1 + pixel[0], y1 + pixel[1]), list(ultimosFrames)[-5:], True))
+    print("Radio deteccio por circulo", radioDeteccionPorCirculo)
     
     # El color más cercano se encuentra en color_mas_cercano
     print("El color más cercano a", color_pre_centro, "es", color_mas_cercano)
@@ -1494,6 +1503,70 @@ def distancia_bgr(color1, color2):
     Calcula la distancia euclidiana entre dos colores BGR.
     """
     return np.sqrt(np.sum((color1 - color2) ** 2))
+
+def pixelColorIgual(pixel, frames, muestra):
+    colores = []
+    for frame in frames:
+        colores.append(frame[pixel[1], pixel[0]])
+
+    if muestra:
+        print("Pixel", pixel)
+        print("Colores", colores)
+    
+    for i in range(len(colores) - 1):
+        if abs(int(colores[i][0]) - int(colores[i + 1][0])) + abs(int(colores[i][1]) - int(colores[i + 1][1])) + abs(int(colores[i][2]) - int(colores[i + 1][2])) > 5:
+            return False
+    
+    return True
+
+def circuloPorCentro(frameCopia, centro):
+    color_pre_centro = frameCopia[centro[0][1], centro[0][0]]
+    color_pre_centro = (color_pre_centro[0], color_pre_centro[1], color_pre_centro[2])
+
+    centro_lista = [(centro[0])]
+    contador = 1
+
+    #colores_centro = []
+
+    while contador > 0:
+        contador = 0
+        for pxl in centro_lista:
+            color_a_comparar = frameCopia[pxl[1], pxl[0]]
+            for i in range(-1, 2):
+                for h in range(-1, 2):
+                    if (pxl[0] + i, pxl[1] + h) not in centro_lista:
+                        color = frameCopia[pxl[1] + h, pxl[0] + i]
+                        #distancia = abs(int(color[0]) - int(color_pre_centro[0])) + abs(int(color[1]) - int(color_pre_centro[1])) + abs(int(color[2]) - int(color_pre_centro[2]))
+                        distancia = abs(int(color[0]) - int(color_a_comparar[0])) + abs(int(color[1]) - int(color_a_comparar[1])) + abs(int(color[2]) - int(color_a_comparar[2]))
+                        if distancia <= 20: 
+                            centro_lista.append((pxl[0] + i, pxl[1] + h))
+                            #colores_centro.append(color)
+                            contador += 1
+
+    #print("Centro lista", centro_lista)
+
+    centroConDecimales = cv2.minEnclosingCircle(np.array(centro_lista))
+    radioDeteccionPorCirculo = centroConDecimales[1]
+    centro = ((int(np.rint(centroConDecimales[0][0])), int(np.rint(centroConDecimales[0][1]))), int(np.rint(centroConDecimales[1])))
+
+    M = cv2.moments(casiCentro)
+    if M["m00"] > 0: 
+        centro = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), int(radioDeteccionPorCirculo)
+        centroConDecimales = (M["m10"] / M["m00"], M["m01"] / M["m00"]), radioDeteccionPorCirculo
+
+    # Calcula el promedio de cada posición utilizando comprensiones de listas
+    #promedio_primer_valor = sum(sublista[0] for sublista in colores_centro) / len(colores_centro)
+    #promedio_segundo_valor = sum(sublista[1] for sublista in colores_centro) / len(colores_centro)
+    #promedio_tercer_valor = sum(sublista[2] for sublista in colores_centro) / len(colores_centro)
+
+    #color_pre_centro = (int(promedio_primer_valor), int(promedio_segundo_valor), int(promedio_tercer_valor))
+
+    color_pre_centro = frameCopia[centro[0][1], centro[0][0]]
+    color_pre_centro = (color_pre_centro[0], color_pre_centro[1], color_pre_centro[2])
+
+    #cv2.circle(frameCopia, (centro[0][0], centro[0][1]), centro[1], (0, 0, 255), 1)
+
+    return centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro
         
 # Toma la cámara si no recibe video
 if not args.get("video", False):
@@ -1571,7 +1644,7 @@ TiempoSegundosEmpezoVideo = 0
 ultimosCentros = deque(maxlen=10)
 ultimosCentrosCirculo = deque(maxlen=5)
 ultimosCentrosGlobales = deque(maxlen=14)
-ultimosFrames = deque(maxlen=3)
+ultimosFrames = deque(maxlen=7)
 ultimosSimilitudesCoseno = deque(maxlen=14)
 
 todosContornos = []
@@ -1623,7 +1696,7 @@ previous_time = start_time
 aSaltear = 100
 aSaltear = 0
 aSaltear = 280
-aSaltear = 0
+#aSaltear = 0
 
 ultFrames = deque(maxlen=5)
 
