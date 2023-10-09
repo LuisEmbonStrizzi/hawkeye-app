@@ -56,6 +56,7 @@ def main(frame):
     global deteccionPorColor
     global corregir
     global color_pre_centro
+    global contorno_pre_centro
     global ultimosCentrosGlobales
 
     # Agrandamos el frame para ver más la pelota
@@ -475,7 +476,7 @@ def main(frame):
     #if numeroFrame == 320: cv2.imwrite("Frame320Copia.jpg", frameCopia)
 
     if centro is not None:
-        centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro, _ = circuloPorCentro(frameCopia, centro, True)
+        centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro, contorno_pre_centro = circuloPorCentro(frameCopia, centro, True)
 
     if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro))
 
@@ -896,6 +897,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     global checkRecorteCerca
     global contadorCorreccion
     global radio
+    global contorno_pre_centro
 
     # Ajustar los puntos de recorte si están fuera de rango
     x1 = max(preCentro[0][0] - recorteCerca, 0)
@@ -974,6 +976,46 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
                 centrosPosibles.append((posibleCentro, posibleColorPreCentro, posibleCentroLista))
                 contador += 1
     
+    #print("Len contorno anterior", len(contorno_pre_centro))
+    #contorno_pre_centro = normalizar_contorno(contorno_pre_centro, len(contorno_pre_centro))
+    #contornos_normalizados = []
+    #for centro, color, lista in centrosPosibles:
+    #    contornos_normalizados.append(normalizar_contorno(lista, len(contorno_pre_centro)))
+    
+    #distancias = []
+    #for contorno in contornos_normalizados:
+    #    distancia = cv2.matchShapes(contorno_pre_centro, contorno, cv2.CONTOURS_MATCH_I1, 0.0)
+    #    distancias.append(distancia)
+    
+    # Encuentra el índice del contorno más similar (el menor valor de distancia)
+    #indice_contorno_mas_similar = distancias.index(min(distancias))
+
+    #print("Contorno más parecido", contornos_normalizados[indice_contorno_mas_similar])
+
+    # Calcula los momentos de Hu del contorno anterior
+    momentos_hu_anterior = cv2.HuMoments(cv2.moments(np.array(contorno_pre_centro))).flatten()
+
+    # Inicializa variables para realizar un seguimiento del contorno más similar
+    contorno_mas_similar = None
+    similitud_mas_alta = float('-inf')  # Inicializa con un valor muy bajo
+
+    # Itera a través de los contornos actuales y compáralos con el contorno anterior
+    for centro, color, contorno_actual in centrosPosibles:
+        # Calcula los momentos de Hu del contorno actual
+        momentos_hu_actual = cv2.HuMoments(cv2.moments(np.array(contorno_actual))).flatten()
+
+        # Calcula la similitud de coseno entre los momentos de Hu del contorno anterior y el contorno actual
+        similitud_coseno = np.dot(momentos_hu_anterior, momentos_hu_actual) / (np.linalg.norm(momentos_hu_anterior) * np.linalg.norm(momentos_hu_actual))
+
+        # Actualiza el contorno más similar si encontramos uno con una similitud mayor
+        if similitud_coseno > similitud_mas_alta:
+            similitud_mas_alta = similitud_coseno
+            contorno_mas_similar = contorno_actual
+
+    # 'contorno_mas_similar' ahora contiene el contorno del frame actual que es más similar al contorno anterior.
+    print("Contorno más similar", contorno_mas_similar)
+
+
     print(pixelColorIgual((x1 + pixel[0], y1 + pixel[1]), list(ultimosFrames)[-5:], True))
     print("Centros posibles", centrosPosibles)
     
@@ -1405,45 +1447,7 @@ def cambiosDeDireccion(ultCentros, correccion):
         
     #     print("NumeroFramePelotaIncorrecta", numeroFramePelotaIncorrecta + 1)
 
-    #if cambios_de_direccion >= 3 and deteccionesPorColorCambio.count(False) >= 2 and not correccion:
-    if cambios_de_direccion >= 3 and not correccion:
-        ultCentrosGlobales = list(ultCentros)
-        #cv2.imwrite("frame1.png", ultCentrosGlobales[0][2])
-        diferenciaX = abs(ultCentrosGlobales[0][0][0][0] - ultCentrosGlobales[1][0][0][0])
-        diferenciaY = abs(ultCentrosGlobales[0][0][0][1] - ultCentrosGlobales[1][0][0][1])
-        ultCentrosGlobales.pop(0)
-
-        contador = 0
-        for centro, deteccionPorColor, *_ in ultCentrosGlobales:
-            contador += 1
-            print(contador, ": Centro", centro, "DetecionPorColor", deteccionPorColor)
-
-        numeroFramePelotaIncorrecta = 0
-        # Intentamos detectar si el algortimo se rompió con respecto al círculo2 (centro2, deteccionPorColor2, frame2)
-        for (centro1, *_), (centro2, *_) in zip(ultCentrosGlobales, ultCentrosGlobales[1:]):
-            numeroFramePelotaIncorrecta += 1
-            if abs(centro1[0][0] - centro2[0][0]) < 3 and diferenciaX > 5:
-                print("Centro1", centro1)
-                print("Centro2", centro2)
-                break
-            elif abs(centro1[0][1] - centro2[0][1]) < 3 and diferenciaY > 5:
-                print("Centro1", centro1)
-                print("Centro2", centro2)
-                break
-            elif abs(abs(centro1[0][0] - centro2[0][0]) - diferenciaX) > 50:
-                print("Centro1", centro1)
-                print("Centro2", centro2)
-                break
-            elif abs(abs(centro1[0][1] - centro2[0][1]) - diferenciaY) > 50:
-                print("Centro1", centro1)
-                print("Centro2", centro2)
-                break
-
-            diferenciaX = abs(centro1[0][0] - centro2[0][0])
-            diferenciaY = abs(centro1[0][1] - centro2[0][1])
-        
-        print("NumeroFramePelotaIncorrecta", numeroFramePelotaIncorrecta + 1)
-
+    if cambios_de_direccion >= 3 and deteccionesPorColorCambio.count(False) >= 2 and not correccion:
         circulosCorreccion = []
         color_preCentro = None
         contador = -7
@@ -1617,6 +1621,34 @@ def circuloPorCentro(frameCopia, centro, pintar):
     #    cv2.imwrite("Frame319CopiaConCirculoPintado.png", frameCopia)
 
     return centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro, centro_lista
+
+def normalizar_contorno(contorno, num_puntos_deseados):
+    # Asegurémonos de que el contorno sea una matriz numpy
+    contorno = np.array(contorno)
+
+    # Calcula el número de puntos de control en el contorno actual
+    num_puntos_actuales = contorno.shape[0]
+
+    if num_puntos_actuales < num_puntos_deseados:
+        # Si el contorno actual tiene menos puntos que los deseados,
+        # podemos interpolar puntos adicionales para alcanzar el número deseado.
+        # Esto suavizará el contorno.
+        t = np.linspace(0, 1, num_puntos_deseados)
+        x = np.interp(t, np.arange(num_puntos_actuales), contorno[:, 0])
+        y = np.interp(t, np.arange(num_puntos_actuales), contorno[:, 1])
+        contorno_normalizado = np.column_stack((x, y))
+    elif num_puntos_actuales > num_puntos_deseados:
+        # Si el contorno actual tiene más puntos que los deseados,
+        # podemos realizar un muestreo para reducir la cantidad de puntos.
+        # Esto simplificará el contorno.
+        indices_muestreo = np.linspace(0, num_puntos_actuales - 1, num_puntos_deseados, dtype=int)
+        contorno_normalizado = contorno[indices_muestreo]
+    else:
+        # Si ya tiene el número deseado de puntos, no es necesario hacer nada.
+        contorno_normalizado = contorno
+
+    return contorno_normalizado
+
         
 # Toma la cámara si no recibe video
 if not args.get("video", False):
@@ -1779,6 +1811,7 @@ radio = None
 corregir = (False, 0)
 
 color_pre_centro = None
+contorno_pre_centro = None
 
 # Abrir el archivo en modo de lectura
 with open(ruta_archivo, "r") as archivo:

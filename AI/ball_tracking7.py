@@ -149,7 +149,7 @@ def main(frame):
     #mascara = cv2.dilate(mascara, None, iterations=2)
 
     # Encontrar los contornos en la máscara
-    contornos, _ = cv2.findContours(mascara.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    casi_contornos, _ = cv2.findContours(mascara.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # Dibujar los contornos en la imagen original
     #cv2.drawContours(frame, contornos, -1, (0, 255, 0), 2)
@@ -176,7 +176,14 @@ def main(frame):
     if (TiempoSegundosEmpezoVideo % 5 == 0):
         eliminarContornosInservibles(todosContornos)
     
-    if len(contornos) > 0:
+    if len(casi_contornos) > 0:
+        contornos = []
+        for contorno in casi_contornos:
+            M = cv2.moments(contorno)
+            if M["m00"] > 0: centroConDecimales = (M["m10"] / M["m00"], M["m01"] / M["m00"])
+            if len(ultimosFrames) >= 5 and pixelColorIgual(centroConDecimales, list(ultimosFrames)[-5:], False) == False: contornos.append(contorno)
+            elif len(ultimosFrames) < 5: contornos.append(contorno)
+
         # Vemos cuales son los contornos casi inmóviles y si lo que considera que es la pelota no se está moviendo (o sea no es la pelota) se ignoran estos contornos.
         contornosQuietos(contornos, todosContornos, contornosIgnorar)
         if len(ultimosCentros) >= 5 and seEstaMoviendo(ultimosCentros, 15) == False or len(ultimosCentros) == 10 and deteccionNoEsLaPelota(ultimosCentros, 15, False):
@@ -195,6 +202,7 @@ def main(frame):
                 deteccionColorEsteFrame.append(centroConDecimales)
             
             deteccionColorUltimosFrames.append(deteccionColorEsteFrame)
+
             # Cuando empezó el video o pasaron 0.3 segundos desde que no se encuentra la pelota
             if primeraVez:
                 # Busca el contorno más grande y encuentra su posición (x, y). Determina el centro de la pelota
@@ -1356,9 +1364,6 @@ def cambiosDeDireccion(ultCentros, correccion):
         elif comparador2_y > comparador1_y: abajo = True
         else: abajo = None
 
-        #print("Comparador1_x", comparador1_x, "Comparador2_x", comparador2_x)
-        #print("Comparador1_y", comparador1_y, "Comparador2_y", comparador2_y)
-
         movimiento_en_x.append(derecha)
         movimiento_en_y.append(abajo)
         if i != 0: deteccionesPorColor.append(ultCentros[i][1])
@@ -1375,52 +1380,21 @@ def cambiosDeDireccion(ultCentros, correccion):
     print("Detecciones por color", deteccionesPorColor)
     print("Detecciones por color cambio", deteccionesPorColorCambio)
 
-    # if cambios_de_direccion >= 3 and deteccionesPorColorCambio.count(False) >= 2:
-    #     diferenciaX = abs(ultCentros[0][0][0][0] - ultCentros[1][0][0][0])
-    #     diferenciaY = abs(ultCentros[0][0][0][1] - ultCentros[1][0][0][1])
-    #     ultCentros.pop(0)
-
-    #     contador = 0
-    #     for centro, deteccionPorColor, _ in ultCentros:
-    #         contador += 1
-    #         print(contador, ": Centro", centro, "DetecionPorColor", deteccionPorColor)
-
-    #     numeroFramePelotaIncorrecta = 0
-    #     # Intentamos detectar si el algortimo se rompió con respecto al círculo2 (centro2, deteccionPorColor2, frame2)
-    #     for (centro1, *_), (centro2, *_) in zip(ultCentros, ultCentros[1:]):
-    #         numeroFramePelotaIncorrecta += 1
-    #         if abs(centro1[0][0] - centro2[0][0]) < 3 and diferenciaX > 5:
-    #             print("Centro1", centro1)
-    #             print("Centro2", centro2)
-    #             break
-    #         elif abs(centro1[0][1] - centro2[0][1]) < 3 and diferenciaY > 5:
-    #             break
-    #         elif abs(abs(centro1[0][0] - centro2[0][0]) - diferenciaX) > 50:
-    #             break
-    #         elif abs(abs(centro1[0][1] - centro2[0][1]) - diferenciaY) > 50:
-    #             break
-
-    #         diferenciaX = abs(centro1[0][0] - centro2[0][0])
-    #         diferenciaY = abs(centro1[0][1] - centro2[0][1])
-        
-    #     print("NumeroFramePelotaIncorrecta", numeroFramePelotaIncorrecta + 1)
-
     #if cambios_de_direccion >= 3 and deteccionesPorColorCambio.count(False) >= 2 and not correccion:
     if cambios_de_direccion >= 3 and not correccion:
-        ultCentrosGlobales = list(ultCentros)
-        #cv2.imwrite("frame1.png", ultCentrosGlobales[0][2])
-        diferenciaX = abs(ultCentrosGlobales[0][0][0][0] - ultCentrosGlobales[1][0][0][0])
-        diferenciaY = abs(ultCentrosGlobales[0][0][0][1] - ultCentrosGlobales[1][0][0][1])
-        ultCentrosGlobales.pop(0)
+        ultCentros = list(ultCentros)
+        diferenciaX = abs(ultCentros[0][0][0][0] - ultCentros[1][0][0][0])
+        diferenciaY = abs(ultCentros[0][0][0][1] - ultCentros[1][0][0][1])
+        ultCentros.pop(0)
 
         contador = 0
-        for centro, deteccionPorColor, *_ in ultCentrosGlobales:
+        for centro, deteccionPorColor, *_ in ultCentros:
             contador += 1
             print(contador, ": Centro", centro, "DetecionPorColor", deteccionPorColor)
 
         numeroFramePelotaIncorrecta = 0
         # Intentamos detectar si el algortimo se rompió con respecto al círculo2 (centro2, deteccionPorColor2, frame2)
-        for (centro1, *_), (centro2, *_) in zip(ultCentrosGlobales, ultCentrosGlobales[1:]):
+        for (centro1, *_), (centro2, *_) in zip(ultCentros, ultCentros[1:]):
             numeroFramePelotaIncorrecta += 1
             if abs(centro1[0][0] - centro2[0][0]) < 3 and diferenciaX > 5:
                 print("Centro1", centro1)
@@ -1444,14 +1418,35 @@ def cambiosDeDireccion(ultCentros, correccion):
         
         print("NumeroFramePelotaIncorrecta", numeroFramePelotaIncorrecta + 1)
 
+        #ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro))
+
         circulosCorreccion = []
         color_preCentro = None
+        contador = -7 + numeroFramePelotaIncorrecta + 1
+
+        for i in range(numeroFramePelotaIncorrecta, ultCentros):
+            if len(circulosCorreccion) != 0: preCentroCorreccion = circulosCorreccion[-1][0]
+            elif len(circulosCorreccion) == 0 and ultCentros[contador][4] is not None: preCentroCorreccion = ultCentros[contador][4]
+            else: continue
+        
+            deteccionColorFrame = deteccionColorUltimosFrames[contador]
+            if i == numeroFramePelotaIncorrecta and ultCentros[i][1] == True: deteccionColorFrame.remove(ultCentros[i][0])
+
+            verdeCerca = None
+            if deteccionColorFrame is not None: verdeCerca = tp_fix(deteccionColorFrame[contador], preCentroCorreccion, 0.2, False, None, (1,0), False, True)
+
+            if i == numeroFramePelotaIncorrecta and verdeCerca is not None:
+                circulosCorreccion.append((verdeCerca, True, ultCentros[i][2], i[3], preCentroCorreccion))
+
+            contador += 1
+
+
+
         contador = -7
-        #print("Deteccion Color Ultimos Frames", list(deteccionColorUltimosFrames)[-7:])
         for i in ultCentros:
             verdeCerca = None
             if i[1] == True:
-                if len(circulosCorreccion) != 0: preCentroCorreccion2 = circulosCorreccion[-1][0] 
+                if len(circulosCorreccion) != 0: preCentroCorreccion2 = circulosCorreccion[-1][0]
                 else: preCentroCorreccion2 = i[4]
                 circulosCorreccion.append((i[0], True, i[2], i[3], preCentroCorreccion2))
             else:
@@ -1463,18 +1458,15 @@ def cambiosDeDireccion(ultCentros, correccion):
                     if color_preCentro is None: color_preCentro = i[3]
                     correccionCirculos, coseno, casi_color_preCentro = deteccionPorCirculos(preCentroCorreccion, i[2], 300, True, color_preCentro, 4)
                     if coseno > ultimosSimilitudesCoseno[contador]:
-                        #print("AAAAAAAAAAAAAAAAAAA")
                         if len(circulosCorreccion) != 0: preCentroCorreccion2 = circulosCorreccion[-1][0] 
                         else: preCentroCorreccion2 = i[4]
                         circulosCorreccion.append((correccionCirculos, False, i[2], casi_color_preCentro, preCentroCorreccion2))
                         color_preCentro = casi_color_preCentro
                     else:
-                        #print("BBBBBBBBBBBBBBBBBB", correccionCirculos)
                         if len(circulosCorreccion) != 0: preCentroCorreccion2 = circulosCorreccion[-1][0] 
                         else: preCentroCorreccion2 = i[4]
                         circulosCorreccion.append((i[0], False, i[2], i[3], preCentroCorreccion2))
                         color_preCentro = i[3]
-                    #circulosCorreccion.append(deteccionPorCirculos(i[4], i[2], 300, True, i[3], 4))
                 else:
                     pixeles = []
                     pixeles_colores = []
@@ -1531,13 +1523,6 @@ def cambiosDeDireccion(ultCentros, correccion):
             for i in range(-7, 0):
                 ultimosCentrosGlobales[i] = circulosCorreccion[contador]
                 contador += 1
-        
-        #for i in circulosCorreccion:
-        #    print("Circulos Correccion", i[0])
-        #for i in ultimosCentrosGlobales:
-        #    print("Ultimos Centros Globales", i[0])
-
-        #if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro))
 
     print("Cambios de Dirección", cambios_de_direccion)
     return cambios_de_direccion
@@ -1551,10 +1536,10 @@ def distancia_bgr(color1, color2):
 def pixelColorIgual(pixel, frames, muestra):
     colores = []
     for frame in frames:
-        colores.append(frame[pixel[1], pixel[0]])
+        colores.append(frame[int(pixel[1]), int(pixel[0])])
 
     if muestra:
-        print("Pixel", pixel)
+        print("Pixel", int(pixel[0]), int(pixel[1]))
         print("Colores", colores)
     
     for i in range(len(colores) - 1):
