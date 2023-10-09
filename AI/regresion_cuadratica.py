@@ -151,8 +151,8 @@ def quadratic_func(x, a, b, c):
     return a * x ** 2 + b * x + c
 
 # Puntos de datos
-x_data = np.array([2901, 2800, 2730, 2690, 2656, 2656, 2633, 2616, 2605])
-y_data = np.array([1007, 956, 928, 906, 899, 899, 899, 898, 905])
+x_data = np.array([3128, 3132, 3133, 3135, 3136, 3139, 3139, 3143, 3145, 3145, 3146, 3149])
+y_data = np.array([1565, 1572, 1576, 1581, 1586, 1597, 1600, 1610, 1615, 1624, 1630, 1636])
 
 # Ajuste de la curva cuadrática
 params, _ = curve_fit(quadratic_func, x_data, y_data)
@@ -179,6 +179,8 @@ print(f"\nSiguiente valor estimado: ({next_x}, {next_y})")
 
 # Graficar los datos y la regresión cuadrática
 plt.scatter(x_data, y_data, label='Puntos reales')
+#plt.gca().invert_xaxis()  # Invierte el eje x
+plt.gca().invert_yaxis()  # Invierte el eje y
 plt.plot(x_data, y_estimated, 'r-', label='Regresión cuadrática')
 plt.plot(next_x, next_y, 'bo', label='Siguiente valor estimado')
 plt.xlabel('X')

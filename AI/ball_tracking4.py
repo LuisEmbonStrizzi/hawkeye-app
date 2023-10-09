@@ -64,6 +64,14 @@ def main(frame):
 
     frameCopia = frame.copy()
 
+    if numeroFrame == 332:
+        frameCopia2 = frame.copy()
+        lista = [(3139, 1599), (3138, 1599), (3138, 1600), (3139, 1600), (3140, 1599), (3140, 1600), (3137, 1599), (3137, 1600), (3137, 1601), (3138, 1601), (3139, 1601), (3140, 1601), (3141, 1599), (3141, 1600), (3141, 1601), (3136, 1599), (3136, 1600), (3136, 1601), (3138, 1602), (3139, 1602), (3140, 1602), (3142, 1599), (3142, 1600), (3142, 1601), (3135, 1599), (3135, 1600), (3135, 1601), (3138, 1603), (3139, 1603), (3140, 1603), (3143, 1599), (3143, 1600), (3143, 1601), (3138, 1604), (3139, 1604), (3140, 1604)]
+        for punto in lista:
+            frameCopia2[punto[1], punto[0]] = (0, 0, 0)
+        cv2.imwrite("FrameCopia2-332.jpg", frameCopia2)
+
+
     ultimosFrames.append(frameCopia)
 
     # if numeroFrame == 100:
@@ -182,7 +190,7 @@ def main(frame):
         for contorno in casi_contornos:
             M = cv2.moments(contorno)
             if M["m00"] > 0: centroConDecimales = (M["m10"] / M["m00"], M["m01"] / M["m00"])
-            if len(ultimosFrames) >= 5 and pixelColorIgual(centroConDecimales, list(ultimosFrames)[-5:], True) == False: contornos.append(contorno)
+            if len(ultimosFrames) >= 5 and pixelColorIgual(centroConDecimales, list(ultimosFrames)[-5:], False) == False: contornos.append(contorno)
             elif len(ultimosFrames) < 5: contornos.append(contorno)
 
         # Vemos cuales son los contornos casi inmóviles y si lo que considera que es la pelota no se está moviendo (o sea no es la pelota) se ignoran estos contornos.
@@ -476,14 +484,14 @@ def main(frame):
     if afterVelocidad and centro is not None:
         afterVelocidad = False
 
-    #if numeroFrame == 316: cv2.imwrite("Frame316Copia.jpg", frameCopia)
-    #if numeroFrame == 317: cv2.imwrite("Frame317Copia.jpg", frameCopia)
-    #if numeroFrame == 318: cv2.imwrite("Frame318Copia.jpg", frameCopia)
-    #if numeroFrame == 319: cv2.imwrite("Frame319Copia.jpg", frameCopia)
-    #if numeroFrame == 320: cv2.imwrite("Frame320Copia.jpg", frameCopia)
+    if numeroFrame == 338: cv2.imwrite("Frame338Copia.jpg", frameCopia)
+    if numeroFrame == 339: cv2.imwrite("Frame339Copia.jpg", frameCopia)
+    if numeroFrame == 340: cv2.imwrite("Frame340Copia.jpg", frameCopia)
+    if numeroFrame == 341: cv2.imwrite("Frame341Copia.jpg", frameCopia)
+    if numeroFrame == 342: cv2.imwrite("Frame342Copia.jpg", frameCopia)
 
     if centro is not None:
-        centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro, pre_centro_lista = circuloPorCentro(frameCopia, centro, True, None)
+        centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro, pre_centro_lista = circuloPorCentro(frameCopia, centro, False, pre_centro_lista)
 
     if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro))
 
@@ -495,6 +503,10 @@ def main(frame):
     print("Centro", centro)
     print("Centro con decimales", centroConDecimales)
     print("Len centro lista", len(pre_centro_lista))
+
+    if numeroFrame == 339: 
+        for centro, *_ in ultimosCentrosGlobales:
+            print("Centro", centro)
     #print("Radio de la pelota", radio)
     #print("Radio de la pelota de verdad", radioDeteccionPorCirculo)
 
@@ -960,13 +972,19 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     pixelesAnalizados = []
     centrosPosibles = []
     contador = 0
+    pixel = None
+    color_mas_cercano = None
+    distancia_mas_corta = float('inf')
+
     for pixelCercano in pixelesColoresCercanos:
         if contador == 1: break
         if pixelCercano[0] in pixelesAnalizados: continue
         print("Pixel Cercano", pixelCercano)
         posibleCentro, posibleCentroConDecimales, posibleNuevoRadio, posibleColorPreCentro, posibleCentroLista = circuloPorCentro(ultimosFrames[-1], ((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), 5), False, pre_centro_lista)
         for i in posibleCentroLista: pixelesAnalizados.append((i[0] - x1, i[1] - y1))
-        if abs(posibleNuevoRadio - radioDeteccionPorCirculo) < 3:
+        print("Posible Nuevo Radio", posibleNuevoRadio)
+        #print("Len posibleCentroLista", posibleCentroLista)
+        if abs(posibleNuevoRadio - radioDeteccionPorCirculo) < 4:
             if len(ultimosFrames) >= 5 and pixelColorIgual((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), list(ultimosFrames)[-5:], False) == False:
                 if contador == 0:
                     distancia_mas_corta = pixelCercano[1]
@@ -983,14 +1001,13 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
                 centrosPosibles.append((posibleCentro, posibleColorPreCentro, posibleCentroLista))
                 contador += 1
     
-    print("Pixel Detectado", pixel)
+    if pixel is not None: 
+        print("Pixel Detectado", pixel)
+        print("El color más cercano a", color_pre_centro, "es", color_mas_cercano)
+        print("Distancia más corta", distancia_mas_corta)
     
-    print(pixelColorIgual((x1 + pixel[0], y1 + pixel[1]), list(ultimosFrames)[-5:], True))
-    print("Centros posibles", centrosPosibles)
-    
-    # El color más cercano se encuentra en color_mas_cercano
-    print("El color más cercano a", color_pre_centro, "es", color_mas_cercano)
-    print("Distancia más corta", distancia_mas_corta)
+        print(pixelColorIgual((x1 + pixel[0], y1 + pixel[1]), list(ultimosFrames)[-5:], True))
+        #print("Centros posibles", centrosPosibles)
 
     if not correccion: ultimosSimilitudesCoseno.append(distancia_mas_corta)
 
@@ -1088,7 +1105,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
                     # Verificar si se debe salir del bucle
                     elif key == ord('q'):
                         break
-
+    
     return centro
 
 def deteccionNoEsLaPelota(ultCentros, valorSumaEjeY, correccion):
@@ -1418,6 +1435,8 @@ def cambiosDeDireccion(ultCentros, correccion):
 
     #if cambios_de_direccion >= 3 and deteccionesPorColorCambio.count(False) >= 2 and not correccion:
     if cambios_de_direccion >= 3 and not correccion:
+        primeraVez = True
+        return cambios_de_direccion
         ultCentrosGlobales = list(ultCentros)
         #cv2.imwrite("frame1.png", ultCentrosGlobales[0][2])
         diferenciaX = abs(ultCentrosGlobales[0][0][0][0] - ultCentrosGlobales[1][0][0][0])
@@ -1564,7 +1583,7 @@ def pixelColorIgual(pixel, frames, muestra):
     for frame in frames:
         colores.append(frame[int(pixel[1]), int(pixel[0])])
 
-    if muestra and abs(pixel[0] - 3302) <= 10:
+    if muestra:
         print("Pixel", pixel)
         print("Colores", colores)
     
