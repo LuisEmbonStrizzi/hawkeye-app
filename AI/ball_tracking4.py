@@ -195,7 +195,7 @@ def main(frame):
 
         # Vemos cuales son los contornos casi inmóviles y si lo que considera que es la pelota no se está moviendo (o sea no es la pelota) se ignoran estos contornos.
         contornosQuietos(contornos, todosContornos, contornosIgnorar)
-        if len(ultimosCentros) >= 5 and seEstaMoviendo(ultimosCentros, 15) == False or len(ultimosCentros) == 10 and deteccionNoEsLaPelota(ultimosCentros, 15, False):
+        if len(ultimosCentros) >= 5 and seEstaMoviendo(ultimosCentros, 7) == False or len(ultimosCentros) == 10 and deteccionNoEsLaPelota(ultimosCentros, 15, False):
             contornos = ignorarContornosQuietos(contornos, contornosIgnorar)
             primeraVez = True
             preCentro = None
@@ -302,13 +302,13 @@ def main(frame):
     if centro is None and preCentro is not None:
         centro = deteccionPorCirculos(preCentro, frame, recorteCerca, False, color_pre_centro, 3)
 
-        if len(ultimosCentrosGlobales) == 14 and len(ultimosCentrosCirculo) >= 5:
-            if seEstaMoviendo(ultimosCentrosCirculo, 15) == False and corregir[1] == 0 or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5, False) and corregir[1] == 0:
+        if len(ultimosCentrosGlobales) == 14 and len(ultimosCentrosCirculo) >= 8:
+            if seEstaMoviendo(list(ultimosCentrosCirculo)[:5], 7) == False and corregir[1] == 0 or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5, False) and corregir[1] == 0:
                 corregir = (True, numeroFrame + 2)
                 print(f"{bcolors.FAIL}Warning: No active frommets remain. Continue?{bcolors.ENDC}")
         
-        elif len(ultimosCentrosCirculo) >= 5:
-            if seEstaMoviendo(ultimosCentrosCirculo, 15) == False or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5, False):
+        elif len(ultimosCentrosCirculo) >= 8:
+            if seEstaMoviendo(list(ultimosCentrosCirculo)[:5], 7) == False or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5, False):
                 primeraVez = True
                 preCentro = None
                 TiempoDeteccionUltimaPelota += 1/fps
@@ -484,11 +484,11 @@ def main(frame):
     if afterVelocidad and centro is not None:
         afterVelocidad = False
 
-    if numeroFrame == 338: cv2.imwrite("Frame338Copia.jpg", frameCopia)
-    if numeroFrame == 339: cv2.imwrite("Frame339Copia.jpg", frameCopia)
-    if numeroFrame == 340: cv2.imwrite("Frame340Copia.jpg", frameCopia)
-    if numeroFrame == 341: cv2.imwrite("Frame341Copia.jpg", frameCopia)
-    if numeroFrame == 342: cv2.imwrite("Frame342Copia.jpg", frameCopia)
+    #if numeroFrame == 338: cv2.imwrite("Frame338Copia.jpg", frameCopia)
+    #if numeroFrame == 339: cv2.imwrite("Frame339Copia.jpg", frameCopia)
+    #if numeroFrame == 340: cv2.imwrite("Frame340Copia.jpg", frameCopia)
+    #if numeroFrame == 341: cv2.imwrite("Frame341Copia.jpg", frameCopia)
+    #if numeroFrame == 342: cv2.imwrite("Frame342Copia.jpg", frameCopia)
 
     if centro is not None:
         centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro, pre_centro_lista = circuloPorCentro(frameCopia, centro, False, pre_centro_lista)
@@ -498,6 +498,8 @@ def main(frame):
     if centro is not None:
         preCentro = centro
         preCentroConDecimales = centroConDecimales
+
+    if deteccionPorColor == False: ultimosCentrosCirculo.appendleft(centroConDecimales)
         
     print("Color centro", color_pre_centro)
     print("Centro", centro)
@@ -648,7 +650,7 @@ def ignorarContornosQuietos(cnts, contornosIgnorar):
 def seEstaMoviendo(ultCentros, rango):
     #print("AAAAAAAAAAAAA")
     #print("ultCentros", ultCentros)
-    #print("Rango", rango)
+
     movimiento = False
     # Si la suma de las restas de los últimos centros es mayor a 15, significa que la pelota se está moviendo, de lo contrario no lo está.
     for i in range(2):
@@ -967,7 +969,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
             #            pixel = (i, h)
     
     pixelesColoresCercanos = sorted(pixelesColoresCercanos, key=lambda x: x[2])
-    print("AAAAA", pixelesColoresCercanos[0:40])
+    #print("AAAAA", pixelesColoresCercanos[0:40])
 
     pixelesAnalizados = []
     centrosPosibles = []
@@ -977,12 +979,12 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     distancia_mas_corta = float('inf')
 
     for pixelCercano in pixelesColoresCercanos:
-        if contador == 1: break
+        if contador == 3: break
         if pixelCercano[0] in pixelesAnalizados: continue
-        print("Pixel Cercano", pixelCercano)
+        #print("Pixel Cercano", pixelCercano)
         posibleCentro, posibleCentroConDecimales, posibleNuevoRadio, posibleColorPreCentro, posibleCentroLista = circuloPorCentro(ultimosFrames[-1], ((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), 5), False, pre_centro_lista)
         for i in posibleCentroLista: pixelesAnalizados.append((i[0] - x1, i[1] - y1))
-        print("Posible Nuevo Radio", posibleNuevoRadio)
+        #print("Posible Nuevo Radio", posibleNuevoRadio)
         #print("Len posibleCentroLista", posibleCentroLista)
         if abs(posibleNuevoRadio - radioDeteccionPorCirculo) < 4:
             if len(ultimosFrames) >= 5 and pixelColorIgual((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), list(ultimosFrames)[-5:], False) == False:
@@ -1002,6 +1004,8 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
                 contador += 1
     
     if pixel is not None: 
+        ultimosPosiblesCentrosCirculo.append(centrosPosibles)
+
         print("Pixel Detectado", pixel)
         print("El color más cercano a", color_pre_centro, "es", color_mas_cercano)
         print("Distancia más corta", distancia_mas_corta)
@@ -1057,7 +1061,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
             
             centroConDecimales = ((x1 + circuloDetectado[0], y1 + circuloDetectado[1]), circuloDetectado[2])
             #centroConDecimales = ((x1 + circuloDetectado[0][0], y1 + circuloDetectado[0][1]), circuloDetectado[1])
-            ultimosCentrosCirculo.appendleft(centroConDecimales)
+            #ultimosCentrosCirculo.appendleft(centroConDecimales)
             radioDeteccionPorCirculo = circuloDetectado[2]
             #radioDeteccionPorCirculo = circuloDetectado[1]
             TiempoDeteccionUltimaPelota = 0
@@ -1651,6 +1655,10 @@ def circuloPorCentro(frameCopia, centro, pintar, pre_Centro_lista):
     #    cv2.imwrite("Frame319CopiaConCirculoPintado.png", frameCopia)
 
     return centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro, centro_lista
+
+def corregirPosicionPelota2(ultCentros, isMoving, detectionNotBall, directionChanges):
+    if isMoving == False:
+        print("A")
         
 # Toma la cámara si no recibe video
 if not args.get("video", False):
@@ -1726,7 +1734,7 @@ TiempoTresCentrosConsecutivos = 0
 TiempoSegundosEmpezoVideo = 0
 
 ultimosCentros = deque(maxlen=10)
-ultimosCentrosCirculo = deque(maxlen=5)
+ultimosCentrosCirculo = deque(maxlen=8)
 ultimosCentrosGlobales = deque(maxlen=14)
 ultimosFrames = deque(maxlen=7)
 ultimosSimilitudesCoseno = deque(maxlen=14)
@@ -1815,6 +1823,8 @@ corregir = (False, 0)
 color_pre_centro = None
 
 pre_centro_lista = None
+
+ultimosPosiblesCentrosCirculo = deque(maxlen=10)
 
 # Abrir el archivo en modo de lectura
 with open(ruta_archivo, "r") as archivo:
