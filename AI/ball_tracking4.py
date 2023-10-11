@@ -196,6 +196,7 @@ def main(frame):
         # Vemos cuales son los contornos casi inmóviles y si lo que considera que es la pelota no se está moviendo (o sea no es la pelota) se ignoran estos contornos.
         contornosQuietos(contornos, todosContornos, contornosIgnorar)
         if len(ultimosCentros) >= 5 and seEstaMoviendo(ultimosCentros, 7) == False or len(ultimosCentros) == 10 and deteccionNoEsLaPelota(ultimosCentros, 15, False):
+            print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
             contornos = ignorarContornosQuietos(contornos, contornosIgnorar)
             primeraVez = True
             preCentro = None
@@ -493,7 +494,9 @@ def main(frame):
     if centro is not None:
         centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro, pre_centro_lista = circuloPorCentro(frameCopia, centro, False, pre_centro_lista)
 
-    if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro))
+    if centro is not None: 
+        ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro))
+        soloUltimosCentrosGlobales.appendleft(centroConDecimales)
 
     if centro is not None:
         preCentro = centro
@@ -505,6 +508,9 @@ def main(frame):
     print("Centro", centro)
     print("Centro con decimales", centroConDecimales)
     print("Len centro lista", len(pre_centro_lista))
+
+    if len(soloUltimosCentrosGlobales) >= 5 and seEstaMoviendo(soloUltimosCentrosGlobales, 7) == False or len(soloUltimosCentrosGlobales) >= 10 and deteccionNoEsLaPelota(soloUltimosCentrosGlobales, 15, False):
+        corregirPosicionPelota2(0, 0, 0, 0)
 
     #if numeroFrame == 339: 
     #    for centro, *_ in ultimosCentrosGlobales:
@@ -649,7 +655,7 @@ def ignorarContornosQuietos(cnts, contornosIgnorar):
 # Fución que determina si la pelota se está moviendo
 def seEstaMoviendo(ultCentros, rango):
     #print("AAAAAAAAAAAAA")
-    #print("ultCentros", ultCentros)
+    print("ultCentros", ultCentros)
 
     movimiento = False
     # Si la suma de las restas de los últimos centros es mayor a 15, significa que la pelota se está moviendo, de lo contrario no lo está.
@@ -1456,7 +1462,19 @@ def cambiosDeDireccion(ultCentros, correccion, ultCentrosExtendidos):
         # Intentamos detectar si el algortimo se rompió con respecto al círculo2 (centro2, deteccionPorColor2, frame2)
         for (centro1, *_), (centro2, *_) in zip(ultCentrosGlobales, ultCentrosGlobales[1:]):
             numeroFramePelotaIncorrecta += 1
-            if abs(centro1[0][0] - centro2[0][0]) < 3 and diferenciaX > 5:
+            if centro1[0][0] - centro2[0][0] == 0:
+                print("E")
+                print("Centro1", centro1)
+                print("Centro2", centro2)
+                numeroFramePelotaIncorrecta -= 1
+                break
+            elif centro1[0][1] - centro2[0][1] == 0:
+                print("F")
+                print("Centro1", centro1)
+                print("Centro2", centro2)
+                numeroFramePelotaIncorrecta -= 1
+                break
+            elif abs(centro1[0][0] - centro2[0][0]) < 3 and diferenciaX > 5:
                 print("A")
                 print("Centro1", centro1)
                 print("Centro2", centro2)
@@ -1475,12 +1493,6 @@ def cambiosDeDireccion(ultCentros, correccion, ultCentrosExtendidos):
                 print("D")
                 print("Centro1", centro1)
                 print("Centro2", centro2)
-                break
-            elif centro1[0][0] - centro2[0][0] == 0:
-                print("E")
-                print("Centro1", centro1)
-                print("Centro2", centro2)
-                numeroFramePelotaIncorrecta -= 1
                 break
 
             diferenciaX = abs(centro1[0][0] - centro2[0][0])
@@ -1669,8 +1681,8 @@ def circuloPorCentro(frameCopia, centro, pintar, pre_Centro_lista):
     return centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro, centro_lista
 
 def corregirPosicionPelota2(ultCentros, isMoving, detectionNotBall, directionChanges):
-    if isMoving == False:
-        print("A")
+    #if isMoving == False:
+    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         
 # Toma la cámara si no recibe video
 if not args.get("video", False):
@@ -1748,6 +1760,7 @@ TiempoSegundosEmpezoVideo = 0
 ultimosCentros = deque(maxlen=10)
 ultimosCentrosCirculo = deque(maxlen=8)
 ultimosCentrosGlobales = deque(maxlen=14)
+soloUltimosCentrosGlobales = deque(maxlen=14)
 ultimosFrames = deque(maxlen=7)
 ultimosSimilitudesCoseno = deque(maxlen=14)
 

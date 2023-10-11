@@ -58,6 +58,7 @@ def main(frame):
     global color_pre_centro
     global ultimosCentrosGlobales
     global pre_centro_lista
+    global mitad_cancha
 
     # Agrandamos el frame para ver más la pelota
     
@@ -521,11 +522,11 @@ def main(frame):
     
     # Resizea el frame al tamaño original y lo muestra
     frame = imutils.resize(frame, anchoOG, altoOG)
-    frame = imutils.resize(frame, height= 700)
+    frame = imutils.resize(frame, width= 1000)
     frameCopia = imutils.resize(frameCopia, anchoOG, altoOG)
-    frameCopia = imutils.resize(frameCopia, height= 700)
+    frameCopia = imutils.resize(frameCopia, width= 1000)
     mascara = imutils.resize(mascara, anchoOG, altoOG)
-    mascara = imutils.resize(mascara, height= 700)
+    mascara = imutils.resize(mascara, width= 1000)
     
     # También muestra la máscara
     cv2.imshow("Mascara Normal", mascara)
@@ -548,9 +549,10 @@ def coordenadaPorMatriz(centro, *args):
     perspectiva = cv2.warpPerspective(frame, matrix, (164, 474))
 
     if args is not None:
-        cords_medio = np.array([[0 / resizer], [237 / resizer], [1]])
+        cords_medio = np.array([[0], [237], [1]])
         cords_medio_pers = np.dot(matrix, cords_medio)
         cords_medio_pers = (int(np.rint(cords_medio_pers[0]/cords_medio_pers[2])), int(np.rint(cords_medio_pers[1]/cords_medio_pers[2])))
+        cv2.imshow("Perspectiva", perspectiva)
         return cords_medio_pers
 
     # Determinamos la posición de la pelota en la perspectiva
@@ -1863,7 +1865,6 @@ with open(ruta_archivo, "r") as archivo:
 
 #vs2.read()
 
-mitad_cancha = coordenadaPorMatriz(0, "Primera vez")
 
 # Se corre el for la cantidad de frames que contiene el video
 for _ in range(frame_count - aSaltear):
@@ -1890,6 +1891,12 @@ for _ in range(frame_count - aSaltear):
         estaCercaX = anchoOG * 10/100
         estaCercaY = altoOG * 10/100
         #################
+    
+    frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
+
+    if numeroFrame == aSaltear + 1:
+        mitad_cancha = coordenadaPorMatriz(0, "Primera vez")
+    print("Mitad de la cancha: ", mitad_cancha)
 
     #frameSiguiente = imutils.resize(frameSiguiente, anchoOG * resizer, altoOG * resizer)
 
@@ -1919,8 +1926,7 @@ for _ in range(frame_count - aSaltear):
         #cv2.imwrite('zoomed_image.jpg', zoomed_area)
         #break
 
-    frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
-    imagen_cancha = frame[int(mitad_cancha[1]):int(frame.shape[0]), 0:frame.shape[1]]
+    imagen_cancha = frame[int(mitad_cancha[1] * resizer):int(frame.shape[0]), 0:frame.shape[1]]
 
     main(imagen_cancha)
 
