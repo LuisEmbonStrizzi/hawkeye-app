@@ -166,25 +166,27 @@ async def courtPhoto():
                 logger.info(f"receiving binary stream to {file}...")
                 for chunk in request.iter_content(chunk_size=8192):
                     f.write(chunk)
+        print(file)
+        url = r"C:\Users\47205114\Documents\hawkeye-app\gopro_api\official_sdk\GOPR0228.jpg"
 
-        blob_service_client = BlobServiceClient.from_connection_string(
-            azure_connection_string)
-        container_client = blob_service_client.get_container_client(
-            container_name)
-        # Nombre del archivo en Azure será el mismo que local
-        blob_name = os.path.basename(file)
-        logger.info(f"Tamaño del archivo local: {os.path.getsize(file)} bytes")
+        # blob_service_client = BlobServiceClient.from_connection_string(
+        #     azure_connection_string)
+        # container_client = blob_service_client.get_container_client(
+        #     container_name)
+        # # Nombre del archivo en Azure será el mismo que local
+        # blob_name = os.path.basename(file)
+        # logger.info(f"Tamaño del archivo local: {os.path.getsize(file)} bytes")
 
-        blob_client = container_client.get_blob_client(blob_name)
+        # blob_client = container_client.get_blob_client(blob_name)
 
-        with open(file, "rb") as f:
-            blob_client.upload_blob(f, overwrite=True)
-        logger.info(f"Archivo '{blob_name}' cargado correctamente en Azure.")
+        # with open(file, "rb") as f:
+        #     blob_client.upload_blob(f, overwrite=True)
+        # logger.info(f"Archivo '{blob_name}' cargado correctamente en Azure.")
 
-        # Obtener la URL del blob
-        blob_url = blob_client.url
+        # # Obtener la URL del blob
+        # blob_url = blob_client.url
 
-        return {"message": "PhotoTaken", "file_url": blob_url}
+        return {"message": "PhotoTaken", "file_url": url, "file_name": file}
 
     except Exception as e:  # pylint: disable=broad-exception-caught
         logger.error(e)

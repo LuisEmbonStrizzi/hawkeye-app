@@ -15,6 +15,7 @@ import Loading from "../new-analysis/Loading";
 export type courtData = {
   message?: string;
   file_url?: string;
+  file_name?: string;
 };
 
 const NewAnalysisSteps: React.FC = () => {
@@ -66,6 +67,7 @@ const NewAnalysisSteps: React.FC = () => {
       ) : courtData !== null ? (
         <AlignCorners
           image={courtData?.file_url}
+          image_name={courtData?.file_name}
           firstOnClick={() => setAlignedCorners(true)}
           setCourtData={setCourtData}
         />

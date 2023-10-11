@@ -4,5 +4,6 @@
     },
     "python.analysis.extraPaths": [
         "./gopro_api/official_sdk/tutorial"
-    ]
+    ],
+    "python.pythonPath": "C:\\Python310\\python.exe"
 }
