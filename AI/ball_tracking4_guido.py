@@ -536,7 +536,7 @@ def main(frame):
 
 
 # Función que recibe el centro de la pelota y pasa sus coordenadas a un plano 2D de la cancha de tenis
-def coordenadaPorMatriz(centro):
+def coordenadaPorMatriz(centro, *args):
     # Adapto la variable centro para que sea siempre de esta forma ((x, y), r)
     if type(centro) is list:
         centro = (centro, 0)
@@ -546,6 +546,12 @@ def coordenadaPorMatriz(centro):
     # Pasamos las esquinas a perspectiva
     matrix = cv2.getPerspectiveTransform(pts1, pts2)
     perspectiva = cv2.warpPerspective(frame, matrix, (164, 474))
+
+    if args is not None:
+        cords_medio = np.array([[0 / resizer], [237 / resizer], [1]])
+        cords_medio_pers = np.dot(matrix, cords_medio)
+        cords_medio_pers = (int(np.rint(cords_medio_pers[0]/cords_medio_pers[2])), int(np.rint(cords_medio_pers[1]/cords_medio_pers[2])))
+        return cords_medio_pers
 
     # Determinamos la posición de la pelota en la perspectiva
     cords_pelota = np.array([[centro[0][0] / resizer], [centro[0][1] / resizer], [1]])
@@ -1857,6 +1863,8 @@ with open(ruta_archivo, "r") as archivo:
 
 #vs2.read()
 
+mitad_cancha = coordenadaPorMatriz(0, "Primera vez")
+
 # Se corre el for la cantidad de frames que contiene el video
 for _ in range(frame_count - aSaltear):
     numeroFrame += 1
@@ -1912,7 +1920,7 @@ for _ in range(frame_count - aSaltear):
         #break
 
     frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
-    imagen_cancha = frame[int(min(topLeftY, topRightY) - 150):int(max(bottomRightY, bottomLeftY) + 150), int(min(bottomLeftX, topLeftX) - 150):int(max(bottomRightX, topRightX) + 150)]
+    imagen_cancha = frame[int(mitad_cancha[1]):int(frame.shape[0]), 0:frame.shape[1]]
 
     main(imagen_cancha)
 
