@@ -60,16 +60,16 @@ def main(frame):
     global pre_centro_lista
 
     # Agrandamos el frame para ver más la pelota
-    frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
+    
 
     frameCopia = frame.copy()
 
-    if numeroFrame == 332:
-        frameCopia2 = frame.copy()
-        lista = [(3139, 1599), (3138, 1599), (3138, 1600), (3139, 1600), (3140, 1599), (3140, 1600), (3137, 1599), (3137, 1600), (3137, 1601), (3138, 1601), (3139, 1601), (3140, 1601), (3141, 1599), (3141, 1600), (3141, 1601), (3136, 1599), (3136, 1600), (3136, 1601), (3138, 1602), (3139, 1602), (3140, 1602), (3142, 1599), (3142, 1600), (3142, 1601), (3135, 1599), (3135, 1600), (3135, 1601), (3138, 1603), (3139, 1603), (3140, 1603), (3143, 1599), (3143, 1600), (3143, 1601), (3138, 1604), (3139, 1604), (3140, 1604)]
-        for punto in lista:
-            frameCopia2[punto[1], punto[0]] = (0, 0, 0)
-        cv2.imwrite("FrameCopia2-332.jpg", frameCopia2)
+    # if numeroFrame == 332:
+    #     frameCopia2 = frame.copy()
+    #     lista = [(3139, 1599), (3138, 1599), (3138, 1600), (3139, 1600), (3140, 1599), (3140, 1600), (3137, 1599), (3137, 1600), (3137, 1601), (3138, 1601), (3139, 1601), (3140, 1601), (3141, 1599), (3141, 1600), (3141, 1601), (3136, 1599), (3136, 1600), (3136, 1601), (3138, 1602), (3139, 1602), (3140, 1602), (3142, 1599), (3142, 1600), (3142, 1601), (3135, 1599), (3135, 1600), (3135, 1601), (3138, 1603), (3139, 1603), (3140, 1603), (3143, 1599), (3143, 1600), (3143, 1601), (3138, 1604), (3139, 1604), (3140, 1604)]
+    #     for punto in lista:
+    #         frameCopia2[punto[1], punto[0]] = (0, 0, 0)
+    #     cv2.imwrite("FrameCopia2-332.jpg", frameCopia2)
 
 
     ultimosFrames.append(frameCopia)
@@ -189,8 +189,8 @@ def main(frame):
         contornos = []
         for contorno in casi_contornos:
             M = cv2.moments(contorno)
-            if M["m00"] > 0: centroConDecimales = (M["m10"] / M["m00"], M["m01"] / M["m00"])
-            if len(ultimosFrames) >= 5 and pixelColorIgual(centroConDecimales, list(ultimosFrames)[-5:], False) == False: contornos.append(contorno)
+            if M["m00"] > 0: centroPosible = (M["m10"] / M["m00"], M["m01"] / M["m00"])
+            if len(ultimosFrames) >= 5 and pixelColorIgual(centroPosible, list(ultimosFrames)[-5:], False) == False: contornos.append(contorno)
             elif len(ultimosFrames) < 5: contornos.append(contorno)
 
         # Vemos cuales son los contornos casi inmóviles y si lo que considera que es la pelota no se está moviendo (o sea no es la pelota) se ignoran estos contornos.
@@ -649,7 +649,7 @@ def ignorarContornosQuietos(cnts, contornosIgnorar):
 # Fución que determina si la pelota se está moviendo
 def seEstaMoviendo(ultCentros, rango):
     #print("AAAAAAAAAAAAA")
-    #print("ultCentros", ultCentros)
+    print("ultCentros", ultCentros)
 
     movimiento = False
     # Si la suma de las restas de los últimos centros es mayor a 15, significa que la pelota se está moviendo, de lo contrario no lo está.
@@ -1911,7 +1911,10 @@ for _ in range(frame_count - aSaltear):
         #cv2.imwrite('zoomed_image.jpg', zoomed_area)
         #break
 
-    main(frame)
+    frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
+    imagen_cancha = frame[int(min(topLeftY, topRightY) - 150):int(max(bottomRightY, bottomLeftY) + 150), int(min(bottomLeftX, topLeftX) - 150):int(max(bottomRightX, topRightX) + 150)]
+
+    main(imagen_cancha)
 
     #print("pts_piques", pts_piques_finales)
     #print("pts_golpes", pts_golpes_finales)
