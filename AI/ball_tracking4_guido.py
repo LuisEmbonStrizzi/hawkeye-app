@@ -551,9 +551,13 @@ def coordenadaPorMatriz(centro, *args):
     if args is not None:
         cords_medio = np.array([[0], [237], [1]])
         matrix_inv = np.linalg.inv(matrix)  
-        cords_medio_pers = np.dot(matrix_inv, cords_medio)
-        cords_medio_pers = np.dot(matrix, cords_medio)
-        cords_medio_pers = (int(np.rint(cords_medio_pers[0]/cords_medio_pers[2])), int(np.rint(cords_medio_pers[1]/cords_medio_pers[2])))
+        cords_medio_homo = np.dot(matrix_inv, cords_medio)
+        print("PASO 1", cords_medio_homo)
+        #cords_medio_homo = np.dot(matrix, cords_medio)
+        print("PASO 2", cords_medio_homo)
+        cords_medio_pers = [list(cords_medio_homo[0] / cords_medio_homo[2]), list(cords_medio_homo[1] / cords_medio_homo[2])]
+        print("PASO 3", cords_medio_pers)
+        cords_medio_pers = int(cords_medio_pers[0][0] / resizer), int(cords_medio_pers[1][0] / resizer)
         cv2.imshow("Perspectiva", perspectiva)
         return cords_medio_pers
 

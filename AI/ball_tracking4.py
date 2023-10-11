@@ -196,7 +196,6 @@ def main(frame):
         # Vemos cuales son los contornos casi inmóviles y si lo que considera que es la pelota no se está moviendo (o sea no es la pelota) se ignoran estos contornos.
         contornosQuietos(contornos, todosContornos, contornosIgnorar)
         if len(ultimosCentros) >= 5 and seEstaMoviendo(ultimosCentros, 7) == False or len(ultimosCentros) == 10 and deteccionNoEsLaPelota(ultimosCentros, 15, False):
-            print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
             contornos = ignorarContornosQuietos(contornos, contornosIgnorar)
             primeraVez = True
             preCentro = None
@@ -510,7 +509,7 @@ def main(frame):
     print("Len centro lista", len(pre_centro_lista))
 
     if len(soloUltimosCentrosGlobales) >= 5 and seEstaMoviendo(soloUltimosCentrosGlobales, 7) == False or len(soloUltimosCentrosGlobales) >= 10 and deteccionNoEsLaPelota(soloUltimosCentrosGlobales, 15, False):
-        corregirPosicionPelota2(0, 0, 0, 0)
+        corregirPosicionPelota2(ultimosCentrosGlobales, soloUltimosCentrosGlobales, 0, 0, 0)
 
     #if numeroFrame == 339: 
     #    for centro, *_ in ultimosCentrosGlobales:
@@ -519,7 +518,8 @@ def main(frame):
     #print("Radio de la pelota de verdad", radioDeteccionPorCirculo)
 
     #if len(ultimosCentrosGlobales) == 14: print("CambiosDeDireccion", cambiosDeDireccion(ultimosCentrosGlobales))
-    if len(ultimosCentrosGlobales) >= 7: cambiosDeDireccion(list(ultimosCentrosGlobales)[-7:], False, ultimosCentrosGlobales)
+    if len(ultimosCentrosGlobales) >= 7: cambiosDeDireccion(list(ultimosCentrosGlobales)[-7:], False, ultimosCentrosGlobales, soloUltimosCentrosGlobales)
+    #if len(soloUltimosCentrosGlobales) >= 7: cambiosDeDireccion(list(soloUltimosCentrosGlobales)[-7:], True, soloUltimosCentrosGlobales)
     #print("Ultimos Centros Globales", ultimosCentrosGlobales)
 
     #if numeroFrame == 14 or numeroFrame == 15 or numeroFrame == 16 or numeroFrame == 17 or numeroFrame == 18 or numeroFrame == 19 or numeroFrame == 20:
@@ -655,7 +655,7 @@ def ignorarContornosQuietos(cnts, contornosIgnorar):
 # Fución que determina si la pelota se está moviendo
 def seEstaMoviendo(ultCentros, rango):
     #print("AAAAAAAAAAAAA")
-    print("ultCentros", ultCentros)
+    #print("ultCentros", ultCentros)
 
     movimiento = False
     # Si la suma de las restas de los últimos centros es mayor a 15, significa que la pelota se está moviendo, de lo contrario no lo está.
@@ -1352,13 +1352,16 @@ def distancia_personalizada(punto, centro, radio):
 
     return difEnX + difEnY + difRadio * 3
 
-def cambiosDeDireccion(ultCentros, correccion, ultCentrosExtendidos):
+def cambiosDeDireccion(ultCentros, correccion, ultCentrosExtendidos, soloUltCentros):
     global primeraVez
     global preCentro
     global radioDeteccionPorCirculo
     global centroConDecimales
     global color_pre_centro
     global ultimosCentrosGlobales
+
+    #for i in range(len(ultCentros)):
+    #    ultCentros[i] = (ultCentros[i], 0)
 
     cambios_de_direccion = 0
     movimiento_en_x = []
@@ -1447,58 +1450,7 @@ def cambiosDeDireccion(ultCentros, correccion, ultCentrosExtendidos):
 
     #if cambios_de_direccion >= 3 and deteccionesPorColorCambio.count(False) >= 2 and not correccion:
     if cambios_de_direccion >= 3 and not correccion:
-        ultCentrosGlobales = list(ultCentrosExtendidos)
-        #cv2.imwrite("frame1.png", ultCentrosGlobales[0][2])
-        diferenciaX = abs(ultCentrosGlobales[0][0][0][0] - ultCentrosGlobales[1][0][0][0])
-        diferenciaY = abs(ultCentrosGlobales[0][0][0][1] - ultCentrosGlobales[1][0][0][1])
-        ultCentrosGlobales.pop(0)
-
-        contador = 0
-        for centro, deteccionPorColor, *_ in ultCentrosGlobales:
-            contador += 1
-            print(contador, ": Centro", centro, "DetecionPorColor", deteccionPorColor)
-
-        numeroFramePelotaIncorrecta = 0
-        # Intentamos detectar si el algortimo se rompió con respecto al círculo2 (centro2, deteccionPorColor2, frame2)
-        for (centro1, *_), (centro2, *_) in zip(ultCentrosGlobales, ultCentrosGlobales[1:]):
-            numeroFramePelotaIncorrecta += 1
-            if centro1[0][0] - centro2[0][0] == 0:
-                print("E")
-                print("Centro1", centro1)
-                print("Centro2", centro2)
-                numeroFramePelotaIncorrecta -= 1
-                break
-            elif centro1[0][1] - centro2[0][1] == 0:
-                print("F")
-                print("Centro1", centro1)
-                print("Centro2", centro2)
-                numeroFramePelotaIncorrecta -= 1
-                break
-            elif abs(centro1[0][0] - centro2[0][0]) < 3 and diferenciaX > 5:
-                print("A")
-                print("Centro1", centro1)
-                print("Centro2", centro2)
-                break
-            elif abs(centro1[0][1] - centro2[0][1]) < 3 and diferenciaY > 5:
-                print("B")
-                print("Centro1", centro1)
-                print("Centro2", centro2)
-                break
-            elif abs(abs(centro1[0][0] - centro2[0][0]) - diferenciaX) > 50:
-                print("C")
-                print("Centro1", centro1)
-                print("Centro2", centro2)
-                break
-            elif abs(abs(centro1[0][1] - centro2[0][1]) - diferenciaY) > 50:
-                print("D")
-                print("Centro1", centro1)
-                print("Centro2", centro2)
-                break
-
-            diferenciaX = abs(centro1[0][0] - centro2[0][0])
-            diferenciaY = abs(centro1[0][1] - centro2[0][1])
-        
-        print("NumeroFramePelotaIncorrecta", numeroFramePelotaIncorrecta + 1)
+        corregirPosicionPelota2(ultCentrosExtendidos, soloUltCentros, 0, 0, 0)
 
         primeraVez = True
         return cambios_de_direccion
@@ -1680,8 +1632,58 @@ def circuloPorCentro(frameCopia, centro, pintar, pre_Centro_lista):
 
     return centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro, centro_lista
 
-def corregirPosicionPelota2(ultCentros, isMoving, detectionNotBall, directionChanges):
-    #if isMoving == False:
+def corregirPosicionPelota2(ultCentros, soloUltCentros, isMoving, detectionNotBall, directionChanges):
+    ultCentrosGlobales = list(ultCentros)
+    diferenciaX = abs(ultCentrosGlobales[0][0][0][0] - ultCentrosGlobales[1][0][0][0])
+    diferenciaY = abs(ultCentrosGlobales[0][0][0][1] - ultCentrosGlobales[1][0][0][1])
+    ultCentrosGlobales.pop(0)
+
+    contador = 0
+    for centro, deteccionPorColor, *_ in ultCentrosGlobales:
+        contador += 1
+        print(contador, ": Centro", centro, "DetecionPorColor", deteccionPorColor)
+
+    numeroFramePelotaIncorrecta = 0
+    # Intentamos detectar si el algortimo se rompió con respecto al círculo2 (centro2, deteccionPorColor2, frame2)
+    for (centro1, *_), (centro2, *_) in zip(ultCentrosGlobales, ultCentrosGlobales[1:]):
+        numeroFramePelotaIncorrecta += 1
+        if centro1[0][0] - centro2[0][0] == 0:
+            print("E")
+            print("Centro1", centro1)
+            print("Centro2", centro2)
+            numeroFramePelotaIncorrecta -= 1
+            break
+        elif centro1[0][1] - centro2[0][1] == 0:
+            print("F")
+            print("Centro1", centro1)
+            print("Centro2", centro2)
+            numeroFramePelotaIncorrecta -= 1
+            break
+        elif abs(centro1[0][0] - centro2[0][0]) < 3 and diferenciaX > 5:
+            print("A")
+            print("Centro1", centro1)
+            print("Centro2", centro2)
+            break
+        elif abs(centro1[0][1] - centro2[0][1]) < 3 and diferenciaY > 5:
+            print("B")
+            print("Centro1", centro1)
+            print("Centro2", centro2)
+            break
+        elif abs(abs(centro1[0][0] - centro2[0][0]) - diferenciaX) > 50:
+            print("C")
+            print("Centro1", centro1)
+            print("Centro2", centro2)
+            break
+        elif abs(abs(centro1[0][1] - centro2[0][1]) - diferenciaY) > 50:
+            print("D")
+            print("Centro1", centro1)
+            print("Centro2", centro2)
+            break
+
+        diferenciaX = abs(centro1[0][0] - centro2[0][0])
+        diferenciaY = abs(centro1[0][1] - centro2[0][1])
+    
+    print("NumeroFramePelotaIncorrecta", numeroFramePelotaIncorrecta + 1)
     print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         
 # Toma la cámara si no recibe video
