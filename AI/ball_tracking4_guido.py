@@ -550,6 +550,8 @@ def coordenadaPorMatriz(centro, *args):
 
     if args is not None:
         cords_medio = np.array([[0], [237], [1]])
+        matrix_inv = np.linalg.inv(matrix)  
+        cords_medio_pers = np.dot(matrix_inv, cords_medio)
         cords_medio_pers = np.dot(matrix, cords_medio)
         cords_medio_pers = (int(np.rint(cords_medio_pers[0]/cords_medio_pers[2])), int(np.rint(cords_medio_pers[1]/cords_medio_pers[2])))
         cv2.imshow("Perspectiva", perspectiva)
