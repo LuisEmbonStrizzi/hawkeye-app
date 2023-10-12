@@ -45,13 +45,13 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
         redirect: false, //CAMBIAR DESPUÉS
         email: data.Email,
         password: data.Password,
-        callbackUrl: "http://localhost:3000/home",
+        callbackUrl: "http://localhost:3000/new-analysis",
       })
         .then((callback) => {
           if (callback?.error) {
             toast.error("Error, verify your email and password");
           } else {
-            void router.push("/home");
+            void router.push("/new-analysis");
           }
         })
         .finally(() => {
@@ -63,13 +63,13 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode }) => {
         redirect: false, //CAMBIAR DESPUÉS
         email: data.Email,
         password: data.Password,
-        callbackUrl: "http://localhost:3000/home",
+        callbackUrl: "http://localhost:3000/new-analysis",
       })
         .then((callback) => {
           if (callback?.error) {
             toast.error("User already exists or email is not right");
           } else {
-            void router.push("/home");
+            void router.push("/new-analysis");
           }
         })
         .finally(() => {
