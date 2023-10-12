@@ -228,7 +228,9 @@ def main(frame):
 
                 print("Deteccion por color")
 
-                if centro is not None: ultimosCentros.appendleft(centroConDecimales)
+                if centro is not None: 
+                    ultimosCentros.appendleft(centroConDecimales)
+                    colores_centro.clear()
 
             # Si se detectó un centro hace menos de 0.3 segundos
             else:
@@ -484,11 +486,11 @@ def main(frame):
     if afterVelocidad and centro is not None:
         afterVelocidad = False
 
-    #if numeroFrame == 338: cv2.imwrite("Frame338Copia.jpg", frameCopia)
-    #if numeroFrame == 339: cv2.imwrite("Frame339Copia.jpg", frameCopia)
-    #if numeroFrame == 340: cv2.imwrite("Frame340Copia.jpg", frameCopia)
-    #if numeroFrame == 341: cv2.imwrite("Frame341Copia.jpg", frameCopia)
-    #if numeroFrame == 342: cv2.imwrite("Frame342Copia.jpg", frameCopia)
+    #if numeroFrame == 349: cv2.imwrite("Frame349Copia.jpg", frameCopia)
+    #if numeroFrame == 350: cv2.imwrite("Frame350Copia.jpg", frameCopia)
+    #if numeroFrame == 351: cv2.imwrite("Frame351Copia.jpg", frameCopia)
+    #if numeroFrame == 352: cv2.imwrite("Frame352Copia.jpg", frameCopia)
+    #   if numeroFrame == 353: cv2.imwrite("Frame353Copia.jpg", frameCopia)
 
     if centro is not None:
         centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro, pre_centro_lista = circuloPorCentro(frameCopia, centro, False, pre_centro_lista)
@@ -502,6 +504,20 @@ def main(frame):
         preCentroConDecimales = centroConDecimales
 
     if deteccionPorColor == False: ultimosCentrosCirculo.appendleft(centroConDecimales)
+    if color_pre_centro is not None: colores_centro.append(color_pre_centro)
+
+    if len(colores_centro) == 10:
+        valores_bgr_array = np.array(colores_centro)
+
+        # Calcula la mediana para cada canal B, G y R
+        mediana_b = np.median(valores_bgr_array[:, 0])
+        mediana_g = np.median(valores_bgr_array[:, 1])
+        mediana_r = np.median(valores_bgr_array[:, 2])
+
+        # La mediana final en formato BGR
+        color_pre_centro = (mediana_b, mediana_g, mediana_r)
+
+        print("Mediana BGR:", color_pre_centro)
         
     print("Color centro", color_pre_centro)
     print("Centro", centro)
@@ -945,7 +961,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     
     # Inicializar una variable para el color más cercano y la distancia más corta
     color_mas_cercano = None
-    distancia_mas_corta = float('inf')
+    #distancia_mas_corta_color = float('inf')
 
     colores = {}
     pixelesColoresCercanos = []
@@ -961,16 +977,16 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
             if distancia <= 30: pixelesColoresCercanos.append(((i, h), distancia, (np.sqrt(abs(imagen_recortada_copia.shape[1] / 2 - h) ** 2 + abs(imagen_recortada_copia.shape[0] / 2 - i) ** 2))))
 
             # Si la distancia actual es menor que la distancia más corta encontrada hasta ahora
-            #if distancia < distancia_mas_corta:
+            #if distancia < distancia_mas_corta_color:
             #    _, _, posibleNuevoRadio, _ = circuloPorCentro(ultimosFrames[-1], ((x1 + i, y1 + h), 5))
             #    if abs(posibleNuevoRadio - radioDeteccionPorCirculo) < 3:
             #        if len(ultimosFrames) >= 5 and pixelColorIgual((x1 + i, y1 + h), list(ultimosFrames)[-5:], False) == False:
-            #            distancia_mas_corta = distancia
+            #            distancia_mas_corta_color = distancia
             #            color_mas_cercano = color
             #            pixel = (i, h)
 
             #        elif len(ultimosFrames) < 5:
-            #            distancia_mas_corta = distancia
+            #            distancia_mas_corta_color = distancia
             #            color_mas_cercano = color
             #            pixel = (i, h)
     
@@ -982,6 +998,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     contador = 0
     pixel = None
     color_mas_cercano = None
+    distancia_mas_corta_color = float('inf')
     distancia_mas_corta = float('inf')
 
     for pixelCercano in pixelesColoresCercanos:
@@ -995,7 +1012,8 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
         if abs(posibleNuevoRadio - radioDeteccionPorCirculo) < 4:
             if len(ultimosFrames) >= 5 and pixelColorIgual((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), list(ultimosFrames)[-5:], False) == False:
                 if contador == 0:
-                    distancia_mas_corta = pixelCercano[1]
+                    distancia_mas_corta_color = pixelCercano[1]
+                    distancia_mas_corta = pixelCercano[2]
                     color_mas_cercano = colores[pixelCercano[0]]
                     pixel = pixelCercano[0]
                 centrosPosibles.append((posibleCentro, posibleColorPreCentro, posibleCentroLista))
@@ -1003,7 +1021,8 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
 
             elif len(ultimosFrames) < 5:
                 if contador == 0:
-                    distancia_mas_corta = pixelCercano[1]
+                    distancia_mas_corta_color = pixelCercano[1]
+                    distancia_mas_corta = pixelCercano[2]
                     color_mas_cercano = colores[pixelCercano[0]]
                     pixel = pixelCercano[0]
                 centrosPosibles.append((posibleCentro, posibleColorPreCentro, posibleCentroLista))
@@ -1014,12 +1033,13 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
 
         print("Pixel Detectado", pixel)
         print("El color más cercano a", color_pre_centro, "es", color_mas_cercano)
+        print("Distancia más corta por color", distancia_mas_corta_color)
         print("Distancia más corta", distancia_mas_corta)
     
         print(pixelColorIgual((x1 + pixel[0], y1 + pixel[1]), list(ultimosFrames)[-5:], True))
         #print("Centros posibles", centrosPosibles)
 
-    if not correccion: ultimosSimilitudesCoseno.append(distancia_mas_corta)
+    if not correccion: ultimosSimilitudesCoseno.append(distancia_mas_corta_color)
 
     #if numeroFrame == 93: cv2.imwrite("imagen_recortada93SinCirculos.png", imagen_recortada_copia)
 
@@ -1063,7 +1083,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
 
             centro = ((xr, yr), rr)
             
-            if correccion: return centro, distancia_mas_corta, color_mas_cercano
+            if correccion: return centro, distancia_mas_corta_color, color_mas_cercano
             
             centroConDecimales = ((x1 + circuloDetectado[0], y1 + circuloDetectado[1]), circuloDetectado[2])
             #centroConDecimales = ((x1 + circuloDetectado[0][0], y1 + circuloDetectado[0][1]), circuloDetectado[1])
@@ -1098,7 +1118,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     if a:
         pausado = True
 
-        if numeroFrame > 40:
+        if numeroFrame > 336:
             while True:
                 # Verificar si se debe pausar la imagen
                 if pausado:
@@ -1852,6 +1872,8 @@ color_pre_centro = None
 pre_centro_lista = None
 
 ultimosPosiblesCentrosCirculo = deque(maxlen=10)
+
+colores_centro = deque(maxlen=10)
 
 # Abrir el archivo en modo de lectura
 with open(ruta_archivo, "r") as archivo:
