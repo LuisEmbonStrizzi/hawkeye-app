@@ -18,18 +18,24 @@ module.exports = withPWA({
   async rewrites() {
     return [
       {
-        source: '/api/:path*',
-        destination: 'http://127.0.0.1:5328/:path*', // Proxy to Backend
+        source: "/api-gopro/:path*",
+        destination: "http://127.0.0.1:8000/:path*", // Proxy to Backend
       },
-    ]
+    ];
   },
+
   reactStrictMode: false,
   i18n: {
     locales: ["en"],
     defaultLocale: "en",
   },
   images: {
-    domains: ["storage.googleapis.com", "storage.cloud.google.com", "hawkeyevideos1.blob.core.windows.net","www.m1tennis.com"],
+    domains: [
+      "storage.googleapis.com",
+      "storage.cloud.google.com",
+      "hawkeyevideos1.blob.core.windows.net",
+      "www.m1tennis.com",
+    ],
   },
   output: "standalone",
 });

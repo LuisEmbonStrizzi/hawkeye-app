@@ -24,7 +24,7 @@ const NewAnalysisSteps: React.FC = () => {
   async function getBattery() {
     try {
       const getBattery: TgetBattery = await axios.get(
-        "http://localhost:8000/getBattery",
+        "http://localhost:8000/api-gopro/getBattery",
         {
           responseType: "json",
         }
@@ -42,7 +42,7 @@ const NewAnalysisSteps: React.FC = () => {
     async function getCourtPhoto() {
       try {
         const record: cameraData = await axios.get(
-          "http://127.0.0.1:8000/courtPhoto",
+          "http://127.0.0.1:8000/api-gopro/courtPhoto",
           {
             responseType: "json",
           }

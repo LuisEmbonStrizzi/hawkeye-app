@@ -46,7 +46,7 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
   async function getBattery() {
     try {
       const getBattery: TgetBattery = await axios.get(
-        "http://localhost:8000/getBattery",
+        "http://localhost:8000/api-gopro/getBattery",
         {
           responseType: "json",
         }
@@ -79,29 +79,11 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
     }
   }, [continueRecord]);
 
-  // const uploadVideo = api.videos.stopRecording.useMutation({
-  //   onSuccess: () => {
-  //     void refetchVideos();
-  //   },
-  // });
-  // const { data: videos, refetch: refetchVideos } =
-  //   api.videos.getVideo.useQuery();
-
-  // function callHawkeye() {
-  //   try {
-  //     uploadVideo.mutate();
-  //     setStopRecord(true);
-  //     setContinueRecord(false)
-  //     setHasFetchedData(true)
-  //   } catch (err: unknown) {
-  //     console.log(err);
-  //   }
-  // }
 
   async function startRecording() {
     try {
       const record: TrecordResponse = await axios.get(
-        "http://127.0.0.1:8000/record",
+        "http://127.0.0.1:8000/api-gopro/record",
         {
           responseType: "json",
         }
@@ -129,7 +111,7 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
       setStopRecord(true);
 
       const stopRecording: cameraData = await axios.get(
-        "http://127.0.0.1:8000/stopRecording",
+        "http://127.0.0.1:8000/api-gopro/stopRecording",
         {
           responseType: "json",
         }

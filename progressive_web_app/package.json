@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "fastapi-dev": "python -m uvicorn api-gopro.index:app --reload",
     "build": "next build",
     "dev": "next dev",
     "postinstall": "prisma generate",

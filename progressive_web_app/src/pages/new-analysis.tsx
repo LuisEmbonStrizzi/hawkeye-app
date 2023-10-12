@@ -39,7 +39,7 @@ const NewAnalysis = () => {
     try {
       if (!hasFetchedData) {
         const record: TWificredentials = await axios.get(
-          "http://127.0.0.1:8000/enable_Wifi",
+          "http://127.0.0.1:8000/api-gopro/enable_Wifi",
           {
             responseType: "json",
           }
