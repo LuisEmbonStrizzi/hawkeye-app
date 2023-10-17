@@ -228,8 +228,21 @@ def main(frame):
                 TiempoTresCentrosConsecutivos = 0
                 deteccionPorColor = True
 
+                for contorno in contornos:
+                    ((x, y), radio) = cv2.minEnclosingCircle(contorno)
+                    print("X, y, radio:", x, y, radio)
+
                 contornos_ordenados = sorted(contornos, key=lambda x: cv2.contourArea(x), reverse=True)
-                todosCirculosPosibles.append(contornos_ordenados)
+
+                for contorno in contornos_ordenados:
+                    (x, y), radius = cv2.minEnclosingCircle(contorno)
+                    c = (int(x), int(y))
+                    r = int(radius)
+
+                    # Agregar el centro y el radio a la lista
+                    todosCirculosPosibles.append(((c), r))
+
+                #todosCirculosPosibles.append(contornos_ordenados)
 
                 print("Deteccion por color")
 
@@ -239,9 +252,21 @@ def main(frame):
 
             # Si se detectó un centro hace menos de 0.3 segundos
             else:
+                casiCentro = None
+                contornos_posibles = []
                 # Corre la función tp_fix para determinar cual es el contorno detectado que está mas cerca de la pelota del frame anterior, es decir, encuentra la peltoa a través de su posición en el frame anterior
                 if preCentro is not None: casiCentro, contornos_posibles = tp_fix(contornos, preCentro, TiempoDeteccionUltimaPelota, False, None, None, False, False)
-                todosCirculosPosibles.append(contornos_posibles)
+                
+                if contornos_posibles is not None:
+                    for contorno in contornos_posibles:
+                        (x, y), radius = cv2.minEnclosingCircle(contorno)
+                        c = (int(x), int(y))
+                        r = int(radius)
+
+                        # Agregar el centro y el radio a la lista
+                        todosCirculosPosibles.append(((c), r))
+
+                #todosCirculosPosibles.append(contornos_posibles)
 
                 # Encuentra la posición x, y del contorno más cercano a la pelota del frame anterior. Determina el centro de la pelota
                 if casiCentro is not None:
@@ -512,6 +537,8 @@ def main(frame):
         ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro, todosCirculosPosibles))
         soloUltimosCentrosGlobales.appendleft(centroConDecimales)
 
+    print("Todos Circulos Posibles", todosCirculosPosibles)
+
     if centro is not None:
         preCentro = centro
         preCentroConDecimales = centroConDecimales
@@ -754,7 +781,7 @@ def tp_fix(contornos, pre_centro, count, circulo, imagen_recortada, xy1, correci
         #print("Len cnts_pts: ", len(cnts_pts))
         # Devuelve la función cualEstaMasCerca con los parametros obtenidos en la función
         return cualEstaMasCerca(pre_centro, cnts_pts, circulo, verdeCerca, correcion)
-    return None
+    return None, None
 
 # Define qué candidato a pelota es el punto más cercano al anterior. Toma los puntos de tp_fix y analiza cual está mas cerca al pre_centro (centro anterior).
 def cualEstaMasCerca(punto, lista, circulo, verdeCerca, correcion):
@@ -778,9 +805,13 @@ def cualEstaMasCerca(punto, lista, circulo, verdeCerca, correcion):
         if correcion == False:
             suma.append(difEnX + difEnY + difRadio * 3)
             suma2.append(i)
+        
+        combinada = list(zip(suma, suma2))
+        combinada_ordenada = sorted(combinada, key=lambda x: x[0])
+        lista_ordenar = [elemento for parametro, elemento in combinada_ordenada]
 
     # Devolvemos el valor más chico que representa el círculo a menor distancia del preCentro
-    if len(suma2) > 0: return suma2[suma.index(min(suma))], suma2
+    if len(suma2) > 0: return suma2[suma.index(min(suma))], lista_ordenar
     return None
 
 # Función que determina si es un pique o un golpe
