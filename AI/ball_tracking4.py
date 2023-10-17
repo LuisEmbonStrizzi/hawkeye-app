@@ -524,11 +524,11 @@ def main(frame):
     if afterVelocidad and centro is not None:
         afterVelocidad = False
 
-    if numeroFrame == 349: cv2.imwrite("Frame349Copia.jpg", frameCopia)
-    if numeroFrame == 350: cv2.imwrite("Frame350Copia.jpg", frameCopia)
-    if numeroFrame == 351: cv2.imwrite("Frame351Copia.jpg", frameCopia)
-    if numeroFrame == 352: cv2.imwrite("Frame352Copia.jpg", frameCopia)
-    if numeroFrame == 353: cv2.imwrite("Frame353Copia.jpg", frameCopia)
+    #if numeroFrame == 349: cv2.imwrite("Frame349Copia.jpg", frameCopia)
+    #if numeroFrame == 350: cv2.imwrite("Frame350Copia.jpg", frameCopia)
+    #if numeroFrame == 351: cv2.imwrite("Frame351Copia.jpg", frameCopia)
+    #if numeroFrame == 352: cv2.imwrite("Frame352Copia.jpg", frameCopia)
+    #if numeroFrame == 353: cv2.imwrite("Frame353Copia.jpg", frameCopia)
 
     if centro is not None:
         centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro, pre_centro_lista = circuloPorCentro(frameCopia, centro, False, pre_centro_lista)
