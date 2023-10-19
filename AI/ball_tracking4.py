@@ -59,6 +59,7 @@ def main(frame):
     global ultimosCentrosGlobales
     global pre_centro_lista
     global regresionCirculo
+    global problema
 
     # Agrandamos el frame para ver más la pelota
     frame = imutils.resize(frame, anchoOG * resizer, altoOG * resizer)
@@ -344,7 +345,7 @@ def main(frame):
 
         if len(ultimosCentrosGlobales) == 14 and len(ultimosCentrosCirculo) >= 8:
             if seEstaMoviendo(list(ultimosCentrosCirculo)[:5], 7) == False and corregir[1] == 0 or deteccionNoEsLaPelota(ultimosCentrosCirculo, 5, False) and corregir[1] == 0:
-                corregir = (True, numeroFrame + 2)
+                #corregir = (True, numeroFrame + 2)
                 print(f"{bcolors.FAIL}Warning: No active frommets remain. Continue?{bcolors.ENDC}")
         
         elif len(ultimosCentrosCirculo) >= 8:
@@ -358,11 +359,11 @@ def main(frame):
         if radio is not None: 
             radioDeteccionPorCirculo = radio
     
-    if corregir[0] == True and numeroFrame == corregir[1]:
-        #corregirPosicionPelota(ultimosCentrosGlobales)
-        corregir = (False, 0)
-        #primeraVez = True
-        ultimosCentrosCirculo.clear()
+    # if corregir[0] == True and numeroFrame == corregir[1]:
+    #     #corregirPosicionPelota(ultimosCentrosGlobales)
+    #     corregir = (False, 0)
+    #     #primeraVez = True
+    #     ultimosCentrosCirculo.clear()
 
     #if len(ultimosCentrosGlobales) >= 10 and abs(ultimosCentrosGlobales[0][1] - ultimosCentrosGlobales[1][1]) > 2:
 
@@ -564,8 +565,15 @@ def main(frame):
     print("Centro con decimales", centroConDecimales)
     print("Len centro lista", len(pre_centro_lista))
 
-    if len(soloUltimosCentrosGlobales) >= 5 and seEstaMoviendo(soloUltimosCentrosGlobales, 7) == False or len(soloUltimosCentrosGlobales) >= 10 and deteccionNoEsLaPelota(soloUltimosCentrosGlobales, 15, False):
+    if len(ultimosCentrosGlobales) >= 7 and cambiosDeDireccion(list(ultimosCentrosGlobales)[-7:], False, ultimosCentrosGlobales, soloUltimosCentrosGlobales) or len(soloUltimosCentrosGlobales) >= 5 and seEstaMoviendo(soloUltimosCentrosGlobales, 7) == False or len(soloUltimosCentrosGlobales) >= 10 and deteccionNoEsLaPelota(soloUltimosCentrosGlobales, 15, False):
+        #corregir = (True, numeroFrame + 2)
         corregirPosicionPelota2(ultimosCentrosGlobales, soloUltimosCentrosGlobales, 0, 0, 0)
+    
+    if corregir[0] == True and numeroFrame == corregir[1]:
+        corregirPosicionPelota2(ultimosCentrosGlobales, soloUltimosCentrosGlobales, 0, 0, 0)
+        corregir = (False, 0)
+        #primeraVez = True
+        ultimosCentrosCirculo.clear()
 
     if numeroFrame == 350:
         for centro, *_ in ultimosCentrosGlobales:
@@ -574,7 +582,6 @@ def main(frame):
     #print("Radio de la pelota de verdad", radioDeteccionPorCirculo)
 
     #if len(ultimosCentrosGlobales) == 14: print("CambiosDeDireccion", cambiosDeDireccion(ultimosCentrosGlobales))
-    if len(ultimosCentrosGlobales) >= 7: cambiosDeDireccion(list(ultimosCentrosGlobales)[-7:], False, ultimosCentrosGlobales, soloUltimosCentrosGlobales)
     #if len(soloUltimosCentrosGlobales) >= 7: cambiosDeDireccion(list(soloUltimosCentrosGlobales)[-7:], True, soloUltimosCentrosGlobales)
     #print("Ultimos Centros Globales", ultimosCentrosGlobales)
 
@@ -710,6 +717,7 @@ def ignorarContornosQuietos(cnts, contornosIgnorar):
 
 # Fución que determina si la pelota se está moviendo
 def seEstaMoviendo(ultCentros, rango):
+    global problema
     #print("AAAAAAAAAAAAA")
     #print("ultCentros", ultCentros)
 
@@ -743,6 +751,7 @@ def seEstaMoviendo(ultCentros, rango):
     # Devuelve True o False dependiendo de si la pelota se mueve o no
     if movimiento:
         return True
+    problema = 2
     return False
 
 # Función que arregla el problema de "la zapatilla verde"
@@ -1049,7 +1058,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     distancia_mas_corta = float('inf')
 
     for pixelCercano in pixelesColoresCercanos:
-        if contador == 3: break
+        if contador == 5: break
         if pixelCercano[0] in pixelesAnalizados: continue
         #print("Pixel Cercano", pixelCercano)
         posibleCentro, posibleCentroConDecimales, posibleNuevoRadio, posibleColorPreCentro, posibleCentroLista = circuloPorCentro(ultimosFrames[-1], ((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), 5), False, pre_centro_lista)
@@ -1192,10 +1201,13 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     return centro, regresionCirculo, centrosPosibles
 
 def deteccionNoEsLaPelota(ultCentros, valorSumaEjeY, correccion):
+    global problema
     #print("BBBBBBBBBBB")
     #print("ultCentros", ultCentros)
     #print("valorSumaEjeY", valorSumaEjeY)
     #print("correccion", correccion)
+
+    problema = 3
 
     if correccion == False:
         sumaRadios = 0
@@ -1225,6 +1237,7 @@ def deteccionNoEsLaPelota(ultCentros, valorSumaEjeY, correccion):
                 if abs(centro[0][1] - centro2[0][1]) <= 2 and contador1 != contador2:
                     return True
     
+    problema = 0
     return False
 
 # Función cuadrática
@@ -1432,6 +1445,7 @@ def cambiosDeDireccion(ultCentros, correccion, ultCentrosExtendidos, soloUltCent
     global centroConDecimales
     global color_pre_centro
     global ultimosCentrosGlobales
+    global problema
 
     #for i in range(len(ultCentros)):
     #    ultCentros[i] = (ultCentros[i], 0)
@@ -1536,8 +1550,10 @@ def cambiosDeDireccion(ultCentros, correccion, ultCentrosExtendidos, soloUltCent
     if cambios_de_direccion >= 3 and not correccion or muchoMovimientoEnX and not correccion:
         corregirPosicionPelota2(ultCentrosExtendidos, soloUltCentros, 0, 0, 0)
 
+        problema = 1
         primeraVez = True
-        return cambios_de_direccion
+        
+        return True
 
         circulosCorreccion = []
         color_preCentro = None
@@ -1634,7 +1650,7 @@ def cambiosDeDireccion(ultCentros, correccion, ultCentrosExtendidos, soloUltCent
 
         #if centro is not None: ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro))
 
-    return cambios_de_direccion
+    return False
 
 def distancia_bgr(color1, color2):
     """
@@ -1943,6 +1959,8 @@ ultimosPosiblesCentrosCirculo = deque(maxlen=10)
 colores_centro = deque(maxlen=10)
 
 regresionCirculo = None
+
+problema = 0
 
 # Abrir el archivo en modo de lectura
 with open(ruta_archivo, "r") as archivo:
