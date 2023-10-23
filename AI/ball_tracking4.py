@@ -1028,7 +1028,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     #distancia_mas_corta_color = float('inf')
 
     colores = {}
-    #pixelesColoresCercanos = []
+    # pixelesColoresCercanos = []
     
     # for i in range(imagen_recortada_copia.shape[1]):
     #     for h in range(imagen_recortada_copia.shape[0]):
@@ -1094,19 +1094,19 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
                     centrosPosibles.append(posibleCentro)
                     contador += 1
 
-    #pixelesColoresCercanos = sorted(pixelesColoresCercanos, key=lambda x: x[2])
-    #print("AAAAA", pixelesColoresCercanos[0:40])
-    #if numeroFrame == 352: pixelesColoresCercanos = sorted(pixelesColoresCercanos, key=lambda x: x[1])
+    # pixelesColoresCercanos = sorted(pixelesColoresCercanos, key=lambda x: x[2])
+    # #print("AAAAA", pixelesColoresCercanos[0:40])
+    # #if numeroFrame == 352: pixelesColoresCercanos = sorted(pixelesColoresCercanos, key=lambda x: x[1])
 
-    #pixelesAnalizados = []
-    #centrosPosibles = []
-    #contador = 0
-    #pixel = None
-    #color_mas_cercano = None
-    #distancia_mas_corta_color = float('inf')
-    #distancia_mas_corta = float('inf')
+    # pixelesAnalizados = []
+    # centrosPosibles = []
+    # contador = 0
+    # pixel = None
+    # color_mas_cercano = None
+    # distancia_mas_corta_color = float('inf')
+    # distancia_mas_corta = float('inf')
     
-    #if pixelesColoresCercanos is not None:
+    # if pixelesColoresCercanos is not None:
     #    for pixelCercano in pixelesColoresCercanos:
     #        if contador == 5: break
     #        if pixelCercano[0] in pixelesAnalizados: continue
@@ -2053,6 +2053,8 @@ for x in range(400):
 
 # Ordenar ambas listas por distancia
 pixeles_circulo, distancias_circulo = zip(*sorted(zip(pixeles_circulo, distancias_circulo), key=lambda x: x[1]))
+
+print("Pixeles Circulo", pixeles_circulo[:30])
 
 # Abrir el archivo en modo de lectura
 with open(ruta_archivo, "r") as archivo:
