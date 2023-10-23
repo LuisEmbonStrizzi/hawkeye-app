@@ -1028,36 +1028,32 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     #distancia_mas_corta_color = float('inf')
 
     colores = {}
-    pixelesColoresCercanos = []
+    #pixelesColoresCercanos = []
     
-    for i in range(imagen_recortada_copia.shape[1]):
-        for h in range(imagen_recortada_copia.shape[0]):
-            color = imagen_recortada_copia[h, i]
-            #distancia = np.linalg.norm(color - color_pre_centro)
-            distancia = abs(int(color[0]) - int(color_pre_centro[0])) + abs(int(color[1]) - int(color_pre_centro[1])) + abs(int(color[2]) - int(color_pre_centro[2]))
+    # for i in range(imagen_recortada_copia.shape[1]):
+    #     for h in range(imagen_recortada_copia.shape[0]):
+    #         color = imagen_recortada_copia[h, i]
+    #         #distancia = np.linalg.norm(color - color_pre_centro)
+    #         distancia = abs(int(color[0]) - int(color_pre_centro[0])) + abs(int(color[1]) - int(color_pre_centro[1])) + abs(int(color[2]) - int(color_pre_centro[2]))
 
-            colores[(i, h)] = color
-            #if x1 + i == 3110 and y1 + h == 1540: print("Color", color)
-            if distancia <= 30: pixelesColoresCercanos.append(((i, h), distancia, (np.sqrt(abs(imagen_recortada_copia.shape[1] / 2 - h) ** 2 + abs(imagen_recortada_copia.shape[0] / 2 - i) ** 2)), (i + x1, h + y1)))
+    #         colores[(i, h)] = color
+    #         #if x1 + i == 3110 and y1 + h == 1540: print("Color", color)
+    #         if distancia <= 30: pixelesColoresCercanos.append(((i, h), distancia, (np.sqrt(abs(imagen_recortada_copia.shape[1] / 2 - h) ** 2 + abs(imagen_recortada_copia.shape[0] / 2 - i) ** 2)), (i + x1, h + y1)))
 
-            # Si la distancia actual es menor que la distancia más corta encontrada hasta ahora
-            #if distancia < distancia_mas_corta_color:
-            #    _, _, posibleNuevoRadio, _ = circuloPorCentro(ultimosFrames[-1], ((x1 + i, y1 + h), 5))
-            #    if abs(posibleNuevoRadio - radioDeteccionPorCirculo) < 3:
-            #        if len(ultimosFrames) >= 5 and pixelColorIgual((x1 + i, y1 + h), list(ultimosFrames)[-5:], False) == False:
-            #            distancia_mas_corta_color = distancia
-            #            color_mas_cercano = color
-            #            pixel = (i, h)
+    #         # Si la distancia actual es menor que la distancia más corta encontrada hasta ahora
+    #         #if distancia < distancia_mas_corta_color:
+    #         #    _, _, posibleNuevoRadio, _ = circuloPorCentro(ultimosFrames[-1], ((x1 + i, y1 + h), 5))
+    #         #    if abs(posibleNuevoRadio - radioDeteccionPorCirculo) < 3:
+    #         #        if len(ultimosFrames) >= 5 and pixelColorIgual((x1 + i, y1 + h), list(ultimosFrames)[-5:], False) == False:
+    #         #            distancia_mas_corta_color = distancia
+    #         #            color_mas_cercano = color
+    #         #            pixel = (i, h)
 
-            #        elif len(ultimosFrames) < 5:
-            #            distancia_mas_corta_color = distancia
-            #            color_mas_cercano = color
-            #            pixel = (i, h)
+    #         #        elif len(ultimosFrames) < 5:
+    #         #            distancia_mas_corta_color = distancia
+    #         #            color_mas_cercano = color
+    #         #            pixel = (i, h)
     
-    pixelesColoresCercanos = sorted(pixelesColoresCercanos, key=lambda x: x[2])
-    #print("AAAAA", pixelesColoresCercanos[0:40])
-    #if numeroFrame == 352: pixelesColoresCercanos = sorted(pixelesColoresCercanos, key=lambda x: x[1])
-
     pixelesAnalizados = []
     centrosPosibles = []
     contador = 0
@@ -1065,38 +1061,82 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     color_mas_cercano = None
     distancia_mas_corta_color = float('inf')
     distancia_mas_corta = float('inf')
-    
-    if pixelesColoresCercanos is not None:
-        for pixelCercano in pixelesColoresCercanos:
-            if contador == 5: break
-            if pixelCercano[0] in pixelesAnalizados: continue
-            #print("Pixel Cercano", pixelCercano)
-            posibleCentro, posibleCentroConDecimales, posibleNuevoRadio, posibleColorPreCentro, posibleCentroLista = circuloPorCentro(ultimosFrames[-1], ((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), 5), False, pre_centro_lista)
-            for i in posibleCentroLista: pixelesAnalizados.append((i[0] - x1, i[1] - y1))
-            #print("Posible Nuevo Radio", posibleNuevoRadio)
-            #print("Len posibleCentroLista", posibleCentroLista)
+
+    for i in range(imagen_recortada_copia.shape[1] * imagen_recortada_copia.shape[0]):
+        if contador == 5: break
+        if (pixeles_circulo[i][0], pixeles_circulo[i][1]) in pixelesAnalizados: continue
+        color = imagen_recortada_copia[pixeles_circulo[i][1], pixeles_circulo[i][0]]
+        distancia = abs(int(color[0]) - int(color_pre_centro[0])) + abs(int(color[1]) - int(color_pre_centro[1])) + abs(int(color[2]) - int(color_pre_centro[2]))
+        colores[pixeles_circulo[i]] = color
+        if distancia <= 30:
+            posibleCentro, posibleCentroConDecimales, posibleNuevoRadio, posibleColorPreCentro, posibleCentroLista = circuloPorCentro(ultimosFrames[-1], ((x1 + pixeles_circulo[i][0], y1 + pixeles_circulo[i][1]), 5), False, pre_centro_lista)
+            for h in posibleCentroLista: pixelesAnalizados.append((h[0] - x1, h[1] - y1))
             if abs(posibleNuevoRadio - radioDeteccionPorCirculo) < 4:
-                if len(ultimosFrames) >= 5 and pixelColorIgual((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), list(ultimosFrames)[-5:], False) == False:
-                    print("Pixel CercanoAA", pixelCercano)
+                if len(ultimosFrames) >= 5 and pixelColorIgual((x1 + pixeles_circulo[i][0], y1 + pixeles_circulo[i][1]), list(ultimosFrames)[-5:], False) == False:
+                    print("Pixel CercanoAA", pixeles_circulo[i][0], pixeles_circulo[i][1])
                     if contador == 0:
-                        distancia_mas_corta_color = pixelCercano[1]
-                        distancia_mas_corta = pixelCercano[2]
-                        color_mas_cercano = colores[pixelCercano[0]]
-                        pixel = pixelCercano[0]
+                        distancia_mas_corta_color = distancia
+                        distancia_mas_corta = distancias_circulo[i]
+                        color_mas_cercano = colores[(pixeles_circulo[i][0], pixeles_circulo[i][1])]
+                        pixel = (pixeles_circulo[i][0], pixeles_circulo[i][1])
                     #centrosPosibles.append((posibleCentro, posibleColorPreCentro, posibleCentroLista))
                     centrosPosibles.append(posibleCentro)
                     contador += 1
 
                 elif len(ultimosFrames) < 5:
-                    print("Pixel CercanoAA", pixelCercano)
+                    print("Pixel CercanoAA", pixeles_circulo[i][0], pixeles_circulo[i][1])
                     if contador == 0:
-                        distancia_mas_corta_color = pixelCercano[1]
-                        distancia_mas_corta = pixelCercano[2]
-                        color_mas_cercano = colores[pixelCercano[0]]
-                        pixel = pixelCercano[0]
+                        distancia_mas_corta_color = distancia
+                        distancia_mas_corta = distancias_circulo[i]
+                        color_mas_cercano = colores[(pixeles_circulo[i][0], pixeles_circulo[i][1])]
+                        pixel = (pixeles_circulo[i][0], pixeles_circulo[i][1])
                     #centrosPosibles.append((posibleCentro, posibleColorPreCentro, posibleCentroLista))
                     centrosPosibles.append(posibleCentro)
                     contador += 1
+
+    #pixelesColoresCercanos = sorted(pixelesColoresCercanos, key=lambda x: x[2])
+    #print("AAAAA", pixelesColoresCercanos[0:40])
+    #if numeroFrame == 352: pixelesColoresCercanos = sorted(pixelesColoresCercanos, key=lambda x: x[1])
+
+    #pixelesAnalizados = []
+    #centrosPosibles = []
+    #contador = 0
+    #pixel = None
+    #color_mas_cercano = None
+    #distancia_mas_corta_color = float('inf')
+    #distancia_mas_corta = float('inf')
+    
+    #if pixelesColoresCercanos is not None:
+    #    for pixelCercano in pixelesColoresCercanos:
+    #        if contador == 5: break
+    #        if pixelCercano[0] in pixelesAnalizados: continue
+    #        #print("Pixel Cercano", pixelCercano)
+    #        posibleCentro, posibleCentroConDecimales, posibleNuevoRadio, posibleColorPreCentro, posibleCentroLista = circuloPorCentro(ultimosFrames[-1], ((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), 5), False, pre_centro_lista)
+    #        for i in posibleCentroLista: pixelesAnalizados.append((i[0] - x1, i[1] - y1))
+    #        #print("Posible Nuevo Radio", posibleNuevoRadio)
+    #        #print("Len posibleCentroLista", posibleCentroLista)
+    #        if abs(posibleNuevoRadio - radioDeteccionPorCirculo) < 4:
+    #            if len(ultimosFrames) >= 5 and pixelColorIgual((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), list(ultimosFrames)[-5:], False) == False:
+    #                print("Pixel CercanoAA", pixelCercano)
+    #                if contador == 0:
+    #                    distancia_mas_corta_color = pixelCercano[1]
+    #                    distancia_mas_corta = pixelCercano[2]
+    #                    color_mas_cercano = colores[pixelCercano[0]]
+    #                    pixel = pixelCercano[0]
+    #                #centrosPosibles.append((posibleCentro, posibleColorPreCentro, posibleCentroLista))
+    #                centrosPosibles.append(posibleCentro)
+    #                contador += 1
+
+    #            elif len(ultimosFrames) < 5:
+    #                print("Pixel CercanoAA", pixelCercano)
+    #                if contador == 0:
+    #                    distancia_mas_corta_color = pixelCercano[1]
+    #                    distancia_mas_corta = pixelCercano[2]
+    #                    color_mas_cercano = colores[pixelCercano[0]]
+    #                    pixel = pixelCercano[0]
+    #                #centrosPosibles.append((posibleCentro, posibleColorPreCentro, posibleCentroLista))
+    #                centrosPosibles.append(posibleCentro)
+    #                contador += 1
         
     if pixel is not None:
         ultimosPosiblesCentrosCirculo.append(centrosPosibles)
@@ -1562,7 +1602,7 @@ def cambiosDeDireccion(ultCentros, correccion, ultCentrosExtendidos, soloUltCent
         #corregirPosicionPelota2(ultCentrosExtendidos, soloUltCentros, 0, 0, 0)
 
         problema = 1
-        primeraVez = True
+        #primeraVez = True
         
         return True
 
@@ -1999,6 +2039,20 @@ regresionCirculo = None
 problema = 0
 
 contadorCentrosCorreccion = 0
+
+# Crear una lista de píxeles y una lista de distancias
+pixeles_circulo = []
+distancias_circulo = []
+
+# Calcular la distancia de cada píxel al centro y almacenar los resultados
+for x in range(400):
+    for y in range(400):
+        distancia = np.sqrt((x - 200) ** 2 + (y - 200) ** 2)
+        pixeles_circulo.append((x, y))
+        distancias_circulo.append(distancia)
+
+# Ordenar ambas listas por distancia
+pixeles_circulo, distancias_circulo = zip(*sorted(zip(pixeles_circulo, distancias_circulo), key=lambda x: x[1]))
 
 # Abrir el archivo en modo de lectura
 with open(ruta_archivo, "r") as archivo:
