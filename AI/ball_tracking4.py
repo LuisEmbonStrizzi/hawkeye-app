@@ -537,7 +537,7 @@ def main(frame):
         centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro, pre_centro_lista = circuloPorCentro(frameCopia, centro, False, pre_centro_lista)
 
     if centro is not None: 
-        ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro, todosCirculosPosibles, primeraVez, contornos, regresionCirculo))
+        ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro, todosCirculosPosibles, primeraVez, contornos, regresionCirculo, pre_centro_lista))
         soloUltimosCentrosGlobales.appendleft(centroConDecimales)
     
     if numeroFrame == 351: print("AAAAAAAAAAAAAAAAAAAAAAA", todosCirculosPosibles)
@@ -1789,7 +1789,7 @@ def circuloPorCentro(frameCopia, centro, pintar, pre_Centro_lista):
     return centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro, centro_lista
 
 def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorreccion):
-    #ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro, todosCirculosPosibles, primeraVez, contornos, regresionCirculo))
+    #ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro, todosCirculosPosibles, primeraVez, contornos, regresionCirculo, pre_centro_lista))
     print("Problema", problema)
     print("Contador Correccion", contadorCorreccion)
 
@@ -1865,6 +1865,8 @@ def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorrec
     colores_pre_centro = []
     se_rompio = False
 
+    "HACER LO DE LA MEDIANA"
+
     for pre_centro_correccion in listaPosiblesCentros:
         if se_rompio == True: break
         centros_correccion = []
@@ -1880,13 +1882,19 @@ def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorrec
                 casiCentro = max(lista[7], key=cv2.contourArea)
                 ((x, y), radio) = cv2.minEnclosingCircle(casiCentro)
                 M = cv2.moments(casiCentro)
-                if M["m00"] > 0: centros_correccion.append(((M["m10"] / M["m00"], M["m01"] / M["m00"]), radio))
+                if M["m00"] > 0:
+                    casiCentro = circuloPorCentro(pre_lista[2], (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), False, pre_lista[9]) 
+                    centros_correccion.append(casiCentro[0])
+                    colores_pre_centro.append(casiCentro[3])
+                #if M["m00"] > 0: centros_correccion.append(((M["m10"] / M["m00"], M["m01"] / M["m00"]), radio))
                 regresiones_circulos.append(None)
             else:
                 verdeCerca = None
                 if nueva_deteccion_color_ultimos_frames[contador] is not None: verdeCerca = tp_fix(nueva_deteccion_color_ultimos_frames[contador], centros_correccion[-1], 0.2, False, None, (1,0), False, True)
-                if verdeCerca is not None: 
-                    centros_correccion.append(verdeCerca)
+                if verdeCerca is not None:
+                    casiCentro = circuloPorCentro(lista[2], verdeCerca, False, lista[9])
+                    centros_correccion.append(casiCentro[0])
+                    colores_pre_centro.append(casiCentro[3])
                     regresiones_circulos.append(None)
                 else:
                     regresion_circulo = None
