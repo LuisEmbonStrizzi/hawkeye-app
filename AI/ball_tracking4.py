@@ -535,14 +535,14 @@ def main(frame):
 
     if centro is not None:
         centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro, pre_centro_lista = circuloPorCentro(frameCopia, centro, False, pre_centro_lista)
-
-    if centro is not None: 
-        ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro, todosCirculosPosibles, primeraVez, contornos, regresionCirculo, pre_centro_lista))
-        soloUltimosCentrosGlobales.appendleft(centroConDecimales)
     
     if numeroFrame == 351: print("AAAAAAAAAAAAAAAAAAAAAAA", todosCirculosPosibles)
 
     #print("Todos Circulos Posibles", todosCirculosPosibles)
+
+    if centro is not None: 
+        ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro, todosCirculosPosibles, primeraVez, contornos, regresionCirculo, pre_centro_lista, colores_centro))
+        soloUltimosCentrosGlobales.appendleft(centroConDecimales)
 
     if centro is not None:
         preCentro = centro
@@ -1789,7 +1789,7 @@ def circuloPorCentro(frameCopia, centro, pintar, pre_Centro_lista):
     return centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro, centro_lista
 
 def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorreccion):
-    #ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro, todosCirculosPosibles, primeraVez, contornos, regresionCirculo, pre_centro_lista))
+    #ultimosCentrosGlobales.append((centroConDecimales, deteccionPorColor, frameCopia, color_pre_centro, preCentro, todosCirculosPosibles, primeraVez, contornos, regresionCirculo, pre_centro_lista, colores_centro))
     print("Problema", problema)
     print("Contador Correccion", contadorCorreccion)
 
@@ -1866,12 +1866,30 @@ def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorrec
     se_rompio = False
 
     "HACER LO DE LA MEDIANA"
+    "HACER LO DE PRE_CENTRO_LISTA"
+
+    # if len(pre_lista[10]) == 10:
+    #     valores_bgr_array = np.array(pre_lista[10])
+
+    #     # Calcula la mediana para cada canal B, G y R
+    #     mediana_b = np.median(valores_bgr_array[:, 0])
+    #     mediana_g = np.median(valores_bgr_array[:, 1])
+    #     mediana_r = np.median(valores_bgr_array[:, 2])
+
+    #     # La mediana final en formato BGR
+    #     color_pre_centro_correccion = (mediana_b, mediana_g, mediana_r)
+
+    #     print("Mediana BGR Correccion:", color_pre_centro_correccion)
 
     for pre_centro_correccion in listaPosiblesCentros:
         if se_rompio == True: break
         centros_correccion = []
         regresiones_circulos = []
         colores_pre_centro = []
+        pre_centro_lista_correccion = pre_lista[9]
+        colores_centro_correccion = deque(maxlen=10)
+        for color in pre_lista[10]:
+            colores_centro_correccion.append(color)
         se_rompio = False
         centros_correccion.append(pre_centro_correccion)
         regresiones_circulos.append(pre_lista[8])
@@ -1885,7 +1903,21 @@ def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorrec
                 if M["m00"] > 0:
                     casiCentro = circuloPorCentro(pre_lista[2], (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), False, pre_lista[9]) 
                     centros_correccion.append(casiCentro[0])
-                    colores_pre_centro.append(casiCentro[3])
+                    colores_centro_correccion.append(casiCentro[3])
+                    if len(colores_centro_correccion) == 10:
+                        valores_bgr_array = np.array(colores_centro_correccion)
+
+                        # Calcula la mediana para cada canal B, G y R
+                        mediana_b = np.median(valores_bgr_array[:, 0])
+                        mediana_g = np.median(valores_bgr_array[:, 1])
+                        mediana_r = np.median(valores_bgr_array[:, 2])
+
+                        # La mediana final en formato BGR
+                        color_pre_centro_correccion = (mediana_b, mediana_g, mediana_r)
+
+                        print("Mediana BGR Correccion:", color_pre_centro_correccion)
+                    else: color_pre_centro_correccion = casiCentro[3]
+                    colores_pre_centro.append(color_pre_centro_correccion)
                 #if M["m00"] > 0: centros_correccion.append(((M["m10"] / M["m00"], M["m01"] / M["m00"]), radio))
                 regresiones_circulos.append(None)
             else:
@@ -1912,7 +1944,11 @@ def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorrec
                     
                     else: centro_cor, regresion_circulo, _ = deteccionPorCirculos(centros_correccion[-1], lista[2], recorteCerca, False, lista[3], 3)
                     
-                    if centro_cor is not None: centros_correccion.append(centro_cor)
+                    if centro_cor is not None: 
+                        
+                        
+                        
+                        centros_correccion.append(centro_cor)
                     regresiones_circulos.append(regresion_circulo)
             
             nuevo_centros_correccion = centros_correccion
@@ -1926,7 +1962,9 @@ def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorrec
             contador += 1
             numeroFramePelotaIncorrecta += 1
 
-        if se_rompio == False: "no se rompio más"
+        if se_rompio == False: 
+            print("no se rompio más")
+            print("Centros Correccion", nuevo_centros_correccion)
 
         print("PreCentroCorreccion", pre_centro_correccion)
     
