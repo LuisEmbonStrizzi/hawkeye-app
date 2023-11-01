@@ -72,7 +72,7 @@ def main(frame):
         lista = [(3139, 1599), (3138, 1599), (3138, 1600), (3139, 1600), (3140, 1599), (3140, 1600), (3137, 1599), (3137, 1600), (3137, 1601), (3138, 1601), (3139, 1601), (3140, 1601), (3141, 1599), (3141, 1600), (3141, 1601), (3136, 1599), (3136, 1600), (3136, 1601), (3138, 1602), (3139, 1602), (3140, 1602), (3142, 1599), (3142, 1600), (3142, 1601), (3135, 1599), (3135, 1600), (3135, 1601), (3138, 1603), (3139, 1603), (3140, 1603), (3143, 1599), (3143, 1600), (3143, 1601), (3138, 1604), (3139, 1604), (3140, 1604)]
         for punto in lista:
             frameCopia2[punto[1], punto[0]] = (0, 0, 0)
-        cv2.imwrite("FrameCopia2-332.jpg", frameCopia2)
+        #cv2.imwrite("FrameCopia2-332.jpg", frameCopia2)
 
 
     ultimosFrames.append(frameCopia)
@@ -318,7 +318,7 @@ def main(frame):
         TiempoTresCentrosConsecutivos = 0
         deteccionColorUltimosFrames.append(None)
 
-    if numeroFrame == 317: cv2.imwrite("Frame317.jpg", frame)
+    #if numeroFrame == 281: cv2.imwrite("Frame281.jpg", frame)
     #if numeroFrame == 51: cv2.imwrite("Frame51.jpg", frame)
     #if numeroFrame == 52: cv2.imwrite("Frame52.jpg", frame)
     #if numeroFrame == 53: cv2.imwrite("Frame53.jpg", frame)
@@ -536,7 +536,7 @@ def main(frame):
     if centro is not None:
         centro, centroConDecimales, radioDeteccionPorCirculo, color_pre_centro, pre_centro_lista = circuloPorCentro(frameCopia, centro, False, pre_centro_lista)
     
-    if numeroFrame == 351: print("AAAAAAAAAAAAAAAAAAAAAAA", todosCirculosPosibles)
+    if numeroFrame == 351 or numeroFrame == 281: print("AAAAAAAAAAAAAAAAAAAAAAA", todosCirculosPosibles)
 
     #print("Todos Circulos Posibles", todosCirculosPosibles)
 
@@ -573,7 +573,7 @@ def main(frame):
 
     if corregir[0] == False:
         #if len(ultimosCentrosGlobales) >= 7 and cambiosDeDireccion(list(ultimosCentrosGlobales)[-7:], False, ultimosCentrosGlobales, soloUltimosCentrosGlobales) or len(soloUltimosCentrosGlobales) >= 5 and seEstaMoviendo(soloUltimosCentrosGlobales, 7) == False or len(soloUltimosCentrosGlobales) >= 10 and deteccionNoEsLaPelota(list(soloUltimosCentrosGlobales)[:10], 15, False):
-        if len(ultimosCentrosGlobales) >= 7 and cambiosDeDireccion(list(ultimosCentrosGlobales)[-7:], False, ultimosCentrosGlobales, soloUltimosCentrosGlobales) or len(soloUltimosCentrosGlobales) >= 5 and seEstaMoviendo(soloUltimosCentrosGlobales, 7) == False:
+        if len(ultimosCentrosGlobales) >= 7 and cambiosDeDireccion(list(ultimosCentrosGlobales)[-7:], False, ultimosCentrosGlobales, soloUltimosCentrosGlobales, False) or len(soloUltimosCentrosGlobales) >= 5 and seEstaMoviendo(soloUltimosCentrosGlobales, 7) == False:
             corregir = (True, numeroFrame + 5, problema)
             contadorCentrosCorreccion += 1
             print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
@@ -583,7 +583,7 @@ def main(frame):
         corregirPosicionPelota2(corregir[2], list(ultimosCentrosGlobales), list(soloUltimosCentrosGlobales), contadorCentrosCorreccion - 1)
         corregir = (False, 0, 0)
         #primeraVez = True
-        ultimosCentrosCirculo.clear()
+        #ultimosCentrosCirculo.clear()
         contadorCentrosCorreccion = 0
 
     if numeroFrame == 350:
@@ -734,22 +734,32 @@ def seEstaMoviendo(ultCentros, rango):
     #print("AAAAAAAAAAAAA")
     #print("ultCentros", ultCentros)
 
-    movimiento = False
-    # Si la suma de las restas de los últimos centros es mayor a 15, significa que la pelota se está moviendo, de lo contrario no lo está.
-    for i in range(2):
-        restaA = abs(ultCentros[4][0][i] - ultCentros[3][0][i])
-        restaB = abs(ultCentros[3][0][i] - ultCentros[2][0][i])
-        restaC = abs(ultCentros[2][0][i] - ultCentros[1][0][i])
-        restaD = abs(ultCentros[1][0][i] - ultCentros[0][0][i])
-        #print("Resta A: ", restaA)
-        #print("Resta B: ", restaB)
-        #print("Resta C: ", restaC)
-        #print("Resta D: ", restaD)
-        if restaA + restaB + restaC + restaD >= rango:
-            movimiento = True
-            break
-        else:
-            movimiento = False
+    resta1 = abs(ultCentros[4][0][1] - ultCentros[3][0][1])
+    resta2 = abs(ultCentros[3][0][1] - ultCentros[2][0][1])
+    resta3 = abs(ultCentros[2][0][1] - ultCentros[1][0][1])
+    resta4 = abs(ultCentros[1][0][1] - ultCentros[0][0][1])
+
+    if resta1 + resta2 + resta3 + resta4 >= 2: movimiento = True
+    else: movimiento = False
+
+    if movimiento:
+        movimiento = False
+        # Si la suma de las restas de los últimos centros es mayor a 15, significa que la pelota se está moviendo, de lo contrario no lo está.
+        for i in range(2):
+            restaA = abs(ultCentros[4][0][i] - ultCentros[3][0][i])
+            restaB = abs(ultCentros[3][0][i] - ultCentros[2][0][i])
+            restaC = abs(ultCentros[2][0][i] - ultCentros[1][0][i])
+            restaD = abs(ultCentros[1][0][i] - ultCentros[0][0][i])
+            #print("Resta A: ", restaA)
+            #print("Resta B: ", restaB)
+            #print("Resta C: ", restaC)
+            #print("Resta D: ", restaD)
+            print("Suma: ", restaA + restaB + restaC + restaD)
+            if restaA + restaB + restaC + restaD >= rango:
+                movimiento = True
+                break
+            else:
+                movimiento = False
     
     #restaA = abs(ultCentros[4][1] - ultCentros[3][1])
     #restaB = abs(ultCentros[3][1] - ultCentros[2][1])
@@ -1005,7 +1015,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     global checkRecorteCerca
     global radio
 
-    print("preCentro", preCentro)
+    #print("preCentro", preCentro)
 
     # Ajustar los puntos de recorte si están fuera de rango
     x1 = max(preCentro[0][0] - recorteCerca, 0)
@@ -1020,7 +1030,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
 
     centro = None
 
-    if numeroFrame == 317: cv2.imwrite("imagen_recortada317-SinCirculos.png", imagen_recortada)
+    #if numeroFrame == 317: cv2.imwrite("imagen_recortada317-SinCirculos.png", imagen_recortada)
 
     color_pre_centro = np.array([color_pre_centro[0], color_pre_centro[1], color_pre_centro[2]])
     
@@ -1118,7 +1128,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
            #print("Len posibleCentroLista", posibleCentroLista)
            if abs(posibleNuevoRadio - radioDeteccionPorCirculo) < 4:
                if len(ultimosFrames) >= 5 and pixelColorIgual((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), list(ultimosFrames)[-5:], False) == False:
-                   print("Pixel CercanoAA", pixelCercano)
+                   #print("Pixel CercanoAA", pixelCercano)
                    if contador == 0:
                        distancia_mas_corta_color = pixelCercano[1]
                        distancia_mas_corta = pixelCercano[2]
@@ -1129,7 +1139,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
                    contador += 1
 
                elif len(ultimosFrames) < 5:
-                   print("Pixel CercanoAA", pixelCercano)
+                   #print("Pixel CercanoAA", pixelCercano)
                    if contador == 0:
                        distancia_mas_corta_color = pixelCercano[1]
                        distancia_mas_corta = pixelCercano[2]
@@ -1142,12 +1152,12 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     if pixel is not None:
         ultimosPosiblesCentrosCirculo.append(centrosPosibles)
 
-        print("Pixel Detectado", pixel)
-        print("El color más cercano a", color_pre_centro, "es", color_mas_cercano)
-        print("Distancia más corta por color", distancia_mas_corta_color)
-        print("Distancia más corta", distancia_mas_corta)
+        #print("Pixel Detectado", pixel)
+        #print("El color más cercano a", color_pre_centro, "es", color_mas_cercano)
+        #print("Distancia más corta por color", distancia_mas_corta_color)
+        #print("Distancia más corta", distancia_mas_corta)
     
-        print(pixelColorIgual((x1 + pixel[0], y1 + pixel[1]), list(ultimosFrames)[-5:], True))
+        #print(pixelColorIgual((x1 + pixel[0], y1 + pixel[1]), list(ultimosFrames)[-5:], True))
         #print("Centros posibles", centrosPosibles)
 
     if not correccion: ultimosSimilitudesCoseno.append(distancia_mas_corta_color)
@@ -1490,7 +1500,7 @@ def distancia_personalizada(punto, centro, radio):
 
     return difEnX + difEnY + difRadio * 3
 
-def cambiosDeDireccion(ultCentros, correccion, ultCentrosExtendidos, soloUltCentros):
+def cambiosDeDireccion(ultCentros, correccion, ultCentrosExtendidos, soloUltCentros, muestra):
     global primeraVez
     global preCentro
     global radioDeteccionPorCirculo
@@ -1501,6 +1511,8 @@ def cambiosDeDireccion(ultCentros, correccion, ultCentrosExtendidos, soloUltCent
 
     #for i in range(len(ultCentros)):
     #    ultCentros[i] = (ultCentros[i], 0)
+
+    #print("UltCentros", ultCentros)
 
     cambios_de_direccion = 0
     movimiento_en_x = []
@@ -1561,10 +1573,12 @@ def cambiosDeDireccion(ultCentros, correccion, ultCentrosExtendidos, soloUltCent
     if movimientoCambios.count("X") == 2 and cambios_de_direccion == 2:
         muchoMovimientoEnX = True
     
-    print("Movimiento en x", movimiento_en_x)
-    print("Movimiento en y", movimiento_en_y)
-    print("Detecciones por color", deteccionesPorColor)
-    print("Detecciones por color cambio", deteccionesPorColorCambio)
+    if not muestra: 
+        print("Movimiento en x", movimiento_en_x)
+        print("Movimiento en y", movimiento_en_y)
+        print("Detecciones por color", deteccionesPorColor)
+        print("Detecciones por color cambio", deteccionesPorColorCambio)
+    print("Cambios de Dirección", cambios_de_direccion)
 
     # if cambios_de_direccion >= 3 and deteccionesPorColorCambio.count(False) >= 2:
     #     diferenciaX = abs(ultCentros[0][0][0][0] - ultCentros[1][0][0][0])
@@ -1595,8 +1609,6 @@ def cambiosDeDireccion(ultCentros, correccion, ultCentrosExtendidos, soloUltCent
     #         diferenciaY = abs(centro1[0][1] - centro2[0][1])
         
     #     print("NumeroFramePelotaIncorrecta", numeroFramePelotaIncorrecta + 1)
-
-    print("Cambios de Dirección", cambios_de_direccion)
 
     #if cambios_de_direccion >= 3 and deteccionesPorColorCambio.count(False) >= 2 and not correccion:
     if cambios_de_direccion >= 3 and not correccion or muchoMovimientoEnX and not correccion:
@@ -1719,9 +1731,9 @@ def pixelColorIgual(pixel, frames, muestra):
         print("Pixel", pixel)
         print("Colores", colores)
 
-    if muestra:
-        print("Pixel", pixel)
-        print("Colores", colores)
+    #if muestra:
+    #    print("Pixel", pixel)
+    #    print("Colores", colores)
     
     for i in range(len(colores) - 1):
         if abs(int(colores[i][0]) - int(colores[i + 1][0])) + abs(int(colores[i][1]) - int(colores[i + 1][1])) + abs(int(colores[i][2]) - int(colores[i + 1][2])) > 30:
@@ -1730,6 +1742,7 @@ def pixelColorIgual(pixel, frames, muestra):
     return True
 
 def circuloPorCentro(frameCopia, centro, pintar, pre_Centro_lista):
+    centro = ((int(centro[0][0]), int(centro[0][1])), int(centro[1]))
     color_pre_centro = frameCopia[centro[0][1], centro[0][0]]
     color_pre_centro = (color_pre_centro[0], color_pre_centro[1], color_pre_centro[2])
 
@@ -1863,7 +1876,7 @@ def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorrec
     centros_correccion = []
     regresiones_circulos = []
     colores_pre_centro = []
-    se_rompio = False
+    se_rompio = True
 
     "HACER LO DE LA MEDIANA"
     "HACER LO DE PRE_CENTRO_LISTA"
@@ -1881,12 +1894,14 @@ def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorrec
 
     #     print("Mediana BGR Correccion:", color_pre_centro_correccion)
 
+    print("Lista Posibles Centros", listaPosiblesCentros)
     for pre_centro_correccion in listaPosiblesCentros:
-        if se_rompio == True: break
+        print("Centro a probar", pre_centro_correccion)
+        if se_rompio == False: break
         centros_correccion = []
         regresiones_circulos = []
         colores_pre_centro = []
-        pre_centro_lista_correccion = pre_lista[9]
+        pre_centro_lista_correccion = []
         colores_centro_correccion = deque(maxlen=10)
         for color in pre_lista[10]:
             colores_centro_correccion.append(color)
@@ -1894,6 +1909,7 @@ def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorrec
         centros_correccion.append(pre_centro_correccion)
         regresiones_circulos.append(pre_lista[8])
         colores_pre_centro.append(pre_lista[3])
+        pre_centro_lista_correccion.append(pre_lista[9])
         contador = 0
         for lista in nueva_lista:
             if contador == 0 and pre_lista[6] == True:
@@ -1904,30 +1920,44 @@ def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorrec
                     casiCentro = circuloPorCentro(pre_lista[2], (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"])), False, pre_lista[9]) 
                     centros_correccion.append(casiCentro[0])
                     colores_centro_correccion.append(casiCentro[3])
+                    pre_centro_lista_correccion.append(casiCentro[4])
+
                     if len(colores_centro_correccion) == 10:
                         valores_bgr_array = np.array(colores_centro_correccion)
-
-                        # Calcula la mediana para cada canal B, G y R
                         mediana_b = np.median(valores_bgr_array[:, 0])
                         mediana_g = np.median(valores_bgr_array[:, 1])
                         mediana_r = np.median(valores_bgr_array[:, 2])
-
-                        # La mediana final en formato BGR
                         color_pre_centro_correccion = (mediana_b, mediana_g, mediana_r)
+                        #print("Mediana BGR Correccion:", color_pre_centro_correccion)
 
-                        print("Mediana BGR Correccion:", color_pre_centro_correccion)
                     else: color_pre_centro_correccion = casiCentro[3]
+
                     colores_pre_centro.append(color_pre_centro_correccion)
                 #if M["m00"] > 0: centros_correccion.append(((M["m10"] / M["m00"], M["m01"] / M["m00"]), radio))
                 regresiones_circulos.append(None)
             else:
                 verdeCerca = None
+                #print("centros correccion", centros_correccion)
                 if nueva_deteccion_color_ultimos_frames[contador] is not None: verdeCerca = tp_fix(nueva_deteccion_color_ultimos_frames[contador], centros_correccion[-1], 0.2, False, None, (1,0), False, True)
-                if verdeCerca is not None:
-                    casiCentro = circuloPorCentro(lista[2], verdeCerca, False, lista[9])
+                if verdeCerca[0] is not None:
+                    casiCentro = circuloPorCentro(lista[2], verdeCerca[0], False, pre_centro_lista_correccion[-1])
                     centros_correccion.append(casiCentro[0])
-                    colores_pre_centro.append(casiCentro[3])
+                    colores_centro_correccion.append(casiCentro[3])
+                    pre_centro_lista_correccion.append(casiCentro[4])
                     regresiones_circulos.append(None)
+
+                    if len(colores_centro_correccion) == 10:
+                        valores_bgr_array = np.array(colores_centro_correccion)
+                        mediana_b = np.median(valores_bgr_array[:, 0])
+                        mediana_g = np.median(valores_bgr_array[:, 1])
+                        mediana_r = np.median(valores_bgr_array[:, 2])
+                        color_pre_centro_correccion = (mediana_b, mediana_g, mediana_r)
+                        #print("Mediana BGR Correccion:", color_pre_centro_correccion)
+
+                    else: color_pre_centro_correccion = casiCentro[3]
+
+                    colores_pre_centro.append(color_pre_centro_correccion)
+
                 else:
                     regresion_circulo = None
                     centro_cor = None
@@ -1935,38 +1965,55 @@ def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorrec
                     if regresiones_circulos[-1] == True and len(centros_correccion) >= 2:
                         next_x = int(np.rint(centros_correccion[-1][0][0] + (centros_correccion[-1][0][0] - centros_correccion[-2][0][0])))
                         next_y = int(np.rint(centros_correccion[-1][0][1] + (centros_correccion[-1][0][1] - centros_correccion[-2][0][1])))
-                        centro_cor, regresion_circulo, _ = deteccionPorCirculos(((next_x, next_y), 5), lista[2], recorteCerca, False, lista[3], 3)
+                        centro_cor, regresion_circulo, _ = deteccionPorCirculos(((next_x, next_y), 5), lista[2], recorteCerca, False, colores_pre_centro[-1], 3)
                     
                     elif regresiones_circulos[-1] == True and numeroFramePelotaIncorrecta == 1:
                         next_x = int(np.rint(ultCentros[1][0][0][0] + (ultCentros[1][0][0][0] - ultCentros[0][0][0][0])))
                         next_y = int(np.rint(ultCentros[1][0][0][1] + (ultCentros[1][0][0][1] - ultCentros[0][0][0][1])))
-                        centro_cor, regresion_circulo, _ = deteccionPorCirculos(((next_x, next_y), 5), lista[2], recorteCerca, False, lista[3], 3)
+                        centro_cor, regresion_circulo, _ = deteccionPorCirculos(((next_x, next_y), 5), lista[2], recorteCerca, False, colores_pre_centro[-1], 3)
                     
-                    else: centro_cor, regresion_circulo, _ = deteccionPorCirculos(centros_correccion[-1], lista[2], recorteCerca, False, lista[3], 3)
+                    else: centro_cor, regresion_circulo, _ = deteccionPorCirculos(centros_correccion[-1], lista[2], recorteCerca, False, colores_pre_centro[-1], 3)
                     
                     if centro_cor is not None: 
-                        
-                        
-                        
-                        centros_correccion.append(centro_cor)
+                        casiCentro = circuloPorCentro(lista[2], centro_cor, False, pre_centro_lista_correccion[-1])
+                        centros_correccion.append(casiCentro[0])
+                        colores_centro_correccion.append(casiCentro[3])
+                        pre_centro_lista_correccion.append(casiCentro[4])
+
+                        if len(colores_centro_correccion) == 10:
+                            valores_bgr_array = np.array(colores_centro_correccion)
+                            mediana_b = np.median(valores_bgr_array[:, 0])
+                            mediana_g = np.median(valores_bgr_array[:, 1])
+                            mediana_r = np.median(valores_bgr_array[:, 2])
+                            color_pre_centro_correccion = (mediana_b, mediana_g, mediana_r)
+                            #print("Mediana BGR Correccion:", color_pre_centro_correccion)
+
+                        else: color_pre_centro_correccion = casiCentro[3]
+
+                        colores_pre_centro.append(color_pre_centro_correccion)
+                                                
                     regresiones_circulos.append(regresion_circulo)
             
-            nuevo_centros_correccion = centros_correccion
-            for centro in nuevo_centros_correccion:
-                centro = (centro, "nada")
+            nuevo_centros_correccion = centros_correccion.copy()
+            for i in range(len(nuevo_centros_correccion)):
+                nuevo_centros_correccion[i] = (nuevo_centros_correccion[i], "nada")
+                #centro = (centro, "nada")
+            
+            #print("Nuevos Centros Correccion", nuevo_centros_correccion)
 
-            if len(centros_correccion) >= 3 and cambiosDeDireccion(list(nuevo_centros_correccion)[-7:], False, None, None) or len(centros_correccion) >= 5 and seEstaMoviendo(centros_correccion[-5:], 7) == False:
+            if len(centros_correccion) >= 3 and cambiosDeDireccion(list(nuevo_centros_correccion)[-7:], False, None, None, True) or len(centros_correccion) >= 5 and seEstaMoviendo(centros_correccion[-5:], 15) == False:
                 se_rompio = True
+                print("Centros Correccion", centros_correccion)
                 break
                 
             contador += 1
             numeroFramePelotaIncorrecta += 1
 
-        if se_rompio == False: 
+        if se_rompio == False:
             print("no se rompio más")
-            print("Centros Correccion", nuevo_centros_correccion)
+            print("Centros Correccion", centros_correccion)
 
-        print("PreCentroCorreccion", pre_centro_correccion)
+        #print("PreCentroCorreccion", pre_centro_correccion)
     
     #for posiblepreCentro in listaPosiblesCentros:
     #    for centro, *_ in nueva_lista:
