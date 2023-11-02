@@ -1912,6 +1912,8 @@ def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorrec
 
             imagen_recortada_correccion = pre_lista[2][int(y1):int(y2), int(x1):int(x2)]
 
+            ultFramesCorreccion = ultimosFrames[(len(nueva_lista) + 5) * -1 : (len(nueva_lista)) * -1]
+
             for i in range(pre_lista[2].shape[1]):
                 for h in range(pre_lista[2].shape[0]):
                     color = imagen_recortada_correccion[h, i]
@@ -1923,7 +1925,7 @@ def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorrec
 
             pixelesAnalizados = []
             contador = 0
-            
+
             if pixelesColoresCercanos is not None:
                 for pixelCercano in pixelesColoresCercanos:
                     if contador == 5: break
@@ -1932,7 +1934,7 @@ def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorrec
                     for i in posibleCentroLista: pixelesAnalizados.append((i[0] - x1, i[1] - y1))
                     if abs(posibleNuevoRadio - pre_lista[4][1]) < 4:
 
-                        if pixelColorIgual((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), list(ultimosFrames)[-5:], False) == False:
+                        if pixelColorIgual((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), list(ultFramesCorreccion), False) == False:
                             listaPosiblesCentros.append(posibleCentro)
                             contador += 1
 
@@ -2145,7 +2147,7 @@ ultimosCentros = deque(maxlen=10)
 ultimosCentrosCirculo = deque(maxlen=8)
 ultimosCentrosGlobales = deque(maxlen=19)
 soloUltimosCentrosGlobales = deque(maxlen=19)
-ultimosFrames = deque(maxlen=7)
+ultimosFrames = deque(maxlen=24)
 ultimosSimilitudesCoseno = deque(maxlen=14)
 
 todosContornos = []
