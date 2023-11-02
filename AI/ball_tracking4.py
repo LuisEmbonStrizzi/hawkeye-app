@@ -1883,9 +1883,6 @@ def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorrec
     colores_pre_centro = []
     se_rompio = True
 
-    "HACER LO DE LA MEDIANA"
-    "HACER LO DE PRE_CENTRO_LISTA"
-
     # if len(pre_lista[10]) == 10:
     #     valores_bgr_array = np.array(pre_lista[10])
 
@@ -1907,16 +1904,22 @@ def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorrec
     pixelesColoresCercanos = []
     while se_rompio == True:
         if contador_a_probar == len_lista_posibles_centros and pre_lista[11] is not None:
+
+            x1 = max(pre_lista[4][0][0] - recorteCerca, 0)
+            y1 = max(pre_lista[4][0][1] - recorteCerca, 0)
+            x2 = min(pre_lista[4][0][0] + recorteCerca, anchoOG * 3)
+            y2 = min(pre_lista[4][0][1] + recorteCerca, altoOG * 3)
+
+            imagen_recortada_correccion = pre_lista[2][int(y1):int(y2), int(x1):int(x2)]
+
             for i in range(pre_lista[2].shape[1]):
                 for h in range(pre_lista[2].shape[0]):
-                    color = pre_lista[2][h, i]
+                    color = imagen_recortada_correccion[h, i]
                     colores[(i, h)] = color
                     distancia = abs(int(color[0]) - int(pre_lista[11][0])) + abs(int(color[1]) - int(pre_lista[11][1])) + abs(int(color[2]) - int(pre_lista[11][2]))
                     if distancia <= 30: pixelesColoresCercanos.append(((i, h), distancia, (np.sqrt(abs(pre_lista[2].shape[1] / 2 - h) ** 2 + abs(pre_lista[2].shape[0] / 2 - i) ** 2))))
 
             pixelesColoresCercanos = sorted(pixelesColoresCercanos, key=lambda x: x[1])
-            # #print("AAAAA", pixelesColoresCercanos[0:40])
-            # #if numeroFrame == 352: pixelesColoresCercanos = sorted(pixelesColoresCercanos, key=lambda x: x[1])
 
             pixelesAnalizados = []
             contador = 0
@@ -1925,15 +1928,11 @@ def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorrec
                 for pixelCercano in pixelesColoresCercanos:
                     if contador == 5: break
                     if pixelCercano[0] in pixelesAnalizados: continue
-                    posibleCentro, posibleCentroConDecimales, posibleNuevoRadio, posibleColorPreCentro, posibleCentroLista = circuloPorCentro(ultimosFrames[-1], ((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), 5), False, pre_centro_lista)
+                    posibleCentro, posibleCentroConDecimales, posibleNuevoRadio, posibleColorPreCentro, posibleCentroLista = circuloPorCentro(pre_lista[2], ((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), 5), False, pre_lista[9])
                     for i in posibleCentroLista: pixelesAnalizados.append((i[0] - x1, i[1] - y1))
-                    if abs(posibleNuevoRadio - radioDeteccionPorCirculo) < 4:
+                    if abs(posibleNuevoRadio - pre_lista[4][1]) < 4:
 
-                        if len(ultimosFrames) >= 5 and pixelColorIgual((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), list(ultimosFrames)[-5:], False) == False:
-                            listaPosiblesCentros.append(posibleCentro)
-                            contador += 1
-
-                        elif len(ultimosFrames) < 5:
+                        if pixelColorIgual((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), list(ultimosFrames)[-5:], False) == False:
                             listaPosiblesCentros.append(posibleCentro)
                             contador += 1
 
