@@ -339,8 +339,8 @@ def main(frame):
         if regresionCirculo == True:
             next_x = int(np.rint(soloUltimosCentrosGlobales[0][0][0] + (soloUltimosCentrosGlobales[0][0][0] - soloUltimosCentrosGlobales[1][0][0])))
             next_y = int(np.rint(soloUltimosCentrosGlobales[0][0][1] + (soloUltimosCentrosGlobales[0][0][1] - soloUltimosCentrosGlobales[1][0][1])))
-            centro, regresionCirculo, circulos_posibles = deteccionPorCirculos(((next_x, next_y), 5), frame, recorteCerca, False, color_pre_centro, 3, 2)
-        else: centro, regresionCirculo, circulos_posibles = deteccionPorCirculos(preCentro, frame, recorteCerca, False, color_pre_centro, 3, 2)
+            centro, regresionCirculo, circulos_posibles = deteccionPorCirculos(((next_x, next_y), 5), frame, recorteCerca, False, color_pre_centro, 3, 2, ultimosFrames, pre_centro_lista, radioDeteccionPorCirculo)
+        else: centro, regresionCirculo, circulos_posibles = deteccionPorCirculos(preCentro, frame, recorteCerca, False, color_pre_centro, 3, 2, ultimosFrames, pre_centro_lista, radioDeteccionPorCirculo)
 
         todosCirculosPosibles.append(circulos_posibles)
         todosCirculosPosibles = todosCirculosPosibles[0]
@@ -1026,10 +1026,10 @@ def estaEnCancha(centro_pelota, perspectiva):
         return False
     return None
 
-def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_centro, resizer, clave):
+def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_centro, resizer, clave, ultimosFrames, pre_centro_lista, radioDeteccionPorCirculo):
     global primeraVez
     global TiempoDeteccionUltimaPelota
-    global radioDeteccionPorCirculo
+    #global radioDeteccionPorCirculo
     global centro
     global ultimosCentrosCirculo
     global centroConDecimales
@@ -1151,7 +1151,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
            #print("Len posibleCentroLista", posibleCentroLista)
            if abs(posibleNuevoRadio - radioDeteccionPorCirculo) < 4:
                if len(ultimosFrames) >= 5 and pixelColorIgual((x1 + pixelCercano[0][0], y1 + pixelCercano[0][1]), list(ultimosFrames)[-5:], False) == False:
-                   #print("Pixel CercanoAA", pixelCercano)
+                   print("Pixel CercanoAA", pixelCercano)
                    if contador == 0:
                        distancia_mas_corta_color = pixelCercano[1]
                        distancia_mas_corta = pixelCercano[2]
@@ -1162,7 +1162,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
                    contador += 1
 
                elif len(ultimosFrames) < 5:
-                   #print("Pixel CercanoAA", pixelCercano)
+                   print("Pixel CercanoAA", pixelCercano)
                    if contador == 0:
                        distancia_mas_corta_color = pixelCercano[1]
                        distancia_mas_corta = pixelCercano[2]
@@ -1242,13 +1242,13 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
             radioDeteccionPorCirculo = radio
             if not checkRecorteCerca:
                 checkRecorteCerca = True
-                deteccionPorCirculos(preCentro, frame, recorteCerca + 100, False, color_pre_centro, 3, 2)
+                deteccionPorCirculos(preCentro, frame, recorteCerca + 100, False, color_pre_centro, 3, 2, ultimosFrames, pre_centro_lista, radioDeteccionPorCirculo)
 
     else: 
         radioDeteccionPorCirculo = radio
         if not checkRecorteCerca:
             checkRecorteCerca = True
-            deteccionPorCirculos(preCentro, frame, recorteCerca + 100, False, color_pre_centro, 3, 2)
+            deteccionPorCirculos(preCentro, frame, recorteCerca + 100, False, color_pre_centro, 3, 2, ultimosFrames, pre_centro_lista, radioDeteccionPorCirculo)
 
     #if numeroFrame == 68: cv2.imwrite("imagen_recortada68.png", imagen_recortada)
     #if numeroFrame == 312: cv2.imwrite("imagen_recortada312ConCirculo.png", imagen_recortada_copia)
@@ -2047,8 +2047,10 @@ def corregirPosicionPelota2(problema, ultCentros, soloUltCentros, contadorCorrec
                         regresion_circulo = None
                         centro_cor = None
 
-                        if contador_a_probar2 % 2 == 0: clave = 1
+                        if contador_a_probar2 % 2 == 0 and contador == 0: clave = 1
                         else: clave = 2
+
+                        ultFramesCirculoCorreccion = list(ultimosFrames)[(len(nueva_lista) + 5) * -1 : (len(nueva_lista)) * -1]
                         
                         if regresiones_circulos[-1] == True and len(centros_correccion) >= 2:
                             next_x = int(np.rint(centros_correccion[-1][0][0] + (centros_correccion[-1][0][0] - centros_correccion[-2][0][0])))
