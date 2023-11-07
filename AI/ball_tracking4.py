@@ -341,6 +341,8 @@ def main(frame):
 
     #if numeroFrame == 54: cv2.imwrite("FrameCopia54.jpg", frameCopia)
 
+    if numeroFrame == 400: centro = None
+
     if centro is None and preCentro is not None:
         print("RegresionCirculo", regresionCirculo)
         if regresionCirculo == True:
@@ -546,7 +548,12 @@ def main(frame):
     #if numeroFrame == 371: cv2.imwrite("Frame371Copia.jpg", frameCopia)
     #if numeroFrame == 372: cv2.imwrite("Frame372Copia.jpg", frameCopia)
     #if numeroFrame == 380: cv2.imwrite("Frame380Copia.jpg", frameCopia)
-    if numeroFrame == 388: cv2.imwrite("Frame388Copia.jpg", frameCopia)
+    #if numeroFrame == 391: cv2.imwrite("Frame391Copia.jpg", frameCopia)
+    #if numeroFrame == 394: cv2.imwrite("Frame394Copia.jpg", frameCopia)
+    #if numeroFrame == 396: cv2.imwrite("Frame396Copia.jpg", frameCopia)
+    #if numeroFrame == 397: cv2.imwrite("Frame397Copia.jpg", frameCopia)
+    #if numeroFrame == 400: cv2.imwrite("Frame400Copia.jpg", frameCopia)
+    if numeroFrame == 406: cv2.imwrite("Frame406Copia.jpg", frameCopia)
 
     color_pre_pre_centro = None
     if color_pre_centro is not None:
@@ -1279,6 +1286,17 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
 
     # print("Centro lista", centro_lista)
 
+    if numeroFrame == 391: pixel = [3163 - x1, 1529 - y1]
+    if numeroFrame == 394: pixel = [3162 - x1, 1542 - y1]
+    if numeroFrame == 396: pixel = [3162 - x1, 1541 - y1]
+    if numeroFrame == 397: pixel = [3162 - x1, 1536 - y1]
+    if numeroFrame == 400: 
+        pixel = [3162 - x1, 1522 - y1]
+        print("Pixel", pixel)
+        print("Coord", pixel[0] + x1, pixel[1] + y1)
+    if numeroFrame == 406: pixel = [3160 - x1, 1501 - y1]
+    
+
     if color_mas_cercano is not None:
         circuloDetectado = [pixel[0], pixel[1], 5]
         #circuloDetectado = cv2.minEnclosingCircle(np.array(centro_lista))
@@ -1355,6 +1373,8 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
                     
     regresionCirculo = True
     if distancia_mas_corta >= 100: regresionCirculo = False
+
+    if numeroFrame == 400: print("Centro", centro)
     
     return centro, regresionCirculo, centrosPosibles
 
