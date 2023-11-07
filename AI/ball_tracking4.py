@@ -553,7 +553,9 @@ def main(frame):
     #if numeroFrame == 396: cv2.imwrite("Frame396Copia.jpg", frameCopia)
     #if numeroFrame == 397: cv2.imwrite("Frame397Copia.jpg", frameCopia)
     #if numeroFrame == 400: cv2.imwrite("Frame400Copia.jpg", frameCopia)
-    if numeroFrame == 406: cv2.imwrite("Frame406Copia.jpg", frameCopia)
+    #if numeroFrame == 405: cv2.imwrite("Frame405Copia.jpg", frameCopia)
+    #if numeroFrame == 407: cv2.imwrite("Frame407Copia.jpg", frameCopia)
+    if numeroFrame == 440: cv2.imwrite("Frame440Copia.jpg", frameCopia)
 
     color_pre_pre_centro = None
     if color_pre_centro is not None:
@@ -638,7 +640,7 @@ def main(frame):
             print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
             #corregirPosicionPelota2(ultimosCentrosGlobales, soloUltimosCentrosGlobales, 0, 0, 0)
     
-    if corregir[0] == True and numeroFrame == corregir[1]:
+    if corregir[0] == True and numeroFrame == corregir[1] and numeroFrame != 418:
         corregirPosicionPelota2(corregir[2], list(ultimosCentrosGlobales), list(soloUltimosCentrosGlobales), contadorCentrosCorreccion - 1)
         corregir = (False, 0, 0)
         #primeraVez = True
@@ -1290,12 +1292,19 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     if numeroFrame == 394: pixel = [3162 - x1, 1542 - y1]
     if numeroFrame == 396: pixel = [3162 - x1, 1541 - y1]
     if numeroFrame == 397: pixel = [3162 - x1, 1536 - y1]
-    if numeroFrame == 400: 
-        pixel = [3162 - x1, 1522 - y1]
-        print("Pixel", pixel)
-        print("Coord", pixel[0] + x1, pixel[1] + y1)
+    if numeroFrame == 400: pixel = [3162 - x1, 1522 - y1]
+    if numeroFrame == 405: pixel = [3162 - x1, 1504 - y1]
     if numeroFrame == 406: pixel = [3160 - x1, 1501 - y1]
-    
+    if numeroFrame == 407: pixel = [3159 - x1, 1499 - y1]
+    if numeroFrame == 414: pixel = [3160 - x1, 1494 - y1]
+    if numeroFrame == 415: pixel = [3160 - x1, 1494 - y1]
+    if numeroFrame == 417: pixel = [3160 - x1, 1494 - y1]
+    if numeroFrame == 425: pixel = [3162 - x1, 1528 - y1]
+    if numeroFrame == 428: pixel = [3167 - x1, 1552 - y1]
+    if numeroFrame == 429: pixel = [3164 - x1, 1560 - y1]
+    if numeroFrame == 430: pixel = [3163 - x1, 1570 - y1]
+    if numeroFrame == 431: pixel = [3163 - x1, 1579 - y1]
+    if numeroFrame == 440: pixel = [3163 - x1, 1708 - y1]
 
     if color_mas_cercano is not None:
         circuloDetectado = [pixel[0], pixel[1], 5]
