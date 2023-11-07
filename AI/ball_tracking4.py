@@ -341,7 +341,7 @@ def main(frame):
 
     #if numeroFrame == 54: cv2.imwrite("FrameCopia54.jpg", frameCopia)
 
-    if numeroFrame == 400: centro = None
+    if numeroFrame == 397: centro = None
 
     if centro is None and preCentro is not None:
         print("RegresionCirculo", regresionCirculo)
@@ -538,24 +538,7 @@ def main(frame):
     if afterVelocidad and centro is not None:
         afterVelocidad = False
 
-    # if numeroFrame == 352: cv2.imwrite("Frame352Copia.jpg", frameCopia)
-    #if numeroFrame == 365: cv2.imwrite("Frame365Copia.jpg", frameCopia)
-    #if numeroFrame == 366: cv2.imwrite("Frame366Copia.jpg", frameCopia)
-    #if numeroFrame == 367: cv2.imwrite("Frame367Copia.jpg", frameCopia)
-    #if numeroFrame == 368: cv2.imwrite("Frame368Copia.jpg", frameCopia)
-    #if numeroFrame == 369: cv2.imwrite("Frame369Copia.jpg", frameCopia)
-    #if numeroFrame == 370: cv2.imwrite("Frame370Copia.jpg", frameCopia)
-    #if numeroFrame == 371: cv2.imwrite("Frame371Copia.jpg", frameCopia)
-    #if numeroFrame == 372: cv2.imwrite("Frame372Copia.jpg", frameCopia)
-    #if numeroFrame == 380: cv2.imwrite("Frame380Copia.jpg", frameCopia)
-    #if numeroFrame == 391: cv2.imwrite("Frame391Copia.jpg", frameCopia)
-    #if numeroFrame == 394: cv2.imwrite("Frame394Copia.jpg", frameCopia)
-    #if numeroFrame == 396: cv2.imwrite("Frame396Copia.jpg", frameCopia)
-    #if numeroFrame == 397: cv2.imwrite("Frame397Copia.jpg", frameCopia)
-    #if numeroFrame == 400: cv2.imwrite("Frame400Copia.jpg", frameCopia)
-    #if numeroFrame == 405: cv2.imwrite("Frame405Copia.jpg", frameCopia)
-    #if numeroFrame == 407: cv2.imwrite("Frame407Copia.jpg", frameCopia)
-    if numeroFrame == 440: cv2.imwrite("Frame440Copia.jpg", frameCopia)
+    #if numeroFrame == 440: cv2.imwrite("Frame440Copia.jpg", frameCopia)
 
     color_pre_pre_centro = None
     if color_pre_centro is not None:
@@ -640,7 +623,7 @@ def main(frame):
             print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
             #corregirPosicionPelota2(ultimosCentrosGlobales, soloUltimosCentrosGlobales, 0, 0, 0)
     
-    if corregir[0] == True and numeroFrame == corregir[1] and numeroFrame != 418:
+    if corregir[0] == True and numeroFrame == corregir[1] and numeroFrame != 415:
         corregirPosicionPelota2(corregir[2], list(ultimosCentrosGlobales), list(soloUltimosCentrosGlobales), contadorCentrosCorreccion - 1)
         corregir = (False, 0, 0)
         #primeraVez = True
@@ -1111,6 +1094,7 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
     global deteccionPorColor
     global checkRecorteCerca
     global radio
+    global colores_centro
 
     print("preCentro", preCentro)
 
@@ -1288,23 +1272,25 @@ def deteccionPorCirculos(preCentro, frame, recorteCerca, correccion, color_pre_c
 
     # print("Centro lista", centro_lista)
 
-    if numeroFrame == 391: pixel = [3163 - x1, 1529 - y1]
-    if numeroFrame == 394: pixel = [3162 - x1, 1542 - y1]
-    if numeroFrame == 396: pixel = [3162 - x1, 1541 - y1]
-    if numeroFrame == 397: pixel = [3162 - x1, 1536 - y1]
-    if numeroFrame == 400: pixel = [3162 - x1, 1522 - y1]
-    if numeroFrame == 405: pixel = [3162 - x1, 1504 - y1]
-    if numeroFrame == 406: pixel = [3160 - x1, 1501 - y1]
-    if numeroFrame == 407: pixel = [3159 - x1, 1499 - y1]
+    if numeroFrame == 388: pixel = [3163 - x1, 1529 - y1]
+    if numeroFrame == 391: pixel = [3162 - x1, 1542 - y1]
+    if numeroFrame == 393: pixel = [3162 - x1, 1541 - y1]
+    if numeroFrame == 394: pixel = [3162 - x1, 1536 - y1]
+    if numeroFrame == 397: pixel = [3162 - x1, 1522 - y1]
+    if numeroFrame == 402: pixel = [3162 - x1, 1504 - y1]
+    if numeroFrame == 403: pixel = [3160 - x1, 1501 - y1]
+    if numeroFrame == 404: pixel = [3159 - x1, 1499 - y1]
+    if numeroFrame == 411: pixel = [3160 - x1, 1494 - y1]
+    if numeroFrame == 412: pixel = [3160 - x1, 1494 - y1]
     if numeroFrame == 414: pixel = [3160 - x1, 1494 - y1]
-    if numeroFrame == 415: pixel = [3160 - x1, 1494 - y1]
-    if numeroFrame == 417: pixel = [3160 - x1, 1494 - y1]
-    if numeroFrame == 425: pixel = [3162 - x1, 1528 - y1]
-    if numeroFrame == 428: pixel = [3167 - x1, 1552 - y1]
-    if numeroFrame == 429: pixel = [3164 - x1, 1560 - y1]
-    if numeroFrame == 430: pixel = [3163 - x1, 1570 - y1]
-    if numeroFrame == 431: pixel = [3163 - x1, 1579 - y1]
-    if numeroFrame == 440: pixel = [3163 - x1, 1708 - y1]
+    if numeroFrame == 422: pixel = [3162 - x1, 1528 - y1]
+    if numeroFrame == 425: pixel = [3167 - x1, 1552 - y1]
+    if numeroFrame == 426: pixel = [3164 - x1, 1560 - y1]
+    if numeroFrame == 427: pixel = [3163 - x1, 1570 - y1]
+    if numeroFrame == 428: pixel = [3163 - x1, 1579 - y1]
+    if numeroFrame == 437: 
+        pixel = [3165 - x1, 1710 - y1]
+        colores_centro.clear()
 
     if color_mas_cercano is not None:
         circuloDetectado = [pixel[0], pixel[1], 5]
