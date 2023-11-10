@@ -79,25 +79,6 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
     }
   }, [continueRecord]);
 
-  // const uploadVideo = api.videos.stopRecording.useMutation({
-  //   onSuccess: () => {
-  //     void refetchVideos();
-  //   },
-  // });
-  // const { data: videos, refetch: refetchVideos } =
-  //   api.videos.getVideo.useQuery();
-
-  // function callHawkeye() {
-  //   try {
-  //     uploadVideo.mutate();
-  //     setStopRecord(true);
-  //     setContinueRecord(false)
-  //     setHasFetchedData(true)
-  //   } catch (err: unknown) {
-  //     console.log(err);
-  //   }
-  // }
-
   async function startRecording() {
     try {
       const record: TrecordResponse = await axios.get(
@@ -108,7 +89,6 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
       );
       console.log(record)
       if (record.data.message == "RecordStarted") {
-        // Aquí puedes manipular los datos recibidos del backend
         setRecordData(record.data.message);
         setStartRecord(true);
         toast.success("Recording started");
@@ -136,8 +116,7 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
 
       console.log(stopRecording);
 
-      const analysedVideo: cameraData2 = await axios.post("http://127.0.0.1:8080/predict",
-        // "http://20.226.51.27/predict",
+      const analysedVideo: cameraData2 = await axios.post("http://20.226.51.27/predict",
         {
           url: stopRecording.data.file_url,
         }
