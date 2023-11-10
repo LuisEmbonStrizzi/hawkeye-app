@@ -39,7 +39,7 @@ async def predict(inp: Msg):
     print(inp.url)
 
     pique = tracking(inp.url)
-    print(pique)
+    #print(pique)
     zoomear_video(inp.url, pique)
 
     file = "video_zoom.mp4"

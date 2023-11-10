@@ -13,6 +13,8 @@ const Counter: React.FC<CounterProps> = ({startRecord, stopRecord}) => {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
+    console.log(startRecord)
+    console.log(stopRecord)
 
     if (!stopRecord && startRecord) {
         interval = setInterval(() => {

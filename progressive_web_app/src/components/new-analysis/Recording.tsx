@@ -106,14 +106,13 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
           responseType: "json",
         }
       );
-      if (record.data.message === "RecordStarted") {
+      console.log(record)
+      if (record.data.message == "RecordStarted") {
         // Aquí puedes manipular los datos recibidos del backend
         setRecordData(record.data.message);
         setStartRecord(true);
         toast.success("Recording started");
       }
-      setStartRecord(true);
-
       toast.success("Recording started");
 
       // console.log(record.data.message);
@@ -137,15 +136,14 @@ const Recording: React.FC<RecordingProps> = ({ initialBattery }) => {
 
       console.log(stopRecording);
 
-      const analysedVideo: cameraData2 = await axios.post(
-        "http://localhost:8080/predict",
+      const analysedVideo: cameraData2 = await axios.post("http://127.0.0.1:8080/predict",
+        // "http://20.226.51.27/predict",
         {
           url: stopRecording.data.file_url,
         }
       );
 
       if (analysedVideo.data.file_url !== null) {
-        // Aquí puedes manipular los datos recibidos del backend
         setRepe(analysedVideo.data.file_url);
         setVideo(true);
       }

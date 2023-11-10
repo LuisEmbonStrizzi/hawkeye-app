@@ -7,7 +7,6 @@ import { type courtData } from "../navigation/NewAnalysisSteps";
 
 type AlignCornersProps = {
   image: string | undefined;
-  image_name: string | undefined;
   firstOnClick: () => void;
   setCourtData: React.Dispatch<React.SetStateAction<courtData | null>>;
 };
@@ -16,10 +15,8 @@ type AlignCornersProps = {
 const AlignCorners: React.FC<AlignCornersProps> = ({
   image,
   firstOnClick,
-  image_name,
   setCourtData,
 }) => {
-  const url = '../../../../../gopro_api/official_sdk/' + image_name
 
   const initialVertices = [
     { x: 100, y: 100 },
@@ -233,7 +230,7 @@ const AlignCorners: React.FC<AlignCornersProps> = ({
           width={1000}
           height={1000}
           quality={100}
-          src={url}
+          src={image}
           alt="Frame of the camera display"
         />
         <div className="flex flex-col pt-6">

@@ -56,7 +56,7 @@ const NewAnalysisSteps: React.FC = () => {
 
     void getBattery();
     void getCourtPhoto();
-  }, [courtData]);
+  }, []);
 
   const [alignedCorners, setAlignedCorners] = useState<boolean>(false);
 
@@ -67,7 +67,6 @@ const NewAnalysisSteps: React.FC = () => {
       ) : courtData !== null ? (
         <AlignCorners
           image={courtData?.file_url}
-          image_name={courtData?.file_name}
           firstOnClick={() => setAlignedCorners(true)}
           setCourtData={setCourtData}
         />
